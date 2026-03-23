@@ -29,7 +29,7 @@ admin-web/
 | 订单 | `/orders` | **侧栏**：全部订单、退单、订单历史 |
 | 交易 | `/transactions` | **侧栏**：交易流水、支付方式、对账（可选后续并入报表） |
 | 门店信息 | `/store` | **侧栏**：二级为「门店基础信息」「桌台平面图」；**门店基础信息** 在主区内为三级左侧导航（同 Kiosk），含 **基础信息、LOGO、营业时间**（`STORE_BASIC_SUBNAV`） |
-| 菜单 | `/menu` | **侧栏**：点击「菜单」展开/收起二级（菜单与分组、菜品与加料、按渠道与门店可用性），交互同智能点餐 |
+| 菜单 | `/menu` | **侧栏**：门店菜单、门店商品、门店调味、库存变更记录、打印设置 |
 | 智能点餐 | `/ordering` | **侧栏**：点击「智能点餐」展开/收起二级（POS、POS GO、PayPad、扫码、eMenu、Kiosk、Online Order、外卖平台、餐厅网站、点餐限制规则）；**Kiosk** 在 `/ordering/kiosk/*` 主内容区另有左侧细项导航（见下节） |
 | 厨显 | `/operations/kitchen-kds` | 默认 Tab：厨显设置 |
 | 客显 | `/operations/customer-display` | 顾客侧显示屏 |
@@ -66,7 +66,7 @@ admin-web/
 
 - `navigation.ts`：每个模块必填 `defaultChildPath`（与某子路由一致）
 - `main.ts`：`getTabModule()` 按 **最长 path 前缀** 匹配当前模块（避免 `/orders` 与 `/ordering`、``/reports`` 与 ``/reports/capital`` 等歧义）
-- `normalizeTabModuleHashes()`：访问 `#/menu`、`#/reports` 等仅一级路径时，自动跳到对应 `defaultChildPath`（`defaultChildPath === path` 的单页模块不跳转）；**`#/operations/floor-plan`** → **`#/store/floor-plan`**；**`#/orders/dine-in`** 等原渠道 Tab → **`#/orders/all`**
+- `normalizeTabModuleHashes()`：访问 `#/menu`、`#/reports` 等仅一级路径时，自动跳到对应 `defaultChildPath`（`defaultChildPath === path` 的单页模块不跳转）；**`#/operations/floor-plan`** → **`#/store/floor-plan`**；**`#/orders/dine-in`** 等 → **`#/orders/all`**；**`#/menu/groups`** / **`#/menu/items`** / **`#/menu/availability`**（及子路径）→ **`#/menu/store-menu`**
 - **侧栏子项高亮**：`getActiveChildTabPath()` 按子项 **最长 path 前缀** 匹配（含 `/ordering/kiosk/...` 归到 Kiosk）；`/store/basic`、`/store/logo`、`/store/business-hours` 等归到侧栏二级「门店基础信息」
 
 ### 门店基础信息（三级：侧栏「门店基础信息」+ 主区左侧细项）
@@ -83,7 +83,7 @@ admin-web/
 | 订单 | `/orders/all` |
 | 交易 | `/transactions/ledger` |
 | 门店信息 | `/store/basic` |
-| 菜单 | `/menu/groups` |
+| 菜单 | `/menu/store-menu` |
 | 智能点餐 | `/ordering/pos` |
 | 厨显 | `/operations/kitchen-kds` |
 | 客显 | `/operations/customer-display` |

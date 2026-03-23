@@ -118,11 +118,13 @@ export const NAV_MODULES: NavModule[] = [
     icon: "menu",
     path: "/menu",
     subNavPlacement: "sidebar",
-    defaultChildPath: "/menu/groups",
+    defaultChildPath: "/menu/store-menu",
     children: [
-      { id: "menu-groups", title: "菜单与分组", path: "/menu/groups" },
-      { id: "menu-items", title: "菜品与加料", path: "/menu/items" },
-      { id: "menu-availability", title: "按渠道与门店可用性", path: "/menu/availability" },
+      { id: "menu-store-menu", title: "门店菜单", titleEn: "Store menu", path: "/menu/store-menu" },
+      { id: "menu-store-products", title: "门店商品", titleEn: "Store products", path: "/menu/store-products" },
+      { id: "menu-store-seasoning", title: "门店调味", titleEn: "Store seasoning", path: "/menu/store-seasoning" },
+      { id: "menu-inventory-change-log", title: "库存变更记录", titleEn: "Inventory change log", path: "/menu/inventory-change-log" },
+      { id: "menu-print-settings", title: "打印设置", titleEn: "Print settings", path: "/menu/print-settings" },
     ],
   },
   {

@@ -89,6 +89,12 @@ function normalizeTabModuleHashes(): void {
     location.replace("#/orders/all");
     return;
   }
+  /* 菜单侧栏已移除「菜单与分组」等三项，旧链接统一到默认子路由「门店菜单」 */
+  const legacyMenuPaths = ["/menu/groups", "/menu/items", "/menu/availability"];
+  if (legacyMenuPaths.some((p) => raw === p || raw.startsWith(`${p}/`))) {
+    location.replace("#/menu/store-menu");
+    return;
+  }
   for (const m of NAV_MODULES) {
     if (raw === m.path || raw === `${m.path}/`) {
       if (m.defaultChildPath !== m.path) {
