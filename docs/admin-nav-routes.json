@@ -14,7 +14,7 @@
     { "id": "queue-call", "title": "叫号", "titleEn": "Queue & calling", "path": "/operations/queue-call" },
     { "id": "reservations", "title": "预约", "titleEn": "Reservations", "path": "/operations/reservations" },
     { "id": "waitlist", "title": "排队", "titleEn": "Waitlist", "path": "/operations/waitlist" },
-    { "id": "devices", "title": "设备", "titleEn": "POS / Printers / Handhelds", "path": "/operations/devices" },
+    { "id": "device-management", "title": "设备管理", "titleEn": "Device management", "path": "/device-management" },
     { "id": "inventory-ordering", "title": "订货与库存", "titleEn": "Inventory & ordering", "path": "/operations/inventory-ordering" },
     { "id": "store-patrol", "title": "巡店与巡检", "titleEn": "Store patrol", "path": "/operations/store-patrol" },
     { "id": "promotions", "title": "促销", "titleEn": "Promotions", "path": "/promotions" },

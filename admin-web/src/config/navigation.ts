@@ -30,7 +30,6 @@ export interface NavModule {
     | "queueCall"
     | "reservations"
     | "waitlist"
-    | "hardware"
     | "inventory"
     | "patrol"
     | "promo"
@@ -41,7 +40,11 @@ export interface NavModule {
     | "team"
     | "reports"
     | "capital"
-    | "settings";
+    | "settings"
+    | "paymentService"
+    | "notifications"
+    | "printTemplate"
+    | "deviceManagement";
   path: string;
   children: NavItem[];
   /**
@@ -60,7 +63,7 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Dashboard",
     icon: "home",
     path: "/dashboard",
-    subNavPlacement: "tabs",
+    subNavPlacement: "sidebar",
     defaultChildPath: "/dashboard/overview",
     children: [
       { id: "dash-overview", title: "今日概览", path: "/dashboard/overview" },
@@ -122,9 +125,12 @@ export const NAV_MODULES: NavModule[] = [
     children: [
       { id: "menu-store-menu", title: "门店菜单", titleEn: "Store menu", path: "/menu/store-menu" },
       { id: "menu-store-products", title: "门店商品", titleEn: "Store products", path: "/menu/store-products" },
+      { id: "menu-product-recipe", title: "商品配方", titleEn: "Product recipe", path: "/menu/product-recipe" },
       { id: "menu-store-seasoning", title: "门店调味", titleEn: "Store seasoning", path: "/menu/store-seasoning" },
       { id: "menu-inventory-change-log", title: "库存变更记录", titleEn: "Inventory change log", path: "/menu/inventory-change-log" },
       { id: "menu-print-settings", title: "打印设置", titleEn: "Print settings", path: "/menu/print-settings" },
+      { id: "menu-multi-language", title: "菜单多语言", titleEn: "Menu multi-language", path: "/menu/multi-language" },
+      { id: "menu-tax-types", title: "税种管理", titleEn: "Tax types", path: "/menu/tax-types/settings" },
     ],
   },
   {
@@ -134,11 +140,11 @@ export const NAV_MODULES: NavModule[] = [
     icon: "channels",
     path: "/ordering",
     subNavPlacement: "sidebar",
-    defaultChildPath: "/ordering/pos",
+    defaultChildPath: "/ordering/pos/basic-settings",
     children: [
-      { id: "oc-pos", title: "POS点餐", titleEn: "POS ordering", path: "/ordering/pos" },
+      { id: "oc-pos", title: "POS点餐", titleEn: "POS ordering", path: "/ordering/pos/basic-settings" },
       { id: "oc-pos-go", title: "POS GO点餐", titleEn: "POS Go ordering", path: "/ordering/pos-go" },
-      { id: "oc-paypad", title: "PayPad点餐", titleEn: "PayPad ordering", path: "/ordering/paypad" },
+      { id: "oc-paypad", title: "PayPad点餐", titleEn: "PayPad ordering", path: "/ordering/paypad/tips" },
       { id: "oc-qr", title: "扫码点餐", path: "/ordering/qr" },
       { id: "oc-tablet", title: "eMenu点餐", titleEn: "eMenu ordering", path: "/ordering/tablet" },
       { id: "oc-kiosk", title: "Kiosk 点餐", path: "/ordering/kiosk" },
@@ -155,78 +161,102 @@ export const NAV_MODULES: NavModule[] = [
   },
   {
     id: "kitchen-kds",
-    title: "厨显",
-    titleEn: "Kitchen display",
+    title: "后厨管理",
+    titleEn: "Back-of-house management",
     icon: "kitchenKds",
     path: "/operations/kitchen-kds",
     subNavPlacement: "tabs",
     defaultChildPath: "/operations/kitchen-kds",
     children: [
-      { id: "kds-main", title: "厨显设置", titleEn: "Kitchen display settings", path: "/operations/kitchen-kds" },
+      { id: "kds-main", title: "后厨设置", titleEn: "Back-of-house settings", path: "/operations/kitchen-kds" },
     ],
   },
   {
     id: "customer-display",
-    title: "客显",
-    titleEn: "Customer display",
+    title: "客显系统管理",
+    titleEn: "Customer display system management",
     icon: "customerDisplay",
     path: "/operations/customer-display",
     subNavPlacement: "tabs",
-    defaultChildPath: "/operations/customer-display",
-    children: [{ id: "cd-main", title: "客显", titleEn: "Customer display", path: "/operations/customer-display" }],
+    defaultChildPath: "/operations/customer-display/cover-image",
+    children: [
+      { id: "cd-cover", title: "封面图", titleEn: "Cover image", path: "/operations/customer-display/cover-image" },
+      { id: "cd-multi-language", title: "多语言", titleEn: "Multi-language", path: "/operations/customer-display/multi-language" },
+      { id: "cd-tips", title: "小费", titleEn: "Tips", path: "/operations/customer-display/tips" },
+      { id: "cd-signature", title: "签名", titleEn: "Signature", path: "/operations/customer-display/signature" },
+      { id: "cd-receipt", title: "小票", titleEn: "Receipt ticket", path: "/operations/customer-display/receipt" },
+    ],
   },
   {
     id: "queue-call",
-    title: "叫号",
-    titleEn: "Queue & calling",
+    title: "叫号系统管理",
+    titleEn: "Queue calling system management",
     icon: "queueCall",
     path: "/operations/queue-call",
     subNavPlacement: "tabs",
     defaultChildPath: "/operations/queue-call",
-    children: [{ id: "qc-main", title: "叫号", titleEn: "Queue & calling", path: "/operations/queue-call" }],
+    children: [
+      {
+        id: "qc-main",
+        title: "叫号系统管理",
+        titleEn: "Queue calling system management",
+        path: "/operations/queue-call",
+      },
+    ],
   },
   {
     id: "reservations",
-    title: "预约",
-    titleEn: "Reservations",
+    title: "预约系统管理",
+    titleEn: "Reservation system management",
     icon: "reservations",
     path: "/operations/reservations",
     subNavPlacement: "tabs",
     defaultChildPath: "/operations/reservations",
     children: [
-      { id: "res-main", title: "预约", titleEn: "Reservations", path: "/operations/reservations" },
+      {
+        id: "res-main",
+        title: "预约系统管理",
+        titleEn: "Reservation system management",
+        path: "/operations/reservations",
+      },
     ],
   },
   {
     id: "waitlist",
-    title: "排队",
-    titleEn: "Waitlist",
+    title: "等位系统管理",
+    titleEn: "Waitlist system management",
     icon: "waitlist",
     path: "/operations/waitlist",
     subNavPlacement: "tabs",
     defaultChildPath: "/operations/waitlist",
-    children: [{ id: "wl-main", title: "排队", titleEn: "Waitlist", path: "/operations/waitlist" }],
+    children: [
+      {
+        id: "wl-main",
+        title: "等位系统管理",
+        titleEn: "Waitlist system management",
+        path: "/operations/waitlist",
+      },
+    ],
   },
   {
-    id: "devices",
-    title: "设备",
-    titleEn: "Devices",
-    icon: "hardware",
-    path: "/operations/devices",
-    subNavPlacement: "tabs",
-    defaultChildPath: "/operations/devices",
+    id: "device-management",
+    title: "设备管理",
+    titleEn: "Device management",
+    icon: "deviceManagement",
+    path: "/device-management",
+    subNavPlacement: "sidebar",
+    defaultChildPath: "/device-management/overview",
     children: [
-      { id: "dev-overview", title: "设备", titleEn: "Overview", path: "/operations/devices" },
-      { id: "dev-payments", title: "支付", titleEn: "Payments", path: "/operations/devices/payments" },
-      { id: "dev-cash-drawer", title: "钱箱", titleEn: "Cash drawer", path: "/operations/devices/cash-drawer" },
-      { id: "dev-router", title: "路由器", titleEn: "Router", path: "/operations/devices/router" },
-      { id: "dev-pos", title: "POS", path: "/operations/devices/pos" },
-      { id: "dev-pos-go", title: "POS GO", titleEn: "POS Go", path: "/operations/devices/pos-go" },
-      { id: "dev-kds", title: "KDS", path: "/operations/devices/kds" },
-      { id: "dev-queue-display", title: "叫号屏", titleEn: "Queue display", path: "/operations/devices/queue-display" },
-      { id: "dev-printers", title: "打印机", titleEn: "Printers", path: "/operations/devices/printers" },
-      { id: "dev-kiosk", title: "Kiosk", path: "/operations/devices/kiosk" },
-      { id: "dev-emenu", title: "eMenu", titleEn: "eMenu devices", path: "/operations/devices/emenu" },
+      { id: "dm-overview", title: "设备总览", titleEn: "Overview", path: "/device-management/overview" },
+      {
+        id: "dm-hardware",
+        title: "硬件",
+        titleEn: "Hardware",
+        path: "/device-management/hardware/payments",
+      },
+      { id: "dm-terminals", title: "终端管理", titleEn: "Terminals", path: "/device-management/terminals" },
+      { id: "dm-binding", title: "绑定与授权", titleEn: "Binding & authorization", path: "/device-management/binding" },
+      { id: "dm-alerts", title: "监控告警", titleEn: "Monitoring & alerts", path: "/device-management/alerts" },
     ],
   },
   {
@@ -375,6 +405,48 @@ export const NAV_MODULES: NavModule[] = [
     ],
   },
   {
+    id: "payment-services",
+    title: "支付服务",
+    titleEn: "Payment services",
+    icon: "paymentService",
+    path: "/payment-services",
+    subNavPlacement: "sidebar",
+    defaultChildPath: "/payment-services/overview",
+    children: [
+      { id: "pay-overview", title: "支付概览", titleEn: "Overview", path: "/payment-services/overview" },
+      { id: "pay-channels", title: "支付渠道", titleEn: "Payment channels", path: "/payment-services/channels" },
+      { id: "pay-settlement", title: "结算与到账", titleEn: "Settlement", path: "/payment-services/settlement" },
+      { id: "pay-risk", title: "风控与争议", titleEn: "Risk & disputes", path: "/payment-services/risk-disputes" },
+    ],
+  },
+  {
+    id: "notifications",
+    title: "消息通知",
+    titleEn: "Notifications",
+    icon: "notifications",
+    path: "/notifications",
+    subNavPlacement: "sidebar",
+    defaultChildPath: "/notifications/center",
+    children: [
+      { id: "notif-center", title: "消息中心", titleEn: "Inbox", path: "/notifications/center" },
+      { id: "notif-settings", title: "通知设置", titleEn: "Preferences", path: "/notifications/settings" },
+      { id: "notif-templates", title: "模板与订阅", titleEn: "Templates & subscriptions", path: "/notifications/templates" },
+    ],
+  },
+  {
+    id: "print-templates",
+    title: "打印模板",
+    titleEn: "Print templates",
+    icon: "printTemplate",
+    path: "/print-templates",
+    subNavPlacement: "sidebar",
+    defaultChildPath: "/print-templates/list",
+    children: [
+      { id: "pt-list", title: "模板列表", titleEn: "Template list", path: "/print-templates/list" },
+      { id: "pt-designer", title: "模板设计", titleEn: "Template designer", path: "/print-templates/designer" },
+    ],
+  },
+  {
     id: "capital-turnover",
     title: "资金周转",
     titleEn: "Capital",
@@ -393,8 +465,9 @@ export const NAV_MODULES: NavModule[] = [
     icon: "settings",
     path: "/settings",
     subNavPlacement: "tabs",
-    defaultChildPath: "/settings/basic",
+    defaultChildPath: "/settings/overview",
     children: [
+      { id: "set-overview", title: "设置总揽", titleEn: "Settings overview", path: "/settings/overview" },
       { id: "set-basic", title: "基础设置（门店、营业时间、多门店）", path: "/settings/basic" },
       { id: "set-report", title: "报表设置", path: "/settings/reports" },
       { id: "set-print", title: "打印与票据", path: "/settings/printing" },
@@ -413,6 +486,147 @@ export const NAV_MODULES: NavModule[] = [
     ],
   },
 ];
+
+/** 设备管理 →「硬件」：主内容区左侧细项（路由 `/device-management/hardware/...`，交互对齐 Kiosk 点餐左侧导航） */
+export interface DeviceManagementHardwareSubItem {
+  id: string;
+  title: string;
+  titleEn: string;
+  path: string;
+}
+
+export const DEVICE_MANAGEMENT_HARDWARE_SUBNAV: DeviceManagementHardwareSubItem[] = [
+  { id: "dmh-payments", title: "支付", titleEn: "Payments", path: "/device-management/hardware/payments" },
+  { id: "dmh-cash-drawer", title: "钱箱", titleEn: "Cash drawer", path: "/device-management/hardware/cash-drawer" },
+  { id: "dmh-router", title: "路由器", titleEn: "Router", path: "/device-management/hardware/router" },
+  { id: "dmh-pos", title: "POS", titleEn: "POS", path: "/device-management/hardware/pos" },
+  { id: "dmh-pos-go", title: "POS GO", titleEn: "POS Go", path: "/device-management/hardware/pos-go" },
+  { id: "dmh-kds", title: "KDS", titleEn: "KDS", path: "/device-management/hardware/kds" },
+  { id: "dmh-queue-display", title: "叫号屏", titleEn: "Queue display", path: "/device-management/hardware/queue-display" },
+  { id: "dmh-printers", title: "打印机", titleEn: "Printers", path: "/device-management/hardware/printers" },
+  { id: "dmh-kiosk", title: "Kiosk", titleEn: "Kiosk", path: "/device-management/hardware/kiosk" },
+  { id: "dmh-emenu", title: "eMenu", titleEn: "eMenu devices", path: "/device-management/hardware/emenu" },
+];
+
+export function getDeviceManagementHardwareDefaultPath(): string {
+  return DEVICE_MANAGEMENT_HARDWARE_SUBNAV[0]?.path ?? "/device-management/hardware/payments";
+}
+
+export function getActiveDeviceManagementHardwareSubPath(path: string): string {
+  const sorted = [...DEVICE_MANAGEMENT_HARDWARE_SUBNAV].sort((a, b) => b.path.length - a.path.length);
+  for (const c of sorted) {
+    if (path === c.path || path.startsWith(`${c.path}/`)) return c.path;
+  }
+  return "";
+}
+
+export function isDeviceManagementHardwarePath(path: string): boolean {
+  return getActiveDeviceManagementHardwareSubPath(path) !== "";
+}
+
+/**
+ * 设置总揽：硬件与终端快捷入口，与「设备管理 → 硬件」路径一致（避免与已移除的一级「设备」`/operations/devices` 重复维护）。
+ */
+export const SETTINGS_OVERVIEW_DEVICE_LINKS: { id: string; title: string; titleEn: string; path: string }[] =
+  DEVICE_MANAGEMENT_HARDWARE_SUBNAV.map((item) => ({
+    id: `so-${item.id}`,
+    title: item.title,
+    titleEn: item.titleEn,
+    path: item.path,
+  }));
+
+/** POS 点餐：智能点餐 Tab 内左侧三级导航（路由 `/ordering/pos/...`） */
+export interface PosOrderingSubItem {
+  id: string;
+  title: string;
+  titleEn?: string;
+  path: string;
+}
+
+export const POS_ORDERING_SUBNAV: PosOrderingSubItem[] = [
+  { id: "pos-basic-settings", title: "基础设置", titleEn: "Basic settings", path: "/ordering/pos/basic-settings" },
+  { id: "pos-ui-settings", title: "界面设置", titleEn: "UI settings", path: "/ordering/pos/ui-settings" },
+  { id: "pos-button-settings", title: "按钮设置", titleEn: "Button settings", path: "/ordering/pos/button-settings" },
+  { id: "pos-multi-language", title: "多语言", titleEn: "Multi-language", path: "/ordering/pos/multi-language" },
+];
+
+export function getPosOrderingDefaultPath(): string {
+  return POS_ORDERING_SUBNAV[0]?.path ?? "/ordering/pos";
+}
+
+export function getActivePosOrderingSubPath(path: string): string {
+  const sorted = [...POS_ORDERING_SUBNAV].sort((a, b) => b.path.length - a.path.length);
+  for (const c of sorted) {
+    if (path === c.path || path.startsWith(`${c.path}/`)) return c.path;
+  }
+  return "";
+}
+
+export function isPosOrderingTertiaryPath(path: string): boolean {
+  return getActivePosOrderingSubPath(path) !== "";
+}
+
+/** PayPad 点餐：智能点餐 Tab 内左侧三级导航（路由 `/ordering/paypad/...`） */
+export interface PaypadOrderingSubItem {
+  id: string;
+  title: string;
+  titleEn?: string;
+  path: string;
+}
+
+export const PAYPAD_ORDERING_SUBNAV: PaypadOrderingSubItem[] = [
+  { id: "paypad-tips", title: "小费", titleEn: "Tips", path: "/ordering/paypad/tips" },
+  { id: "paypad-signature", title: "签名", titleEn: "Signature", path: "/ordering/paypad/signature" },
+  { id: "paypad-receipt", title: "收据", titleEn: "Receipt", path: "/ordering/paypad/receipt" },
+];
+
+export function getPaypadOrderingDefaultPath(): string {
+  return PAYPAD_ORDERING_SUBNAV[0]?.path ?? "/ordering/paypad";
+}
+
+export function getActivePaypadOrderingSubPath(path: string): string {
+  const sorted = [...PAYPAD_ORDERING_SUBNAV].sort((a, b) => b.path.length - a.path.length);
+  for (const c of sorted) {
+    if (path === c.path || path.startsWith(`${c.path}/`)) return c.path;
+  }
+  return "";
+}
+
+export function isPaypadOrderingTertiaryPath(path: string): boolean {
+  return getActivePaypadOrderingSubPath(path) !== "";
+}
+
+/** 客显系统管理：主内容区左侧三级导航（路由 `/operations/customer-display/...`） */
+export interface CustomerDisplaySubItem {
+  id: string;
+  title: string;
+  titleEn?: string;
+  path: string;
+}
+
+export const CUSTOMER_DISPLAY_SUBNAV: CustomerDisplaySubItem[] = [
+  { id: "cd-cover", title: "封面图", titleEn: "Cover image", path: "/operations/customer-display/cover-image" },
+  { id: "cd-multi-language", title: "多语言", titleEn: "Multi-language", path: "/operations/customer-display/multi-language" },
+  { id: "cd-tips", title: "小费", titleEn: "Tips", path: "/operations/customer-display/tips" },
+  { id: "cd-signature", title: "签名", titleEn: "Signature", path: "/operations/customer-display/signature" },
+  { id: "cd-receipt", title: "小票", titleEn: "Receipt ticket", path: "/operations/customer-display/receipt" },
+];
+
+export function getCustomerDisplayDefaultPath(): string {
+  return CUSTOMER_DISPLAY_SUBNAV[0]?.path ?? "/operations/customer-display";
+}
+
+export function getActiveCustomerDisplaySubPath(path: string): string {
+  const sorted = [...CUSTOMER_DISPLAY_SUBNAV].sort((a, b) => b.path.length - a.path.length);
+  for (const c of sorted) {
+    if (path === c.path || path.startsWith(`${c.path}/`)) return c.path;
+  }
+  return "";
+}
+
+export function isCustomerDisplayTertiaryPath(path: string): boolean {
+  return getActiveCustomerDisplaySubPath(path) !== "";
+}
 
 /** Kiosk 点餐：智能点餐 Tab 内左侧三级导航（路由 `/ordering/kiosk/...`） */
 export interface KioskOrderingSubItem {
@@ -451,6 +665,54 @@ export function getKioskOrderingDefaultPath(): string {
   return KIOSK_ORDERING_SUBNAV[0]?.path ?? "/ordering/kiosk";
 }
 
+/** eMenu 点餐：智能点餐 Tab 内左侧三级导航（路由 `/ordering/tablet/...`） */
+export interface EmenuOrderingSubItem {
+  id: string;
+  title: string;
+  titleEn?: string;
+  path: string;
+}
+
+export const EMENU_ORDERING_SUBNAV: EmenuOrderingSubItem[] = [
+  { id: "em-device-management", title: "设备管理", titleEn: "Device management", path: "/ordering/tablet/device-management" },
+  { id: "em-permission-settings", title: "权限设置", titleEn: "Permission settings", path: "/ordering/tablet/permission-settings" },
+  { id: "em-prompt-messages", title: "提示信息", titleEn: "Prompt messages", path: "/ordering/tablet/prompt-messages" },
+  { id: "em-order-settings", title: "下单设置", titleEn: "Order settings", path: "/ordering/tablet/order-settings" },
+  { id: "em-display-settings", title: "展示设置", titleEn: "Display settings", path: "/ordering/tablet/display-settings" },
+  { id: "em-user-info", title: "用户信息", titleEn: "User profile", path: "/ordering/tablet/user-info" },
+  { id: "em-tag-settings", title: "标签设置", titleEn: "Tag settings", path: "/ordering/tablet/tag-settings" },
+  { id: "em-notifications", title: "消息通知", titleEn: "Notifications", path: "/ordering/tablet/notifications" },
+  { id: "em-waiter-settings", title: "服务员设置", titleEn: "Waiter settings", path: "/ordering/tablet/waiter-settings" },
+  { id: "em-menu-style", title: "菜单样式", titleEn: "Menu style", path: "/ordering/tablet/menu-style" },
+  { id: "em-menu-pro", title: "菜单Pro", titleEn: "Menu Pro", path: "/ordering/tablet/menu-pro" },
+  { id: "em-auth-settings", title: "授权设置", titleEn: "Authorization settings", path: "/ordering/tablet/auth-settings" },
+  { id: "em-lottery-campaign", title: "抽奖活动", titleEn: "Lottery campaign", path: "/ordering/tablet/lottery-campaign" },
+  { id: "em-poster", title: "海报", titleEn: "Poster", path: "/ordering/tablet/poster" },
+  { id: "em-membership", title: "权益会员", titleEn: "Membership benefits", path: "/ordering/tablet/membership-benefits" },
+  { id: "em-home-video", title: "首页视频", titleEn: "Home video", path: "/ordering/tablet/home-video" },
+  { id: "em-home-bg", title: "首页背景图", titleEn: "Home background image", path: "/ordering/tablet/home-background" },
+  { id: "em-multi-language", title: "多语言", titleEn: "Multi-language", path: "/ordering/tablet/multi-language" },
+  { id: "em-receipt", title: "收据", titleEn: "Receipt", path: "/ordering/tablet/receipt" },
+  { id: "em-menu-category-item", title: "菜单品类设置", titleEn: "Menu category item settings", path: "/ordering/tablet/menu-category-item-settings" },
+  { id: "em-menu-category", title: "菜单分类设置", titleEn: "Menu category settings", path: "/ordering/tablet/menu-category-settings" },
+];
+
+export function getEmenuOrderingDefaultPath(): string {
+  return EMENU_ORDERING_SUBNAV[0]?.path ?? "/ordering/tablet";
+}
+
+export function getActiveEmenuOrderingSubPath(path: string): string {
+  const sorted = [...EMENU_ORDERING_SUBNAV].sort((a, b) => b.path.length - a.path.length);
+  for (const c of sorted) {
+    if (path === c.path || path.startsWith(`${c.path}/`)) return c.path;
+  }
+  return "";
+}
+
+export function isEmenuOrderingTertiaryPath(path: string): boolean {
+  return getActiveEmenuOrderingSubPath(path) !== "";
+}
+
 /** 门店信息 →「门店基础信息」内左侧三级导航（路由 `/store/basic`、`/store/logo`、`/store/business-hours` 等） */
 export interface StoreBasicSubItem {
   id: string;
@@ -482,6 +744,31 @@ export function getStoreBasicDefaultPath(): string {
   return STORE_BASIC_SUBNAV[0]?.path ?? "/store/basic";
 }
 
+/** 菜单 →「税种管理」内左侧三级导航 */
+export interface MenuTaxTypesSubItem {
+  id: string;
+  title: string;
+  titleEn?: string;
+  path: string;
+}
+
+export const MENU_TAX_TYPES_SUBNAV: MenuTaxTypesSubItem[] = [
+  { id: "mt-tax-settings", title: "税种设置", titleEn: "Tax type settings", path: "/menu/tax-types/settings" },
+  { id: "mt-product-tax", title: "商品税设置", titleEn: "Product tax settings", path: "/menu/tax-types/product-tax" },
+];
+
+export function getActiveMenuTaxSubPath(path: string): string {
+  const sorted = [...MENU_TAX_TYPES_SUBNAV].sort((a, b) => b.path.length - a.path.length);
+  for (const c of sorted) {
+    if (path === c.path || path.startsWith(`${c.path}/`)) return c.path;
+  }
+  return "";
+}
+
+export function isMenuTaxTertiaryPath(path: string): boolean {
+  return getActiveMenuTaxSubPath(path) !== "";
+}
+
 /** 扁平化所有路径（用于校验 / 生成 sitemap） */
 export function flattenNavPaths(modules: NavModule[] = NAV_MODULES): string[] {
   const out: string[] = [];
@@ -490,6 +777,11 @@ export function flattenNavPaths(modules: NavModule[] = NAV_MODULES): string[] {
     for (const c of m.children) out.push(c.path);
   }
   for (const k of KIOSK_ORDERING_SUBNAV) out.push(k.path);
+  for (const p of POS_ORDERING_SUBNAV) out.push(p.path);
+  for (const pp of PAYPAD_ORDERING_SUBNAV) out.push(pp.path);
+  for (const e of EMENU_ORDERING_SUBNAV) out.push(e.path);
   for (const s of STORE_BASIC_SUBNAV) out.push(s.path);
+  for (const t of MENU_TAX_TYPES_SUBNAV) out.push(t.path);
+  for (const d of DEVICE_MANAGEMENT_HARDWARE_SUBNAV) out.push(d.path);
   return out;
 }

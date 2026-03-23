@@ -4,9 +4,33 @@ import {
   type NavModule,
   KIOSK_ORDERING_SUBNAV,
   getKioskOrderingDefaultPath,
+  POS_ORDERING_SUBNAV,
+  getPosOrderingDefaultPath,
+  getActivePosOrderingSubPath,
+  isPosOrderingTertiaryPath,
+  PAYPAD_ORDERING_SUBNAV,
+  getPaypadOrderingDefaultPath,
+  getActivePaypadOrderingSubPath,
+  isPaypadOrderingTertiaryPath,
+  EMENU_ORDERING_SUBNAV,
+  getEmenuOrderingDefaultPath,
+  getActiveEmenuOrderingSubPath,
+  isEmenuOrderingTertiaryPath,
   STORE_BASIC_SUBNAV,
   getActiveStoreBasicSubPath,
   isStoreBasicTertiaryPath,
+  MENU_TAX_TYPES_SUBNAV,
+  getActiveMenuTaxSubPath,
+  isMenuTaxTertiaryPath,
+  CUSTOMER_DISPLAY_SUBNAV,
+  getCustomerDisplayDefaultPath,
+  getActiveCustomerDisplaySubPath,
+  isCustomerDisplayTertiaryPath,
+  SETTINGS_OVERVIEW_DEVICE_LINKS,
+  DEVICE_MANAGEMENT_HARDWARE_SUBNAV,
+  getActiveDeviceManagementHardwareSubPath,
+  isDeviceManagementHardwarePath,
+  getDeviceManagementHardwareDefaultPath,
 } from "./config/navigation";
 
 const ICONS: Record<NavModule["icon"], string> = {
@@ -22,7 +46,6 @@ const ICONS: Record<NavModule["icon"], string> = {
   queueCall: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`,
   reservations: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>`,
   waitlist: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>`,
-  hardware: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><line x1="12" x2="12" y1="18" y2="18.01"/></svg>`,
   inventory: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>`,
   patrol: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>`,
   promo: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4"/><path d="m21 2-9.6 9.6"/><path d="M11.5 11.5 6 17l-4 1 1-4 5.5-5.5"/></svg>`,
@@ -33,6 +56,10 @@ const ICONS: Record<NavModule["icon"], string> = {
   team: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
   reports: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>`,
   capital: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01"/><path d="M18 12h.01"/></svg>`,
+  paymentService: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>`,
+  notifications: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>`,
+  printTemplate: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>`,
+  deviceManagement: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="5" x="4" y="4" rx="1"/><rect width="16" height="5" x="4" y="15" rx="1"/><path d="M8 8h.01"/><path d="M8 19h.01"/><path d="M12 8h.01"/><path d="M12 19h.01"/><path d="M16 8h.01"/><path d="M16 19h.01"/></svg>`,
   settings: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>`,
 };
 
@@ -42,10 +69,40 @@ function findTitle(path: string): { title: string; module?: string } {
       return { title: k.title, module: "智能点餐 / Kiosk 点餐" };
     }
   }
+  const posSub = getActivePosOrderingSubPath(path);
+  if (posSub) {
+    const po = POS_ORDERING_SUBNAV.find((x) => x.path === posSub);
+    if (po) return { title: po.title, module: "智能点餐 / POS 点餐" };
+  }
+  const paypadSub = getActivePaypadOrderingSubPath(path);
+  if (paypadSub) {
+    const pp = PAYPAD_ORDERING_SUBNAV.find((x) => x.path === paypadSub);
+    if (pp) return { title: pp.title, module: "智能点餐 / PayPad 点餐" };
+  }
+  const emenuSub = getActiveEmenuOrderingSubPath(path);
+  if (emenuSub) {
+    const em = EMENU_ORDERING_SUBNAV.find((x) => x.path === emenuSub);
+    if (em) return { title: em.title, module: "智能点餐 / eMenu 点餐" };
+  }
   const storeBasicSub = getActiveStoreBasicSubPath(path);
   if (storeBasicSub) {
     const sb = STORE_BASIC_SUBNAV.find((x) => x.path === storeBasicSub);
     if (sb) return { title: sb.title, module: "门店信息 · 门店基础信息" };
+  }
+  const menuTaxSub = getActiveMenuTaxSubPath(path);
+  if (menuTaxSub) {
+    const mt = MENU_TAX_TYPES_SUBNAV.find((x) => x.path === menuTaxSub);
+    if (mt) return { title: mt.title, module: "菜单 · 税种管理" };
+  }
+  const cdSub = getActiveCustomerDisplaySubPath(path);
+  if (cdSub) {
+    const cd = CUSTOMER_DISPLAY_SUBNAV.find((x) => x.path === cdSub);
+    if (cd) return { title: cd.title, module: "客显系统管理" };
+  }
+  const dmHwSub = getActiveDeviceManagementHardwareSubPath(path);
+  if (dmHwSub) {
+    const dh = DEVICE_MANAGEMENT_HARDWARE_SUBNAV.find((x) => x.path === dmHwSub);
+    if (dh) return { title: dh.title, module: "设备管理 · 硬件" };
   }
   for (const m of NAV_MODULES) {
     if (m.path === path) return { title: m.title, module: m.titleEn };
@@ -74,8 +131,53 @@ function getTabModule(path: string): NavModule | undefined {
 /** 将 `#/menu`、`#/reports` 等仅一级路径规范为各自 defaultChildPath（单页模块 path===default 时不跳转） */
 function normalizeTabModuleHashes(): void {
   const raw = location.hash.slice(1);
+  /* 已移除一级「设备」`/operations/devices`，旧书签重定向到「设备管理」 */
+  if (raw === "/operations/devices" || raw === "/operations/devices/") {
+    location.replace("#/device-management/overview");
+    return;
+  }
+  const legacyDev = raw.match(/^\/operations\/devices\/([^/]+)(.*)$/);
+  if (legacyDev) {
+    const seg = legacyDev[1];
+    const rest = legacyDev[2] ?? "";
+    const hw: Record<string, string> = {
+      payments: "payments",
+      "cash-drawer": "cash-drawer",
+      router: "router",
+      pos: "pos",
+      "pos-go": "pos-go",
+      kds: "kds",
+      "queue-display": "queue-display",
+      printers: "printers",
+      kiosk: "kiosk",
+      emenu: "emenu",
+    };
+    const key = hw[seg];
+    if (key) {
+      location.replace(`#/device-management/hardware/${key}${rest}`);
+      return;
+    }
+    location.replace("#/device-management/overview");
+    return;
+  }
   if (raw === "/ordering/kiosk" || raw === "/ordering/kiosk/") {
     location.replace(`#${getKioskOrderingDefaultPath()}`);
+    return;
+  }
+  if (raw === "/ordering/tablet" || raw === "/ordering/tablet/") {
+    location.replace(`#${getEmenuOrderingDefaultPath()}`);
+    return;
+  }
+  if (raw === "/ordering/pos" || raw === "/ordering/pos/") {
+    location.replace(`#${getPosOrderingDefaultPath()}`);
+    return;
+  }
+  if (raw === "/ordering/paypad" || raw === "/ordering/paypad/") {
+    location.replace(`#${getPaypadOrderingDefaultPath()}`);
+    return;
+  }
+  if (raw === "/operations/customer-display" || raw === "/operations/customer-display/") {
+    location.replace(`#${getCustomerDisplayDefaultPath()}`);
     return;
   }
   /* 原侧栏一级「桌台平面图」已移除，旧链接统一到门店信息下的桌台 */
@@ -93,6 +195,14 @@ function normalizeTabModuleHashes(): void {
   const legacyMenuPaths = ["/menu/groups", "/menu/items", "/menu/availability"];
   if (legacyMenuPaths.some((p) => raw === p || raw.startsWith(`${p}/`))) {
     location.replace("#/menu/store-menu");
+    return;
+  }
+  if (raw === "/menu/tax-types" || raw === "/menu/tax-types/") {
+    location.replace("#/menu/tax-types/settings");
+    return;
+  }
+  if (raw === "/device-management/hardware" || raw === "/device-management/hardware/") {
+    location.replace(`#${getDeviceManagementHardwareDefaultPath()}`);
     return;
   }
   for (const m of NAV_MODULES) {
@@ -144,6 +254,32 @@ function getActiveChildTabPath(path: string, children: NavModule["children"]): s
   return "";
 }
 
+function renderMenuTaxTypesSidebar(path: string): string {
+  const navLabel = "税种管理".replace(/"/g, "&quot;");
+  const activeSub = getActiveMenuTaxSubPath(path);
+  return `
+    <nav class="menu-tax-types-subnav w-52 shrink-0 border-r border-border pr-4" aria-label="${navLabel}">
+      <p class="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">税种管理</p>
+      <ul class="space-y-0.5">
+        ${MENU_TAX_TYPES_SUBNAV.map((item) => {
+          const selected = item.path === activeSub;
+          return `
+        <li>
+          <a href="#${item.path}"
+            class="flex min-h-9 items-center rounded-md px-2.5 py-1.5 text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+              selected
+                ? "bg-primary/10 font-medium text-primary"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+            }"
+            ${selected ? 'aria-current="page"' : ""}
+          >${item.title}</a>
+        </li>`;
+        }).join("")}
+      </ul>
+    </nav>
+  `;
+}
+
 function renderStoreBasicSidebar(path: string): string {
   const navLabel = "门店基础信息".replace(/"/g, "&quot;");
   const activeSub = getActiveStoreBasicSubPath(path);
@@ -152,6 +288,32 @@ function renderStoreBasicSidebar(path: string): string {
       <p class="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">门店基础信息</p>
       <ul class="space-y-0.5">
         ${STORE_BASIC_SUBNAV.map((item) => {
+          const selected = item.path === activeSub;
+          return `
+        <li>
+          <a href="#${item.path}"
+            class="flex min-h-9 items-center rounded-md px-2.5 py-1.5 text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+              selected
+                ? "bg-primary/10 font-medium text-primary"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+            }"
+            ${selected ? 'aria-current="page"' : ""}
+          >${item.title}</a>
+        </li>`;
+        }).join("")}
+      </ul>
+    </nav>
+  `;
+}
+
+function renderDeviceManagementHardwareSidebar(path: string): string {
+  const navLabel = "设备管理 · 硬件".replace(/"/g, "&quot;");
+  const activeSub = getActiveDeviceManagementHardwareSubPath(path);
+  return `
+    <nav class="device-management-hardware-subnav w-52 shrink-0 border-r border-border pr-4" aria-label="${navLabel}">
+      <p class="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">硬件</p>
+      <ul class="space-y-0.5">
+        ${DEVICE_MANAGEMENT_HARDWARE_SUBNAV.map((item) => {
           const selected = item.path === activeSub;
           return `
         <li>
@@ -195,6 +357,110 @@ function renderKioskOrderingSidebar(path: string): string {
   `;
 }
 
+function renderPosOrderingSidebar(path: string): string {
+  const navLabel = "POS 点餐设置".replace(/"/g, "&quot;");
+  const activeSub = getActivePosOrderingSubPath(path);
+  return `
+    <nav class="pos-ordering-subnav w-52 shrink-0 border-r border-border pr-4" aria-label="${navLabel}">
+      <p class="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">POS 点餐</p>
+      <ul class="space-y-0.5">
+        ${POS_ORDERING_SUBNAV.map((item) => {
+          const selected = item.path === activeSub;
+          return `
+        <li>
+          <a href="#${item.path}"
+            class="flex min-h-9 items-center rounded-md px-2.5 py-1.5 text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+              selected
+                ? "bg-primary/10 font-medium text-primary"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+            }"
+            ${selected ? 'aria-current="page"' : ""}
+          >${item.title}</a>
+        </li>`;
+        }).join("")}
+      </ul>
+    </nav>
+  `;
+}
+
+function renderCustomerDisplaySidebar(path: string): string {
+  const navLabel = "客显系统管理设置".replace(/"/g, "&quot;");
+  const activeSub = getActiveCustomerDisplaySubPath(path);
+  return `
+    <nav class="customer-display-subnav w-52 shrink-0 border-r border-border pr-4" aria-label="${navLabel}">
+      <p class="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">客显系统管理</p>
+      <ul class="space-y-0.5">
+        ${CUSTOMER_DISPLAY_SUBNAV.map((item) => {
+          const selected = item.path === activeSub;
+          return `
+        <li>
+          <a href="#${item.path}"
+            class="flex min-h-9 items-center rounded-md px-2.5 py-1.5 text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+              selected
+                ? "bg-primary/10 font-medium text-primary"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+            }"
+            ${selected ? 'aria-current="page"' : ""}
+          >${item.title}</a>
+        </li>`;
+        }).join("")}
+      </ul>
+    </nav>
+  `;
+}
+
+function renderPaypadOrderingSidebar(path: string): string {
+  const navLabel = "PayPad 点餐设置".replace(/"/g, "&quot;");
+  const activeSub = getActivePaypadOrderingSubPath(path);
+  return `
+    <nav class="paypad-ordering-subnav w-52 shrink-0 border-r border-border pr-4" aria-label="${navLabel}">
+      <p class="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">PayPad 点餐</p>
+      <ul class="space-y-0.5">
+        ${PAYPAD_ORDERING_SUBNAV.map((item) => {
+          const selected = item.path === activeSub;
+          return `
+        <li>
+          <a href="#${item.path}"
+            class="flex min-h-9 items-center rounded-md px-2.5 py-1.5 text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+              selected
+                ? "bg-primary/10 font-medium text-primary"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+            }"
+            ${selected ? 'aria-current="page"' : ""}
+          >${item.title}</a>
+        </li>`;
+        }).join("")}
+      </ul>
+    </nav>
+  `;
+}
+
+function renderEmenuOrderingSidebar(path: string): string {
+  const navLabel = "eMenu 点餐设置".replace(/"/g, "&quot;");
+  const activeSub = getActiveEmenuOrderingSubPath(path);
+  return `
+    <nav class="emenu-ordering-subnav w-52 shrink-0 border-r border-border pr-4" aria-label="${navLabel}">
+      <p class="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">eMenu 点餐</p>
+      <ul class="space-y-0.5">
+        ${EMENU_ORDERING_SUBNAV.map((item) => {
+          const selected = item.path === activeSub;
+          return `
+        <li>
+          <a href="#${item.path}"
+            class="flex min-h-9 items-center rounded-md px-2.5 py-1.5 text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+              selected
+                ? "bg-primary/10 font-medium text-primary"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+            }"
+            ${selected ? 'aria-current="page"' : ""}
+          >${item.title}</a>
+        </li>`;
+        }).join("")}
+      </ul>
+    </nav>
+  `;
+}
+
 function renderSidebar(): string {
   const hash = location.hash.slice(1) || "/dashboard/overview";
   return `
@@ -221,6 +487,21 @@ function renderExpandableSidebarModule(m: NavModule, hash: string, expanded: boo
   let activeChildPath = getActiveChildTabPath(hash, m.children);
   if (m.id === "store-info" && isStoreBasicTertiaryPath(hash)) {
     activeChildPath = "/store/basic";
+  }
+  if (m.id === "menu" && isMenuTaxTertiaryPath(hash)) {
+    activeChildPath = "/menu/tax-types/settings";
+  }
+  if (m.id === "ordering-channels" && isPosOrderingTertiaryPath(hash)) {
+    activeChildPath = getPosOrderingDefaultPath();
+  }
+  if (m.id === "ordering-channels" && isPaypadOrderingTertiaryPath(hash)) {
+    activeChildPath = getPaypadOrderingDefaultPath();
+  }
+  if (m.id === "ordering-channels" && isEmenuOrderingTertiaryPath(hash)) {
+    activeChildPath = "/ordering/tablet";
+  }
+  if (m.id === "device-management" && isDeviceManagementHardwarePath(hash)) {
+    activeChildPath = getDeviceManagementHardwareDefaultPath();
   }
   const childrenId = `sidebar-children-${m.id}`;
   const chevron = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
@@ -281,6 +562,33 @@ function renderModule(m: NavModule, hash: string): string {
     </div>`;
 }
 
+/** 设置总揽：跳转「设备管理 → 硬件」各类型配置页 */
+function renderSettingsOverview(): string {
+  const cards = SETTINGS_OVERVIEW_DEVICE_LINKS.map(
+    (item) => `
+      <li>
+        <a
+          href="#${item.path}"
+          class="group flex min-h-[4.25rem] flex-col justify-center rounded-xl border border-border bg-card px-4 py-3 shadow-sm transition-colors duration-200 hover:border-primary/35 hover:bg-primary/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          <span class="text-sm font-semibold text-card-foreground group-hover:text-primary">${item.title}</span>
+          <span class="mt-0.5 text-xs text-muted-foreground">${item.titleEn}</span>
+        </a>
+      </li>`,
+  ).join("");
+  return `
+    <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+      <h2 class="text-base font-semibold tracking-tight text-card-foreground">硬件与终端</h2>
+      <p class="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+        从设置总揽快速进入 <strong class="text-card-foreground">设备管理 → 硬件</strong> 下各终端配置页（含 POS GO）；左侧主导航请展开 <strong class="text-card-foreground">设备管理</strong> → <strong class="text-card-foreground">硬件</strong>。
+      </p>
+      <ul class="mt-6 grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3" role="list">
+        ${cards}
+      </ul>
+    </div>
+  `;
+}
+
 function renderModuleTabs(path: string, tabModule: NavModule): string {
   const tabs = tabModule.children;
   const activeTabPath = getActiveChildTabPath(path, tabs);
@@ -321,9 +629,25 @@ function renderMain(): string {
   const { title, module } = findTitle(path);
   const headerKicker = tabModule ? `${tabModule.title} · ${tabModule.titleEn}` : module ?? "";
   const isKioskOrdering = path.startsWith("/ordering/kiosk");
+  const isPosOrdering = isPosOrderingTertiaryPath(path);
+  const isPaypadOrdering = isPaypadOrderingTertiaryPath(path);
+  const isEmenuOrdering = isEmenuOrderingTertiaryPath(path);
   const isStoreBasicTertiary = isStoreBasicTertiaryPath(path);
-  const wideContentLayout = isKioskOrdering || isStoreBasicTertiary;
-  const showModuleTabs = Boolean(tabModule && tabModule.subNavPlacement !== "sidebar");
+  const isMenuTaxTertiary = isMenuTaxTertiaryPath(path);
+  const isCustomerDisplayTertiary = isCustomerDisplayTertiaryPath(path);
+  const isDeviceManagementHardware = isDeviceManagementHardwarePath(path);
+  const wideContentLayout =
+    isKioskOrdering ||
+    isPosOrdering ||
+    isPaypadOrdering ||
+    isEmenuOrdering ||
+    isCustomerDisplayTertiary ||
+    isStoreBasicTertiary ||
+    isMenuTaxTertiary ||
+    isDeviceManagementHardware;
+  const showModuleTabs = Boolean(
+    tabModule && tabModule.subNavPlacement !== "sidebar" && tabModule.id !== "customer-display",
+  );
 
   return `
     <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
@@ -355,12 +679,44 @@ function renderMain(): string {
                     ${renderKioskOrderingSidebar(path)}
                     <div class="min-w-0 flex-1">${renderPlaceholder(path, title, tabModule, { kioskSubnav: true })}</div>
                   </div>`
+                : isPosOrdering
+                  ? `<div class="flex min-h-0 flex-col gap-6 sm:flex-row sm:items-start">
+                    ${renderPosOrderingSidebar(path)}
+                    <div class="min-w-0 flex-1">${renderPlaceholder(path, title, tabModule, { posSubnav: true })}</div>
+                  </div>`
+                : isPaypadOrdering
+                  ? `<div class="flex min-h-0 flex-col gap-6 sm:flex-row sm:items-start">
+                    ${renderPaypadOrderingSidebar(path)}
+                    <div class="min-w-0 flex-1">${renderPlaceholder(path, title, tabModule, { paypadSubnav: true })}</div>
+                  </div>`
+                : isEmenuOrdering
+                  ? `<div class="flex min-h-0 flex-col gap-6 sm:flex-row sm:items-start">
+                    ${renderEmenuOrderingSidebar(path)}
+                    <div class="min-w-0 flex-1">${renderPlaceholder(path, title, tabModule, { emenuSubnav: true })}</div>
+                  </div>`
+                : isCustomerDisplayTertiary
+                  ? `<div class="flex min-h-0 flex-col gap-6 sm:flex-row sm:items-start">
+                    ${renderCustomerDisplaySidebar(path)}
+                    <div class="min-w-0 flex-1">${renderPlaceholder(path, title, tabModule, { customerDisplaySubnav: true })}</div>
+                  </div>`
                 : isStoreBasicTertiary
                   ? `<div class="flex min-h-0 flex-col gap-6 sm:flex-row sm:items-start">
                     ${renderStoreBasicSidebar(path)}
                     <div class="min-w-0 flex-1">${renderPlaceholder(path, title, tabModule, { storeBasicSubnav: true })}</div>
                   </div>`
-                  : renderPlaceholder(path, title, tabModule)
+                  : isMenuTaxTertiary
+                    ? `<div class="flex min-h-0 flex-col gap-6 sm:flex-row sm:items-start">
+                    ${renderMenuTaxTypesSidebar(path)}
+                    <div class="min-w-0 flex-1">${renderPlaceholder(path, title, tabModule, { menuTaxSubnav: true })}</div>
+                  </div>`
+                    : isDeviceManagementHardware
+                      ? `<div class="flex min-h-0 flex-col gap-6 sm:flex-row sm:items-start">
+                    ${renderDeviceManagementHardwareSidebar(path)}
+                    <div class="min-w-0 flex-1">${renderPlaceholder(path, title, tabModule, { deviceManagementHardwareSubnav: true })}</div>
+                  </div>`
+                    : path === "/settings/overview"
+                      ? renderSettingsOverview()
+                      : renderPlaceholder(path, title, tabModule)
             }
           </div>
         </div>
@@ -373,11 +729,26 @@ function renderPlaceholder(
   path: string,
   title: string,
   tabModule?: NavModule,
-  opts?: { kioskSubnav?: boolean; storeBasicSubnav?: boolean },
+  opts?: {
+    kioskSubnav?: boolean;
+    posSubnav?: boolean;
+    paypadSubnav?: boolean;
+    emenuSubnav?: boolean;
+    storeBasicSubnav?: boolean;
+    menuTaxSubnav?: boolean;
+    customerDisplaySubnav?: boolean;
+    deviceManagementHardwareSubnav?: boolean;
+  },
 ): string {
   const sidebarSecond = tabModule?.subNavPlacement === "sidebar";
   const kioskSubnav = opts?.kioskSubnav;
+  const posSubnav = opts?.posSubnav;
+  const paypadSubnav = opts?.paypadSubnav;
+  const emenuSubnav = opts?.emenuSubnav;
   const storeBasicSubnav = opts?.storeBasicSubnav;
+  const menuTaxSubnav = opts?.menuTaxSubnav;
+  const customerDisplaySubnav = opts?.customerDisplaySubnav;
+  const deviceManagementHardwareSubnav = opts?.deviceManagementHardwareSubnav;
   return `
     <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
       <p class="text-sm text-muted-foreground leading-relaxed">当前路由：<code class="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">${path}</code></p>
@@ -386,15 +757,27 @@ function renderPlaceholder(
         ${
           kioskSubnav
             ? `<li><strong class="text-card-foreground">Kiosk 点餐</strong>：在左侧主导航展开「智能点餐」后选择 <strong class="text-card-foreground">Kiosk 点餐</strong>；本区域左侧为 Kiosk 细项设置。</li>`
+            : posSubnav
+              ? `<li><strong class="text-card-foreground">POS 点餐</strong>：在左侧主导航展开「智能点餐」后选择 <strong class="text-card-foreground">POS 点餐</strong>；本区域左侧为 POS 细项设置（基础设置、界面设置、按钮设置、多语言）。</li>`
+            : paypadSubnav
+              ? `<li><strong class="text-card-foreground">PayPad 点餐</strong>：在左侧主导航展开「智能点餐」后选择 <strong class="text-card-foreground">PayPad 点餐</strong>；本区域左侧为 PayPad 细项设置（小费、签名、收据）。</li>`
+            : emenuSubnav
+              ? `<li><strong class="text-card-foreground">eMenu 点餐</strong>：在左侧主导航展开「智能点餐」后选择 <strong class="text-card-foreground">eMenu 点餐</strong>；本区域左侧为 eMenu 细项设置。</li>`
+            : customerDisplaySubnav
+              ? `<li><strong class="text-card-foreground">客显系统管理</strong>：在左侧主导航选择 <strong class="text-card-foreground">客显系统管理</strong>；本区域左侧为细项（封面图、多语言、小费、签名、小票）。</li>`
+            : deviceManagementHardwareSubnav
+              ? `<li><strong class="text-card-foreground">设备管理 · 硬件</strong>：在左侧主导航展开「设备管理」后选择 <strong class="text-card-foreground">硬件</strong>；本区域左侧为硬件细项（支付、钱箱、路由器、POS、POS GO、KDS、叫号屏、打印机、Kiosk、eMenu），交互同 Kiosk 点餐左侧导航。</li>`
             : storeBasicSubnav
               ? `<li><strong class="text-card-foreground">门店基础信息</strong>：主导航展开「门店信息」后选「门店基础信息」；本区域左侧为 <strong class="text-card-foreground">基础信息 / LOGO / 营业时间</strong> 细项（交互同 Kiosk）。</li>`
-              : sidebarSecond
+              : menuTaxSubnav
+                ? `<li><strong class="text-card-foreground">税种管理</strong>：主导航展开「菜单」后选「税种管理」；本区域左侧为 <strong class="text-card-foreground">税种设置 / 商品税设置</strong> 细项（交互同 Kiosk）。</li>`
+                : sidebarSecond
                 ? `<li>本模块（<strong class="text-card-foreground">${tabModule.title}</strong>）二级在左侧主导航：点击侧栏「${tabModule.title}」展开/收起子列表后切换。</li>`
                 : tabModule
                   ? `<li>本模块（<strong class="text-card-foreground">${tabModule.title}</strong>）二级导航在上方 <strong class="text-card-foreground">Tab</strong> 切换；侧栏仅保留该模块一级入口</li>`
                   : ""
         }
-        <li>${sidebarSecond ? "订单、门店、菜单、点餐、交易、报表与财务、促销、营销、会员、评价、礼品卡、团队等模块的二级在侧栏折叠组内；" : "侧栏一级入口；多数模块"}其它模块二级多在上方 Tab。结构来源：<strong class="text-card-foreground">docs/餐饮商家后台-导航与目录结构建议.md</strong></li>
+        <li>${sidebarSecond ? "订单、门店、菜单、智能点餐、交易、报表与财务、促销、营销、会员、评价、礼品卡、团队、支付服务、消息通知、打印模板、设备管理等模块的二级在侧栏折叠组内（一级行点击仅展开/收起，再点子项进入路由）；" : "侧栏一级入口；多数模块"}其它模块二级多在上方 Tab。结构来源：<strong class="text-card-foreground">docs/餐饮商家后台-导航与目录结构建议.md</strong></li>
         <li>设计令牌使用 Tailwind v4 <code class="font-mono text-xs">@theme</code>（OKLCH 语义色）</li>
         <li>标记为「连锁」的 Tab 为加盟/多店场景常用入口（配置见 <code class="font-mono text-xs">navigation.ts</code> 中 <code class="font-mono text-xs">chainOnly</code>）</li>
       </ul>
