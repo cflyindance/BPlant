@@ -30,9 +30,10 @@
   --color-card: oklch(100% 0 0);
   --color-card-foreground: oklch(22% 0.04 250);
 
-  --color-sidebar: oklch(18% 0.04 250);
-  --color-sidebar-foreground: oklch(92% 0.02 250);
-  --color-sidebar-muted: oklch(65% 0.03 250);
+  /* 浅色模式：侧栏白底 + 深字；深色模式见 `.dark` */
+  --color-sidebar: oklch(100% 0 0);
+  --color-sidebar-foreground: oklch(22% 0.04 250);
+  --color-sidebar-muted: oklch(48% 0.03 250);
   --color-sidebar-active: oklch(42% 0.14 195);
   --color-sidebar-active-fg: oklch(99% 0.01 195);
 
@@ -127,6 +128,10 @@
 @layer components {
   .sidebar-primary-nav-scroll {
     scrollbar-width: thin;
+    scrollbar-color: oklch(48% 0.03 250 / 0.35) transparent;
+  }
+
+  .dark .sidebar-primary-nav-scroll {
     scrollbar-color: rgb(255 255 255 / 0.22) transparent;
   }
 
@@ -140,12 +145,20 @@
 
   .sidebar-primary-nav-scroll::-webkit-scrollbar-thumb {
     border-radius: 9999px;
-    background-color: rgb(255 255 255 / 0.2);
+    background-color: oklch(48% 0.03 250 / 0.32);
     /* 避免直角块像「原生条」 */
     background-clip: padding-box;
   }
 
   .sidebar-primary-nav-scroll:hover::-webkit-scrollbar-thumb {
+    background-color: oklch(48% 0.03 250 / 0.5);
+  }
+
+  .dark .sidebar-primary-nav-scroll::-webkit-scrollbar-thumb {
+    background-color: rgb(255 255 255 / 0.2);
+  }
+
+  .dark .sidebar-primary-nav-scroll:hover::-webkit-scrollbar-thumb {
     background-color: rgb(255 255 255 / 0.38);
   }
 

@@ -57,7 +57,7 @@ const order = [
   "store-mgmt",
   "dashboard",
   "team",
-  "product-center-a",
+  "product-center-main",
   "orders",
   "transactions",
   "waitlist",
@@ -81,6 +81,7 @@ const order = [
   "config-center",
   "settings",
   "product-center",
+  "product-center-a",
 ];
 for (const id of order) {
   if (!byId[id]) throw new Error("missing module: " + id);

@@ -52,9 +52,10 @@ export interface NavModule {
   children: NavItem[];
   /**
    * `tabs`：二级在主内容区顶部 Tab（默认）。
-   * `sidebar`：二级在左侧主导航内可折叠展开。一级顺序见 `NAV_MODULES`（品牌→门店→主页→团队→商品→订单→支付→外卖/来取→营销→促销→会员→礼品卡→评价→前厅→后厨→预约→报表→财务→打印→消息→库存→硬件→权限；其后为信贷中心、素材中心、配置中心、系统设置）。重排可运行 `node scripts/reorder-nav-modules.mjs`。
+   * `sidebar`：二级在左侧主导航内可折叠展开。一级顺序见 `NAV_MODULES`（品牌→门店→主页→团队→商品中心→订单→支付→外卖/来取→营销→促销→会员→礼品卡→评价→前厅→后厨→预约→报表→财务→打印→消息→库存→硬件→权限；其后为信贷中心、素材中心、配置中心、系统设置→商品中心A→商品中心B）。重排可运行 `node scripts/reorder-nav-modules.mjs`。
+   * `sheet`：二级在侧栏自右向左滑出层（与营销中心同交互），不在主导航树内展开。
    */
-  subNavPlacement?: "sidebar" | "tabs";
+  subNavPlacement?: "sidebar" | "tabs" | "sheet";
   /** 访问 `#/模块前缀` 时重定向到该默认子路径；须与 children 中某项一致 */
   defaultChildPath: string;
   /**
@@ -119,7 +120,7 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Brand management",
     icon: "brandMgmt",
     path: "/brand",
-    subNavPlacement: "sidebar",
+    subNavPlacement: "sheet",
     defaultChildPath: "/brand/overview",
     children: [
       { id: "br-overview", title: "品牌总览", titleEn: "Overview", path: "/brand/overview" },
@@ -133,7 +134,7 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Store management",
     icon: "storeMgmt",
     path: "/stores",
-    subNavPlacement: "sidebar",
+    subNavPlacement: "sheet",
     defaultChildPath: "/stores/overview",
     children: [
       { id: "st-overview", title: "门店总览", titleEn: "Overview", path: "/stores/overview" },
@@ -161,7 +162,7 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Team",
     icon: "team",
     path: "/team",
-    subNavPlacement: "sidebar",
+    subNavPlacement: "sheet",
     defaultChildPath: "/team/roles-employees",
     children: [
       { id: "team-roles", title: "角色与员工", path: "/team/roles-employees" },
@@ -180,14 +181,32 @@ export const NAV_MODULES: NavModule[] = [
     ],
   },
   {
-    id: "product-center-a",
+    id: "product-center-main",
     title: "商品中心",
     titleEn: "Product center",
-    icon: "inventory",
-    path: "/product-center-a",
-    matchPrefixes: ["/product-center-a"],
-    defaultChildPath: "/product-center-a",
-    children: [{ id: "pca-main", title: "商品中心", titleEn: "Product center", path: "/product-center-a" }],
+    icon: "menu",
+    path: "/product-center-main",
+    defaultChildPath: "/brand-products/products",
+    children: [
+      {
+        id: "pcm-brand-products",
+        title: "商品管理",
+        titleEn: "Product management",
+        path: "/brand-products/products",
+      },
+      {
+        id: "pcm-brand-menu",
+        title: "品牌菜单",
+        titleEn: "Brand menus",
+        path: "/brand-menu/menus",
+      },
+      {
+        id: "pcm-store-mgmt",
+        title: "门店管理",
+        titleEn: "Store management",
+        path: "/menu/store-menu",
+      },
+    ],
   },
   {
     id: "orders",
@@ -195,7 +214,7 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Order center",
     icon: "orders",
     path: "/orders",
-    subNavPlacement: "sidebar",
+    subNavPlacement: "sheet",
     defaultChildPath: "/orders/all",
     children: [
       { id: "orders-all", title: "全部订单", path: "/orders/all" },
@@ -209,7 +228,7 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Payment center",
     icon: "receipt",
     path: "/transactions",
-    subNavPlacement: "sidebar",
+    subNavPlacement: "sheet",
     defaultChildPath: "/transactions/ledger",
     children: [
       { id: "tx-ledger", title: "交易流水", path: "/transactions/ledger" },
@@ -240,8 +259,11 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Marketing center",
     icon: "marketing",
     path: "/marketing",
-    defaultChildPath: "/marketing/ai/ads",
-    children: [{ id: "mkt-main", title: "营销中心", titleEn: "Marketing center", path: "/marketing" }],
+    defaultChildPath: "/marketing/campaigns",
+    children: [
+      { id: "mkt-campaigns", title: "营销活动", titleEn: "Campaigns", path: "/marketing/campaigns" },
+      { id: "mkt-manual", title: "手动营销", titleEn: "Manual marketing", path: "/marketing/manual" },
+    ],
   },
   {
     id: "promotions",
@@ -250,7 +272,7 @@ export const NAV_MODULES: NavModule[] = [
     icon: "promo",
     path: "/promotions",
     defaultChildPath: "/promotions/campaigns",
-    children: [{ id: "promo-campaigns", title: "促销管理", path: "/promotions/campaigns" }],
+    children: [{ id: "promo-campaigns", title: "促销活动", titleEn: "Promotional activities", path: "/promotions/campaigns" }],
   },
   {
     id: "members",
@@ -258,8 +280,11 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Member center",
     icon: "members",
     path: "/members",
-    defaultChildPath: "/members/settings",
-    children: [{ id: "mem-main", title: "会员中心", titleEn: "Member center", path: "/members/settings" }],
+    defaultChildPath: "/members/card/coupon-mgmt",
+    children: [
+      { id: "mem-card-entry", title: "卡券管理", titleEn: "Cards & coupons", path: "/members/card/coupon-mgmt" },
+      { id: "mem-points", title: "积分配置", titleEn: "Points config", path: "/members/points" },
+    ],
   },
   {
     id: "gift-cards",
@@ -267,8 +292,11 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Gift card center",
     icon: "gift",
     path: "/gift-cards",
-    defaultChildPath: "/gift-cards/design",
-    children: [{ id: "gc-main", title: "礼品卡中心", titleEn: "Gift card center", path: "/gift-cards" }],
+    defaultChildPath: "/gift-cards/cards",
+    children: [
+      { id: "gc-cards", title: "Cards", titleEn: "礼品卡工厂", path: "/gift-cards/cards" },
+      { id: "gc-settings", title: "Settings", titleEn: "礼品卡设置", path: "/gift-cards/settings" },
+    ],
   },
   {
     id: "reviews",
@@ -276,7 +304,7 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Review center",
     icon: "reviews",
     path: "/reviews",
-    subNavPlacement: "sidebar",
+    subNavPlacement: "sheet",
     defaultChildPath: "/reviews/insights",
     children: [
       { id: "rev-insights", title: "评价洞察", path: "/reviews/insights" },
@@ -320,14 +348,13 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Reservation & waitlist center",
     icon: "reservations",
     path: "/operations/reservations",
-    defaultChildPath: "/operations/reservations",
+    defaultChildPath: "/operations/reservations/waitlist",
     children: [
-      {
-        id: "res-main",
-        title: "预约等位中心",
-        titleEn: "Reservation & waitlist center",
-        path: "/operations/reservations",
-      },
+      { id: "res-waitlist", title: "Waitlist", titleEn: "等位", path: "/operations/reservations/waitlist" },
+      { id: "res-rsv", title: "RSV", titleEn: "预订", path: "/operations/reservations/rsv" },
+      { id: "res-history", title: "History", titleEn: "历史", path: "/operations/reservations/history" },
+      { id: "res-section", title: "Section", titleEn: "分区", path: "/operations/reservations/section" },
+      { id: "res-settings", title: "设置", titleEn: "Settings", path: "/operations/reservations/settings" },
     ],
   },
   {
@@ -337,7 +364,14 @@ export const NAV_MODULES: NavModule[] = [
     icon: "reports",
     path: "/reports",
     defaultChildPath: "/reports/revenue",
-    children: [{ id: "rpt-main", title: "报表中心", titleEn: "Reporting center", path: "/reports/revenue" }],
+    children: [
+      { id: "rpt-revenue", title: "营业汇总", titleEn: "Business summary", path: "/reports/revenue" },
+      { id: "rpt-sales", title: "销售汇总", titleEn: "Sales summary", path: "/reports/sales/orders" },
+      { id: "rpt-products", title: "商品报表", titleEn: "Product reports", path: "/reports/products/ranking" },
+      { id: "rpt-staff", title: "员工报表", titleEn: "Staff reports", path: "/reports/staff/overview" },
+      { id: "rpt-trends", title: "走势详情", titleEn: "Trend details", path: "/reports/trends/store-overview" },
+      { id: "rpt-monthly", title: "月度经营分析", titleEn: "Monthly analysis", path: "/reports/monthly-analysis" },
+    ],
   },
   {
     id: "finance-center",
@@ -345,7 +379,7 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Finance center",
     icon: "financeCenter",
     path: "/finance",
-    subNavPlacement: "sidebar",
+    subNavPlacement: "sheet",
     defaultChildPath: "/finance/overview",
     children: [
       { id: "fin-overview", title: "财务总览", titleEn: "Overview", path: "/finance/overview" },
@@ -360,8 +394,8 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Print center",
     icon: "printTemplate",
     path: "/print-templates",
-    defaultChildPath: "/print-templates/list",
-    children: [{ id: "pt-main", title: "打印中心", titleEn: "Print center", path: "/print-templates/list" }],
+    defaultChildPath: "/print-templates/decoration",
+    children: [{ id: "pt-decoration", title: "打印装修", titleEn: "Print styling", path: "/print-templates/decoration" }],
   },
   {
     id: "notifications",
@@ -383,20 +417,20 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Inventory management center",
     icon: "inventory",
     path: "/operations/inventory-ordering",
-    subNavPlacement: "sidebar",
-    defaultChildPath: "/operations/inventory-ordering",
+    subNavPlacement: "tabs",
+    defaultChildPath: "/operations/inventory-ordering/expiry",
     children: [
       {
-        id: "inv-main",
-        title: "订货与库存",
-        path: "/operations/inventory-ordering",
-        chainOnly: true,
+        id: "inv-expiry",
+        title: "效期管理",
+        titleEn: "Expiry management",
+        path: "/operations/inventory-ordering/expiry",
       },
       {
-        id: "inv-change-log",
-        title: "库存变更记录",
-        titleEn: "Inventory change log",
-        path: "/operations/inventory-ordering/inventory-change-log",
+        id: "inv-materials",
+        title: "物料管理",
+        titleEn: "Materials management",
+        path: "/operations/inventory-ordering/materials",
       },
     ],
   },
@@ -406,7 +440,7 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Hardware management center",
     icon: "deviceManagement",
     path: "/device-management",
-    subNavPlacement: "sidebar",
+    subNavPlacement: "sheet",
     defaultChildPath: "/device-management/overview",
     children: [
       { id: "dm-overview", title: "设备总览", titleEn: "Overview", path: "/device-management/overview" },
@@ -427,7 +461,7 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Access management center",
     icon: "permissionMgmt",
     path: "/permissions",
-    subNavPlacement: "sidebar",
+    subNavPlacement: "sheet",
     defaultChildPath: "/permissions/overview",
     children: [
       {
@@ -471,7 +505,7 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Asset center",
     icon: "assetCenter",
     path: "/asset-center",
-    subNavPlacement: "sidebar",
+    subNavPlacement: "sheet",
     defaultChildPath: "/asset-center/overview",
     children: [
       { id: "ac-overview", title: "素材总览", titleEn: "Overview", path: "/asset-center/overview" },
@@ -536,6 +570,16 @@ export const NAV_MODULES: NavModule[] = [
       { id: "pc-brand-menu", title: "品牌菜单管理", titleEn: "Brand menus", path: "/brand-menu" },
       { id: "pc-store-products", title: "门店商品管理", titleEn: "Store product management", path: "/menu" },
     ],
+  },
+  {
+    id: "product-center-a",
+    title: "商品中心B",
+    titleEn: "Product center B",
+    icon: "inventory",
+    path: "/product-center-a",
+    matchPrefixes: ["/product-center-a"],
+    defaultChildPath: "/product-center-a",
+    children: [{ id: "pca-main", title: "商品中心B", titleEn: "Product center B", path: "/product-center-a" }],
   },
 ];
 
@@ -956,6 +1000,106 @@ export const BRAND_MENU_SUBNAV: ProductCenterSidebarSubItem[] = [
   },
 ];
 
+/** 营销中心侧滑层 ·「营销管理」下子导航 */
+export const MARKETING_MGMT_SUBNAV: ProductCenterSidebarSubItem[] = [
+  { id: "mkt-campaigns", title: "营销活动", titleEn: "Campaigns", path: "/marketing/campaigns" },
+  { id: "mkt-manual", title: "手动营销", titleEn: "Manual marketing", path: "/marketing/manual" },
+];
+
+/** 促销中心侧滑层 · 单项「促销活动」 */
+export const PROMOTIONS_MGMT_SUBNAV: ProductCenterSidebarSubItem[] = [
+  { id: "promo-campaigns", title: "促销活动", titleEn: "Promotional activities", path: "/promotions/campaigns" },
+];
+
+/** 礼品卡中心侧滑层 · Cards / Settings（title=中文主文案，titleEn=英文） */
+export const GIFT_CARDS_SHEET_SUBNAV: ProductCenterSidebarSubItem[] = [
+  { id: "gc-cards", title: "礼品卡工厂", titleEn: "Gift cards", path: "/gift-cards/cards" },
+  { id: "gc-settings", title: "礼品卡设置", titleEn: "Settings", path: "/gift-cards/settings" },
+];
+
+/** 打印中心侧滑层 · 打印装修 */
+export const PRINT_SHEET_SUBNAV: ProductCenterSidebarSubItem[] = [
+  { id: "pt-decoration", title: "打印装修", titleEn: "Print styling", path: "/print-templates/decoration" },
+];
+
+/** 预约等位中心侧滑层（title=中文，titleEn=英文；界面语言在顶栏切换） */
+export const RESERVATIONS_SHEET_SUBNAV: ProductCenterSidebarSubItem[] = [
+  { id: "res-waitlist", title: "等位", titleEn: "Waitlist", path: "/operations/reservations/waitlist" },
+  { id: "res-rsv", title: "预订", titleEn: "RSV", path: "/operations/reservations/rsv" },
+  { id: "res-history", title: "历史", titleEn: "History", path: "/operations/reservations/history" },
+  { id: "res-section", title: "分区", titleEn: "Section", path: "/operations/reservations/section" },
+  { id: "res-settings", title: "设置", titleEn: "Settings", path: "/operations/reservations/settings" },
+];
+
+/** 报表中心侧滑层：营业汇总、可折叠分组（销售汇总 / 商品报表 / 员工报表 / 走势详情）、月度经营分析 */
+export const REPORTS_SHEET_SUBNAV: ProductCenterSidebarSubItem[] = [
+  { id: "rpt-business-overview", title: "营业汇总", titleEn: "Business summary", path: "/reports/revenue" },
+  {
+    id: "rpt-sales-summary",
+    title: "销售汇总",
+    titleEn: "Sales summary",
+    path: "/reports/sales/orders",
+    activePrefix: "/reports/sales",
+    sidebarChildren: [
+      { title: "订单", titleEn: "Orders", path: "/reports/sales/orders" },
+      { title: "支付", titleEn: "Payments", path: "/reports/sales/payments" },
+      { title: "折扣金额", titleEn: "Discounts", path: "/reports/sales/discounts" },
+      { title: "加收", titleEn: "Surcharges", path: "/reports/sales/surcharges" },
+    ],
+  },
+  {
+    id: "rpt-product-reports",
+    title: "商品报表",
+    titleEn: "Product reports",
+    path: "/reports/products/ranking",
+    activePrefix: "/reports/products",
+    sidebarChildren: [
+      { title: "排名", titleEn: "Ranking", path: "/reports/products/ranking" },
+      { title: "商品潜力分析", titleEn: "Product potential", path: "/reports/products/potential" },
+    ],
+  },
+  {
+    id: "rpt-center-staff",
+    title: "员工报表",
+    titleEn: "Staff reports",
+    path: "/reports/staff/overview",
+    activePrefix: "/reports/staff",
+    sidebarChildren: [
+      { title: "员工概观", titleEn: "Staff overview", path: "/reports/staff/overview" },
+      { title: "小费分配", titleEn: "Tips allocation", path: "/reports/staff/tips-allocation" },
+    ],
+  },
+  {
+    id: "rpt-trends",
+    title: "走势详情",
+    titleEn: "Trend details",
+    path: "/reports/trends/store-overview",
+    activePrefix: "/reports/trends",
+    sidebarChildren: [
+      { title: "分店概观", titleEn: "Store overview", path: "/reports/trends/store-overview" },
+      { title: "销售额比对", titleEn: "Sales comparison", path: "/reports/trends/sales-comparison" },
+    ],
+  },
+  { id: "rpt-monthly", title: "月度经营分析", titleEn: "Monthly analysis", path: "/reports/monthly-analysis" },
+];
+
+/** 会员中心侧滑层 ·「卡券管理」（可展开三级）+「积分配置」 */
+export const MEMBERS_SHEET_SUBNAV: ProductCenterSidebarSubItem[] = [
+  {
+    id: "mem-card-mgmt",
+    title: "卡券管理",
+    titleEn: "Cards & coupons",
+    path: "/members/card/coupon-mgmt",
+    activePrefix: "/members/card",
+    sidebarChildren: [
+      { title: "优惠券管理", titleEn: "Coupon management", path: "/members/card/coupon-mgmt" },
+      { title: "付费会员明细", titleEn: "Paid member details", path: "/members/card/paid-detail" },
+      { title: "付费会员配置", titleEn: "Paid member settings", path: "/members/card/paid-config" },
+    ],
+  },
+  { id: "mem-points", title: "积分配置", titleEn: "Points config", path: "/members/points" },
+];
+
 /** 门店商品管理 · 左侧三级导航 */
 export const STORE_MENU_SUBNAV: ProductCenterSidebarSubItem[] = [
   { id: "sm-store-menu", title: "门店菜单", titleEn: "Store menu", path: "/menu/store-menu" },
@@ -1001,6 +1145,25 @@ export function getActiveProductCenterSidebarSubPath(
   return "";
 }
 
+/** `subNavPlacement: "sheet"` 模块：将主导航 children 转为侧滑层子导航项 */
+export function navModuleChildrenAsSheetSubnav(m: NavModule): ProductCenterSidebarSubItem[] {
+  return m.children.map((c) => ({
+    id: c.id,
+    title: c.title,
+    titleEn: c.titleEn,
+    path: c.path,
+    chainOnly: c.chainOnly,
+  }));
+}
+
+/** 当前路由在该模块「站内域」内时，返回侧滑层中高亮的子项 path（最长前缀） */
+export function getActiveNavModuleSheetSubPath(path: string, m: NavModule): string {
+  const prefixes = m.matchPrefixes?.length ? m.matchPrefixes : [m.path];
+  const inHub = prefixes.some((p) => path === p || path.startsWith(`${p}/`));
+  if (!inHub) return "";
+  return getActiveProductCenterSidebarSubPath(path, navModuleChildrenAsSheetSubnav(m));
+}
+
 export function getActiveBrandProductsSubPath(path: string): string {
   if (!path.startsWith("/brand-products")) return "";
   return getActiveProductCenterSidebarSubPath(path, BRAND_PRODUCTS_SUBNAV);
@@ -1013,6 +1176,144 @@ export function isBrandProductsTertiaryPath(path: string): boolean {
 export function getActiveBrandMenuSubPath(path: string): string {
   if (!path.startsWith("/brand-menu")) return "";
   return getActiveProductCenterSidebarSubPath(path, BRAND_MENU_SUBNAV);
+}
+
+export function getActiveMarketingMgmtSubPath(path: string): string {
+  if (!path.startsWith("/marketing")) return "";
+  return getActiveProductCenterSidebarSubPath(path, MARKETING_MGMT_SUBNAV);
+}
+
+export function getActivePromotionsMgmtSubPath(path: string): string {
+  if (!path.startsWith("/promotions")) return "";
+  return getActiveProductCenterSidebarSubPath(path, PROMOTIONS_MGMT_SUBNAV);
+}
+
+export function getActiveMembersSheetSubPath(path: string): string {
+  if (!path.startsWith("/members")) return "";
+  return getActiveProductCenterSidebarSubPath(path, MEMBERS_SHEET_SUBNAV);
+}
+
+export function getActiveGiftCardsSheetSubPath(path: string): string {
+  if (!path.startsWith("/gift-cards")) return "";
+  return getActiveProductCenterSidebarSubPath(path, GIFT_CARDS_SHEET_SUBNAV);
+}
+
+export function getActivePrintSheetSubPath(path: string): string {
+  if (!path.startsWith("/print-templates")) return "";
+  return getActiveProductCenterSidebarSubPath(path, PRINT_SHEET_SUBNAV);
+}
+
+/** 预约等位站内域（`/operations/reservations` 及子路径） */
+export function isReservationsHubPath(path: string): boolean {
+  return path === "/operations/reservations" || path.startsWith("/operations/reservations/");
+}
+
+export function getActiveReservationsSheetSubPath(path: string): string {
+  if (!isReservationsHubPath(path)) return "";
+  return getActiveProductCenterSidebarSubPath(path, RESERVATIONS_SHEET_SUBNAV);
+}
+
+/** 预约等位中心路由 → 主区标题 */
+export function findReservationsNavTitle(path: string): { title: string; module: string } | null {
+  if (!isReservationsHubPath(path)) return null;
+  const sorted = [...RESERVATIONS_SHEET_SUBNAV].sort((a, b) => b.path.length - a.path.length);
+  for (const c of sorted) {
+    if (path === c.path || path.startsWith(`${c.path}/`)) {
+      return { title: c.title, module: "预约等位中心 · Reservation & waitlist center" };
+    }
+  }
+  return { title: "预约等位中心", module: "预约等位中心 · Reservation & waitlist center" };
+}
+
+/** 打印中心路由 → 主区标题 */
+export function findPrintNavTitle(path: string): { title: string; module: string } | null {
+  if (!path.startsWith("/print-templates")) return null;
+  const sorted = [...PRINT_SHEET_SUBNAV].sort((a, b) => b.path.length - a.path.length);
+  for (const c of sorted) {
+    if (path === c.path || path.startsWith(`${c.path}/`)) {
+      return { title: c.title, module: "打印中心 · Print center" };
+    }
+  }
+  return { title: "打印中心", module: "打印中心 · Print center" };
+}
+
+/** 站内报表域（不含已废弃的信贷路由 `/reports/capital`） */
+export function isReportsCenterHubPath(path: string): boolean {
+  if (path === "/reports/capital" || path.startsWith("/reports/capital/")) return false;
+  return path === "/reports" || path.startsWith("/reports/");
+}
+
+export function getActiveReportsSheetSubPath(path: string): string {
+  if (!isReportsCenterHubPath(path)) return "";
+  return getActiveProductCenterSidebarSubPath(path, REPORTS_SHEET_SUBNAV);
+}
+
+export function getReportsSheetSidebarChildActivePath(path: string, item: ProductCenterSidebarSubItem): string {
+  if (!item.sidebarChildren?.length) return "";
+  const sorted = [...item.sidebarChildren].sort((a, b) => b.path.length - a.path.length);
+  for (const c of sorted) {
+    if (path === c.path || path.startsWith(`${c.path}/`)) return c.path;
+  }
+  return "";
+}
+
+/** 报表中心路由 → 主区标题 */
+export function findReportsNavTitle(path: string): { title: string; module: string } | null {
+  if (!isReportsCenterHubPath(path)) return null;
+  const modBase = "报表中心 · Reporting center";
+  for (const item of REPORTS_SHEET_SUBNAV) {
+    if (item.sidebarChildren?.length) {
+      const sorted = [...item.sidebarChildren].sort((a, b) => b.path.length - a.path.length);
+      for (const c of sorted) {
+        if (path === c.path || path.startsWith(`${c.path}/`)) {
+          return { title: c.title, module: `报表中心 · ${item.title}` };
+        }
+      }
+    }
+    if (path === item.path || path.startsWith(`${item.path}/`)) {
+      return { title: item.title, module: modBase };
+    }
+  }
+  return { title: "报表中心", module: modBase };
+}
+
+/** 礼品卡中心路由 → 主区标题 */
+export function findGiftCardsNavTitle(path: string): { title: string; module: string } | null {
+  if (!path.startsWith("/gift-cards")) return null;
+  const sorted = [...GIFT_CARDS_SHEET_SUBNAV].sort((a, b) => b.path.length - a.path.length);
+  for (const c of sorted) {
+    if (path === c.path || path.startsWith(`${c.path}/`)) {
+      return { title: c.title, module: "礼品卡中心 · Gift card center" };
+    }
+  }
+  return { title: "礼品卡中心", module: "礼品卡中心 · Gift card center" };
+}
+
+export function getMembersSheetSidebarChildActivePath(path: string, item: ProductCenterSidebarSubItem): string {
+  if (item.id !== "mem-card-mgmt" || !item.sidebarChildren?.length) return "";
+  const sorted = [...item.sidebarChildren].sort((a, b) => b.path.length - a.path.length);
+  for (const c of sorted) {
+    if (path === c.path || path.startsWith(`${c.path}/`)) return c.path;
+  }
+  return "";
+}
+
+/** 会员中心路由 → 主区标题 / 模块副标题 */
+export function findMembersNavTitle(path: string): { title: string; module: string } | null {
+  if (!path.startsWith("/members")) return null;
+  const card = MEMBERS_SHEET_SUBNAV.find((x) => x.id === "mem-card-mgmt");
+  if (card?.sidebarChildren) {
+    const sorted = [...card.sidebarChildren].sort((a, b) => b.path.length - a.path.length);
+    for (const c of sorted) {
+      if (path === c.path || path.startsWith(`${c.path}/`)) {
+        return { title: c.title, module: "会员中心 · 卡券管理" };
+      }
+    }
+  }
+  if (path === "/members/points" || path.startsWith("/members/points/")) {
+    return { title: "积分配置", module: "会员中心 · Member center" };
+  }
+  return { title: "会员中心", module: "会员中心 · Member center" };
 }
 
 export function isBrandMenuTertiaryPath(path: string): boolean {
@@ -1159,6 +1460,8 @@ export function flattenNavPaths(modules: NavModule[] = NAV_MODULES): string[] {
     out.push(m.path);
     for (const c of m.children) out.push(c.path);
   }
+  /** 库存变更记录：无侧栏二级入口，仍为占位子路由 */
+  out.push("/operations/inventory-ordering/inventory-change-log");
   for (const k of KIOSK_ORDERING_SUBNAV) out.push(k.path);
   for (const p of POS_ORDERING_SUBNAV) out.push(p.path);
   for (const pp of PAYPAD_ORDERING_SUBNAV) out.push(pp.path);
@@ -1176,5 +1479,25 @@ export function flattenNavPaths(modules: NavModule[] = NAV_MODULES): string[] {
   for (const tg of BRAND_TAGS_MGMT_SUBNAV) out.push(tg.path);
   for (const rc of BRAND_RECIPES_MGMT_SUBNAV) out.push(rc.path);
   for (const pc of PRODUCT_CENTER_DEEP_NAV) out.push(pc.path);
+  for (const mem of MEMBERS_SHEET_SUBNAV) {
+    out.push(mem.path);
+    if (mem.sidebarChildren) for (const ch of mem.sidebarChildren) out.push(ch.path);
+  }
+  for (const gc of GIFT_CARDS_SHEET_SUBNAV) {
+    out.push(gc.path);
+    if (gc.sidebarChildren) for (const ch of gc.sidebarChildren) out.push(ch.path);
+  }
+  for (const r of REPORTS_SHEET_SUBNAV) {
+    out.push(r.path);
+    if (r.sidebarChildren) for (const ch of r.sidebarChildren) out.push(ch.path);
+  }
+  for (const pt of PRINT_SHEET_SUBNAV) {
+    out.push(pt.path);
+    if (pt.sidebarChildren) for (const ch of pt.sidebarChildren) out.push(ch.path);
+  }
+  for (const rv of RESERVATIONS_SHEET_SUBNAV) {
+    out.push(rv.path);
+    if (rv.sidebarChildren) for (const ch of rv.sidebarChildren) out.push(ch.path);
+  }
   return out;
 }
