@@ -22,16 +22,12 @@ export interface NavModule {
     | "orders"
     | "receipt"
     | "menu"
-    | "storeInfo"
-    | "channels"
     | "floorPlan"
     | "kitchenKds"
-    | "customerDisplay"
     | "queueCall"
     | "reservations"
     | "waitlist"
     | "inventory"
-    | "patrol"
     | "promo"
     | "marketing"
     | "members"
@@ -40,23 +36,111 @@ export interface NavModule {
     | "team"
     | "reports"
     | "capital"
+    | "financeCenter"
     | "settings"
-    | "paymentService"
     | "notifications"
     | "printTemplate"
-    | "deviceManagement";
+    | "deviceManagement"
+    | "brandProducts"
+    | "brandMenu"
+    | "brandMgmt"
+    | "storeMgmt"
+    | "permissionMgmt"
+    | "assetCenter"
+    | "configCenter";
   path: string;
   children: NavItem[];
   /**
    * `tabs`：二级在主内容区顶部 Tab（默认）。
-   * `sidebar`：二级在左侧主导航内可折叠展开（订单/门店/菜单/点餐/交易/报表/团队/促销/营销/会员/评价/礼品卡等）。
+   * `sidebar`：二级在左侧主导航内可折叠展开。一级顺序见 `NAV_MODULES`（品牌→门店→主页→团队→商品→订单→支付→外卖/来取→营销→促销→会员→礼品卡→评价→前厅→后厨→预约→报表→财务→打印→消息→库存→硬件→权限；其后为信贷中心、素材中心、配置中心、系统设置）。重排可运行 `node scripts/reorder-nav-modules.mjs`。
    */
   subNavPlacement?: "sidebar" | "tabs";
   /** 访问 `#/模块前缀` 时重定向到该默认子路径；须与 children 中某项一致 */
   defaultChildPath: string;
+  /**
+   * 聚合模块：路由匹配任一前缀即视为本模块（`path` 可为占位，如 `/product-center`）。
+   * 用于「商品中心A」同时覆盖 `/brand-products`、`/brand-menu`、`/menu`。
+   */
+  matchPrefixes?: string[];
 }
 
+/** 商品中心A侧栏仅三条二级入口；此处为下辖全部业务路径，供标题解析与 flattenNavPaths */
+export const PRODUCT_CENTER_DEEP_NAV: NavItem[] = [
+  { id: "bp-products", title: "商品", titleEn: "Products", path: "/brand-products/products" },
+  { id: "bp-product-categories", title: "商品分类", titleEn: "Product categories", path: "/brand-products/product-categories" },
+  { id: "bp-spec-groups", title: "规格组", titleEn: "Spec groups", path: "/brand-products/spec-groups" },
+  { id: "bp-flavor-groups", title: "口味组", titleEn: "Flavor groups", path: "/brand-products/flavor-groups" },
+  { id: "bp-prep-groups", title: "做法组", titleEn: "Preparation groups", path: "/brand-products/prep-groups" },
+  { id: "bp-addon-groups", title: "加料组", titleEn: "Add-on groups", path: "/brand-products/addon-groups" },
+  { id: "bp-combo-groups", title: "套餐组", titleEn: "Combo groups", path: "/brand-products/combo-groups" },
+  { id: "bp-seasoning", title: "调味管理", titleEn: "Seasoning management", path: "/brand-products/seasoning-mgmt/seasoning" },
+  { id: "bp-tags", title: "标签管理", titleEn: "Tag management", path: "/brand-products/tags/description" },
+  { id: "bp-ingredients", title: "原料管理", titleEn: "Ingredients", path: "/brand-products/ingredients" },
+  { id: "bp-ingredient-categories", title: "原料分类", titleEn: "Ingredient categories", path: "/brand-products/ingredient-categories" },
+  { id: "bp-images", title: "图片管理", titleEn: "Image management", path: "/brand-products/images" },
+  { id: "bp-recipes", title: "配方管理", titleEn: "Recipe management", path: "/brand-products/recipes/list" },
+  {
+    id: "bp-seasoning-distribution",
+    title: "下发记录",
+    titleEn: "Distribution log",
+    path: "/brand-products/seasoning-mgmt/distribution-log",
+  },
+  { id: "bm-menus", title: "品牌菜单", titleEn: "Brand menus", path: "/brand-menu/menus" },
+  {
+    id: "bm-distribution-log",
+    title: "下发记录",
+    titleEn: "Distribution log",
+    path: "/brand-menu/distribution-log",
+  },
+  { id: "bm-groups", title: "菜单分组", titleEn: "Menu groups", path: "/brand-menu/groups" },
+  { id: "bm-channel-visibility", title: "渠道可见性", titleEn: "Channel visibility", path: "/brand-menu/channel-visibility" },
+  { id: "bm-publish", title: "发布与版本", titleEn: "Publish & versions", path: "/brand-menu/publish-versions" },
+  { id: "menu-store-menu", title: "门店菜单", titleEn: "Store menu", path: "/menu/store-menu" },
+  { id: "menu-store-products", title: "门店商品", titleEn: "Store products", path: "/menu/store-products" },
+  { id: "menu-inventory-changes", title: "库存变更记录", titleEn: "Inventory change log", path: "/menu/inventory-changes" },
+  { id: "menu-product-recipe", title: "商品配方", titleEn: "Product recipe", path: "/menu/product-recipe" },
+  { id: "menu-recipe-list", title: "配方列表", titleEn: "Recipe list", path: "/menu/recipe-list" },
+  { id: "menu-store-seasoning", title: "门店调味", titleEn: "Store seasoning", path: "/menu/store-seasoning" },
+  { id: "menu-print-settings", title: "打印设置", titleEn: "Print settings", path: "/menu/print-settings" },
+  { id: "menu-multi-language", title: "菜单多语言", titleEn: "Menu multi-language", path: "/menu/multi-language" },
+  { id: "menu-tax-types", title: "税种管理", titleEn: "Tax types", path: "/menu/tax-types/settings" },
+  {
+    id: "menu-product-tax-mgmt",
+    title: "商品税管理",
+    titleEn: "Product tax management",
+    path: "/menu/tax-types/product-tax",
+  },
+];
+
 export const NAV_MODULES: NavModule[] = [
+  {
+    id: "brand-mgmt",
+    title: "品牌管理",
+    titleEn: "Brand management",
+    icon: "brandMgmt",
+    path: "/brand",
+    subNavPlacement: "sidebar",
+    defaultChildPath: "/brand/overview",
+    children: [
+      { id: "br-overview", title: "品牌总览", titleEn: "Overview", path: "/brand/overview" },
+      { id: "br-list", title: "品牌列表", titleEn: "Brand list", path: "/brand/list" },
+      { id: "br-settings", title: "品牌设置", titleEn: "Brand settings", path: "/brand/settings" },
+    ],
+  },
+  {
+    id: "store-mgmt",
+    title: "门店管理",
+    titleEn: "Store management",
+    icon: "storeMgmt",
+    path: "/stores",
+    subNavPlacement: "sidebar",
+    defaultChildPath: "/stores/overview",
+    children: [
+      { id: "st-overview", title: "门店总览", titleEn: "Overview", path: "/stores/overview" },
+      { id: "st-list", title: "门店列表", titleEn: "Store list", path: "/stores/list" },
+      { id: "st-status", title: "门店状态", titleEn: "Store status", path: "/stores/status" },
+    ],
+  },
   {
     id: "dashboard",
     title: "主页",
@@ -68,293 +152,7 @@ export const NAV_MODULES: NavModule[] = [
     children: [
       { id: "dash-overview", title: "今日概览", path: "/dashboard/overview" },
       { id: "dash-todos", title: "待办", path: "/dashboard/todos" },
-      { id: "dash-shortcuts", title: "快捷入口", path: "/dashboard/shortcuts" },
       { id: "dash-kpi", title: "关键指标", path: "/dashboard/kpi" },
-      { id: "dash-locations", title: "多门店切换", path: "/dashboard/locations" },
-    ],
-  },
-  {
-    id: "orders",
-    title: "订单",
-    titleEn: "Orders",
-    icon: "orders",
-    path: "/orders",
-    subNavPlacement: "sidebar",
-    defaultChildPath: "/orders/all",
-    children: [
-      { id: "orders-all", title: "全部订单", path: "/orders/all" },
-      { id: "orders-refunds", title: "退单", titleEn: "Refunds & voids", path: "/orders/refunds" },
-      { id: "orders-history", title: "订单历史", path: "/orders/history" },
-    ],
-  },
-  {
-    id: "transactions",
-    title: "交易",
-    titleEn: "Transactions",
-    icon: "receipt",
-    path: "/transactions",
-    subNavPlacement: "sidebar",
-    defaultChildPath: "/transactions/ledger",
-    children: [
-      { id: "tx-ledger", title: "交易流水", path: "/transactions/ledger" },
-      { id: "tx-payments", title: "支付方式", path: "/transactions/payments" },
-      { id: "tx-reconcile", title: "对账", path: "/transactions/reconcile" },
-    ],
-  },
-  {
-    id: "store-info",
-    title: "门店信息",
-    titleEn: "Store information",
-    icon: "storeInfo",
-    path: "/store",
-    subNavPlacement: "sidebar",
-    defaultChildPath: "/store/basic",
-    children: [
-      { id: "store-basic", title: "门店基础信息", titleEn: "Store profile", path: "/store/basic" },
-      { id: "store-floor", title: "桌台平面图", titleEn: "Floor plan", path: "/store/floor-plan" },
-    ],
-  },
-  {
-    id: "menu",
-    title: "菜单",
-    titleEn: "Menu",
-    icon: "menu",
-    path: "/menu",
-    subNavPlacement: "sidebar",
-    defaultChildPath: "/menu/store-menu",
-    children: [
-      { id: "menu-store-menu", title: "门店菜单", titleEn: "Store menu", path: "/menu/store-menu" },
-      { id: "menu-store-products", title: "门店商品", titleEn: "Store products", path: "/menu/store-products" },
-      { id: "menu-product-recipe", title: "商品配方", titleEn: "Product recipe", path: "/menu/product-recipe" },
-      { id: "menu-store-seasoning", title: "门店调味", titleEn: "Store seasoning", path: "/menu/store-seasoning" },
-      { id: "menu-inventory-change-log", title: "库存变更记录", titleEn: "Inventory change log", path: "/menu/inventory-change-log" },
-      { id: "menu-print-settings", title: "打印设置", titleEn: "Print settings", path: "/menu/print-settings" },
-      { id: "menu-multi-language", title: "菜单多语言", titleEn: "Menu multi-language", path: "/menu/multi-language" },
-      { id: "menu-tax-types", title: "税种管理", titleEn: "Tax types", path: "/menu/tax-types/settings" },
-    ],
-  },
-  {
-    id: "ordering-channels",
-    title: "智能点餐",
-    titleEn: "Smart ordering",
-    icon: "channels",
-    path: "/ordering",
-    subNavPlacement: "sidebar",
-    defaultChildPath: "/ordering/pos/basic-settings",
-    children: [
-      { id: "oc-pos", title: "POS点餐", titleEn: "POS ordering", path: "/ordering/pos/basic-settings" },
-      { id: "oc-pos-go", title: "POS GO点餐", titleEn: "POS Go ordering", path: "/ordering/pos-go" },
-      { id: "oc-paypad", title: "PayPad点餐", titleEn: "PayPad ordering", path: "/ordering/paypad/tips" },
-      { id: "oc-qr", title: "扫码点餐", path: "/ordering/qr" },
-      { id: "oc-tablet", title: "eMenu点餐", titleEn: "eMenu ordering", path: "/ordering/tablet" },
-      { id: "oc-kiosk", title: "Kiosk 点餐", path: "/ordering/kiosk" },
-      { id: "oc-online", title: "Online Order点餐", titleEn: "Online ordering", path: "/ordering/online-order" },
-      { id: "oc-platforms", title: "外卖平台对接", path: "/ordering/delivery-platforms" },
-      { id: "oc-website", title: "餐厅网站（官网订餐）", path: "/ordering/website" },
-      {
-        id: "oc-buffet",
-        title: "点餐限制规则",
-        titleEn: "Ordering limits",
-        path: "/ordering/buffet-emenu",
-      },
-    ],
-  },
-  {
-    id: "kitchen-kds",
-    title: "后厨管理",
-    titleEn: "Back-of-house management",
-    icon: "kitchenKds",
-    path: "/operations/kitchen-kds",
-    subNavPlacement: "tabs",
-    defaultChildPath: "/operations/kitchen-kds",
-    children: [
-      { id: "kds-main", title: "后厨设置", titleEn: "Back-of-house settings", path: "/operations/kitchen-kds" },
-    ],
-  },
-  {
-    id: "customer-display",
-    title: "客显系统管理",
-    titleEn: "Customer display system management",
-    icon: "customerDisplay",
-    path: "/operations/customer-display",
-    subNavPlacement: "tabs",
-    defaultChildPath: "/operations/customer-display/cover-image",
-    children: [
-      { id: "cd-cover", title: "封面图", titleEn: "Cover image", path: "/operations/customer-display/cover-image" },
-      { id: "cd-multi-language", title: "多语言", titleEn: "Multi-language", path: "/operations/customer-display/multi-language" },
-      { id: "cd-tips", title: "小费", titleEn: "Tips", path: "/operations/customer-display/tips" },
-      { id: "cd-signature", title: "签名", titleEn: "Signature", path: "/operations/customer-display/signature" },
-      { id: "cd-receipt", title: "小票", titleEn: "Receipt ticket", path: "/operations/customer-display/receipt" },
-    ],
-  },
-  {
-    id: "queue-call",
-    title: "叫号系统管理",
-    titleEn: "Queue calling system management",
-    icon: "queueCall",
-    path: "/operations/queue-call",
-    subNavPlacement: "tabs",
-    defaultChildPath: "/operations/queue-call",
-    children: [
-      {
-        id: "qc-main",
-        title: "叫号系统管理",
-        titleEn: "Queue calling system management",
-        path: "/operations/queue-call",
-      },
-    ],
-  },
-  {
-    id: "reservations",
-    title: "预约系统管理",
-    titleEn: "Reservation system management",
-    icon: "reservations",
-    path: "/operations/reservations",
-    subNavPlacement: "tabs",
-    defaultChildPath: "/operations/reservations",
-    children: [
-      {
-        id: "res-main",
-        title: "预约系统管理",
-        titleEn: "Reservation system management",
-        path: "/operations/reservations",
-      },
-    ],
-  },
-  {
-    id: "waitlist",
-    title: "等位系统管理",
-    titleEn: "Waitlist system management",
-    icon: "waitlist",
-    path: "/operations/waitlist",
-    subNavPlacement: "tabs",
-    defaultChildPath: "/operations/waitlist",
-    children: [
-      {
-        id: "wl-main",
-        title: "等位系统管理",
-        titleEn: "Waitlist system management",
-        path: "/operations/waitlist",
-      },
-    ],
-  },
-  {
-    id: "device-management",
-    title: "设备管理",
-    titleEn: "Device management",
-    icon: "deviceManagement",
-    path: "/device-management",
-    subNavPlacement: "sidebar",
-    defaultChildPath: "/device-management/overview",
-    children: [
-      { id: "dm-overview", title: "设备总览", titleEn: "Overview", path: "/device-management/overview" },
-      {
-        id: "dm-hardware",
-        title: "硬件",
-        titleEn: "Hardware",
-        path: "/device-management/hardware/payments",
-      },
-      { id: "dm-terminals", title: "终端管理", titleEn: "Terminals", path: "/device-management/terminals" },
-      { id: "dm-binding", title: "绑定与授权", titleEn: "Binding & authorization", path: "/device-management/binding" },
-      { id: "dm-alerts", title: "监控告警", titleEn: "Monitoring & alerts", path: "/device-management/alerts" },
-    ],
-  },
-  {
-    id: "inventory-ordering",
-    title: "订货与库存",
-    titleEn: "Inventory & ordering",
-    icon: "inventory",
-    path: "/operations/inventory-ordering",
-    subNavPlacement: "tabs",
-    defaultChildPath: "/operations/inventory-ordering",
-    children: [
-      {
-        id: "inv-main",
-        title: "订货与库存",
-        path: "/operations/inventory-ordering",
-        chainOnly: true,
-      },
-    ],
-  },
-  {
-    id: "store-patrol",
-    title: "巡店与巡检",
-    titleEn: "Store patrol",
-    icon: "patrol",
-    path: "/operations/store-patrol",
-    subNavPlacement: "tabs",
-    defaultChildPath: "/operations/store-patrol",
-    children: [
-      { id: "patrol-main", title: "巡店与巡检", path: "/operations/store-patrol", chainOnly: true },
-    ],
-  },
-  {
-    id: "promotions",
-    title: "促销",
-    titleEn: "Promotions",
-    icon: "promo",
-    path: "/promotions",
-    subNavPlacement: "sidebar",
-    defaultChildPath: "/promotions/campaigns",
-    children: [{ id: "promo-campaigns", title: "促销管理", path: "/promotions/campaigns" }],
-  },
-  {
-    id: "marketing",
-    title: "营销",
-    titleEn: "Marketing",
-    icon: "marketing",
-    path: "/marketing",
-    subNavPlacement: "sidebar",
-    defaultChildPath: "/marketing/ai/ads",
-    children: [
-      { id: "mkt-ai-ads", title: "广告智投", path: "/marketing/ai/ads" },
-      { id: "mkt-ai-social", title: "社媒营销", path: "/marketing/ai/social" },
-      { id: "mkt-ai-creative", title: "创意素材", path: "/marketing/ai/creative" },
-    ],
-  },
-  {
-    id: "members",
-    title: "会员",
-    titleEn: "Loyalty",
-    icon: "members",
-    path: "/members",
-    subNavPlacement: "sidebar",
-    defaultChildPath: "/members/settings",
-    children: [
-      { id: "mem-settings", title: "会员设置", path: "/members/settings" },
-      { id: "mem-benefits", title: "会员福利活动", path: "/members/benefits" },
-      { id: "mem-coupons", title: "会员优惠券", path: "/members/coupons" },
-      { id: "mem-list", title: "会员列表", path: "/members/list" },
-      { id: "mem-targeting", title: "精准触达", path: "/members/targeting" },
-      { id: "mem-360", title: "会员 360 洞察", path: "/members/insights-360" },
-    ],
-  },
-  {
-    id: "reviews",
-    title: "评价",
-    titleEn: "Reviews",
-    icon: "reviews",
-    path: "/reviews",
-    subNavPlacement: "sidebar",
-    defaultChildPath: "/reviews/insights",
-    children: [
-      { id: "rev-insights", title: "评价洞察", path: "/reviews/insights" },
-      { id: "rev-settings", title: "评价设置", path: "/reviews/settings" },
-      { id: "rev-detail", title: "评价明细", path: "/reviews/detail" },
-      { id: "rev-stats", title: "评价统计", path: "/reviews/stats" },
-    ],
-  },
-  {
-    id: "gift-cards",
-    title: "礼品卡",
-    titleEn: "Gift Cards",
-    icon: "gift",
-    path: "/gift-cards",
-    subNavPlacement: "sidebar",
-    defaultChildPath: "/gift-cards/design",
-    children: [
-      { id: "gc-design", title: "卡面设计", path: "/gift-cards/design" },
-      { id: "gc-templates", title: "模板管理", path: "/gift-cards/templates" },
     ],
   },
   {
@@ -382,92 +180,331 @@ export const NAV_MODULES: NavModule[] = [
     ],
   },
   {
-    id: "reports-finance",
-    title: "报表与财务",
-    titleEn: "Reports & Finance",
-    icon: "reports",
-    path: "/reports",
+    id: "product-center-a",
+    title: "商品中心",
+    titleEn: "Product center",
+    icon: "inventory",
+    path: "/product-center-a",
+    matchPrefixes: ["/product-center-a"],
+    defaultChildPath: "/product-center-a",
+    children: [{ id: "pca-main", title: "商品中心", titleEn: "Product center", path: "/product-center-a" }],
+  },
+  {
+    id: "orders",
+    title: "订单中心",
+    titleEn: "Order center",
+    icon: "orders",
+    path: "/orders",
     subNavPlacement: "sidebar",
-    defaultChildPath: "/reports/revenue",
+    defaultChildPath: "/orders/all",
     children: [
-      { id: "rpt-revenue", title: "收入报表", path: "/reports/revenue" },
-      { id: "rpt-revenue-detail", title: "收入明细", path: "/reports/revenue-detail" },
-      { id: "rpt-meal-period", title: "餐段分析", path: "/reports/meal-period" },
-      { id: "rpt-menu", title: "菜品分析", path: "/reports/menu-analysis" },
-      { id: "rpt-waste", title: "损耗报表", path: "/reports/waste" },
-      { id: "rpt-drawer", title: "钱箱报表", path: "/reports/cash-drawer" },
-      { id: "rpt-tx-anomaly", title: "交易异常报表", path: "/reports/transaction-anomalies" },
-      { id: "rpt-gift", title: "礼品卡报表", path: "/reports/gift-cards" },
-      { id: "rpt-member", title: "会员报表", path: "/reports/members" },
-      { id: "rpt-coupons", title: "优惠券报表", path: "/reports/coupons" },
-      { id: "rpt-monthly", title: "月结单", path: "/reports/monthly-statement" },
-      { id: "rpt-payout-fees", title: "打款与费用报表", path: "/reports/payout-fees" },
+      { id: "orders-all", title: "全部订单", path: "/orders/all" },
+      { id: "orders-refunds", title: "退单", titleEn: "Refunds & voids", path: "/orders/refunds" },
+      { id: "orders-history", title: "订单历史", path: "/orders/history" },
     ],
   },
   {
-    id: "payment-services",
-    title: "支付服务",
-    titleEn: "Payment services",
-    icon: "paymentService",
-    path: "/payment-services",
+    id: "transactions",
+    title: "支付中心",
+    titleEn: "Payment center",
+    icon: "receipt",
+    path: "/transactions",
     subNavPlacement: "sidebar",
-    defaultChildPath: "/payment-services/overview",
+    defaultChildPath: "/transactions/ledger",
     children: [
-      { id: "pay-overview", title: "支付概览", titleEn: "Overview", path: "/payment-services/overview" },
-      { id: "pay-channels", title: "支付渠道", titleEn: "Payment channels", path: "/payment-services/channels" },
-      { id: "pay-settlement", title: "结算与到账", titleEn: "Settlement", path: "/payment-services/settlement" },
-      { id: "pay-risk", title: "风控与争议", titleEn: "Risk & disputes", path: "/payment-services/risk-disputes" },
+      { id: "tx-ledger", title: "交易流水", path: "/transactions/ledger" },
+      { id: "tx-payments", title: "支付方式", path: "/transactions/payments" },
+      { id: "tx-reconcile", title: "对账", path: "/transactions/reconcile" },
     ],
+  },
+  {
+    id: "waitlist",
+    title: "外卖/来取",
+    titleEn: "Delivery & pickup",
+    icon: "waitlist",
+    path: "/operations/waitlist",
+    subNavPlacement: "tabs",
+    defaultChildPath: "/operations/waitlist",
+    children: [
+      {
+        id: "wl-main",
+        title: "外卖/来取",
+        titleEn: "Delivery & pickup",
+        path: "/operations/waitlist",
+      },
+    ],
+  },
+  {
+    id: "marketing",
+    title: "营销中心",
+    titleEn: "Marketing center",
+    icon: "marketing",
+    path: "/marketing",
+    defaultChildPath: "/marketing/ai/ads",
+    children: [{ id: "mkt-main", title: "营销中心", titleEn: "Marketing center", path: "/marketing" }],
+  },
+  {
+    id: "promotions",
+    title: "促销中心",
+    titleEn: "Promotion center",
+    icon: "promo",
+    path: "/promotions",
+    defaultChildPath: "/promotions/campaigns",
+    children: [{ id: "promo-campaigns", title: "促销管理", path: "/promotions/campaigns" }],
+  },
+  {
+    id: "members",
+    title: "会员中心",
+    titleEn: "Member center",
+    icon: "members",
+    path: "/members",
+    defaultChildPath: "/members/settings",
+    children: [{ id: "mem-main", title: "会员中心", titleEn: "Member center", path: "/members/settings" }],
+  },
+  {
+    id: "gift-cards",
+    title: "礼品卡中心",
+    titleEn: "Gift card center",
+    icon: "gift",
+    path: "/gift-cards",
+    defaultChildPath: "/gift-cards/design",
+    children: [{ id: "gc-main", title: "礼品卡中心", titleEn: "Gift card center", path: "/gift-cards" }],
+  },
+  {
+    id: "reviews",
+    title: "评价中心",
+    titleEn: "Review center",
+    icon: "reviews",
+    path: "/reviews",
+    subNavPlacement: "sidebar",
+    defaultChildPath: "/reviews/insights",
+    children: [
+      { id: "rev-insights", title: "评价洞察", path: "/reviews/insights" },
+      { id: "rev-settings", title: "评价设置", path: "/reviews/settings" },
+      { id: "rev-detail", title: "评价明细", path: "/reviews/detail" },
+      { id: "rev-stats", title: "评价统计", path: "/reviews/stats" },
+    ],
+  },
+  {
+    id: "queue-call",
+    title: "前厅管理中心",
+    titleEn: "Front of house management center",
+    icon: "queueCall",
+    path: "/operations/queue-call",
+    subNavPlacement: "tabs",
+    defaultChildPath: "/operations/queue-call",
+    children: [
+      {
+        id: "qc-main",
+        title: "前厅管理中心",
+        titleEn: "Front of house management center",
+        path: "/operations/queue-call",
+      },
+    ],
+  },
+  {
+    id: "kitchen-kds",
+    title: "后厨管理中心",
+    titleEn: "Back-of-house management center",
+    icon: "kitchenKds",
+    path: "/operations/kitchen-kds",
+    subNavPlacement: "tabs",
+    defaultChildPath: "/operations/kitchen-kds",
+    children: [
+      { id: "kds-main", title: "后厨设置", titleEn: "Back-of-house settings", path: "/operations/kitchen-kds" },
+    ],
+  },
+  {
+    id: "reservations",
+    title: "预约等位中心",
+    titleEn: "Reservation & waitlist center",
+    icon: "reservations",
+    path: "/operations/reservations",
+    defaultChildPath: "/operations/reservations",
+    children: [
+      {
+        id: "res-main",
+        title: "预约等位中心",
+        titleEn: "Reservation & waitlist center",
+        path: "/operations/reservations",
+      },
+    ],
+  },
+  {
+    id: "reports-finance",
+    title: "报表中心",
+    titleEn: "Reporting center",
+    icon: "reports",
+    path: "/reports",
+    defaultChildPath: "/reports/revenue",
+    children: [{ id: "rpt-main", title: "报表中心", titleEn: "Reporting center", path: "/reports/revenue" }],
+  },
+  {
+    id: "finance-center",
+    title: "财务中心",
+    titleEn: "Finance center",
+    icon: "financeCenter",
+    path: "/finance",
+    subNavPlacement: "sidebar",
+    defaultChildPath: "/finance/overview",
+    children: [
+      { id: "fin-overview", title: "财务总览", titleEn: "Overview", path: "/finance/overview" },
+      { id: "fin-cash-flow", title: "收支流水", titleEn: "Cash flow", path: "/finance/cash-flow" },
+      { id: "fin-reconcile", title: "对账管理", titleEn: "Reconciliation", path: "/finance/reconciliation" },
+      { id: "fin-invoices", title: "发票与税务", titleEn: "Invoices & tax", path: "/finance/invoices" },
+    ],
+  },
+  {
+    id: "print-templates",
+    title: "打印中心",
+    titleEn: "Print center",
+    icon: "printTemplate",
+    path: "/print-templates",
+    defaultChildPath: "/print-templates/list",
+    children: [{ id: "pt-main", title: "打印中心", titleEn: "Print center", path: "/print-templates/list" }],
   },
   {
     id: "notifications",
-    title: "消息通知",
-    titleEn: "Notifications",
+    title: "消息中心",
+    titleEn: "Message center",
     icon: "notifications",
     path: "/notifications",
     subNavPlacement: "sidebar",
     defaultChildPath: "/notifications/center",
     children: [
-      { id: "notif-center", title: "消息中心", titleEn: "Inbox", path: "/notifications/center" },
+      { id: "notif-center", title: "收件箱", titleEn: "Inbox", path: "/notifications/center" },
       { id: "notif-settings", title: "通知设置", titleEn: "Preferences", path: "/notifications/settings" },
       { id: "notif-templates", title: "模板与订阅", titleEn: "Templates & subscriptions", path: "/notifications/templates" },
     ],
   },
   {
-    id: "print-templates",
-    title: "打印模板",
-    titleEn: "Print templates",
-    icon: "printTemplate",
-    path: "/print-templates",
+    id: "inventory-ordering",
+    title: "库存管理中心",
+    titleEn: "Inventory management center",
+    icon: "inventory",
+    path: "/operations/inventory-ordering",
     subNavPlacement: "sidebar",
-    defaultChildPath: "/print-templates/list",
+    defaultChildPath: "/operations/inventory-ordering",
     children: [
-      { id: "pt-list", title: "模板列表", titleEn: "Template list", path: "/print-templates/list" },
-      { id: "pt-designer", title: "模板设计", titleEn: "Template designer", path: "/print-templates/designer" },
+      {
+        id: "inv-main",
+        title: "订货与库存",
+        path: "/operations/inventory-ordering",
+        chainOnly: true,
+      },
+      {
+        id: "inv-change-log",
+        title: "库存变更记录",
+        titleEn: "Inventory change log",
+        path: "/operations/inventory-ordering/inventory-change-log",
+      },
+    ],
+  },
+  {
+    id: "device-management",
+    title: "硬件管理中心",
+    titleEn: "Hardware management center",
+    icon: "deviceManagement",
+    path: "/device-management",
+    subNavPlacement: "sidebar",
+    defaultChildPath: "/device-management/overview",
+    children: [
+      { id: "dm-overview", title: "设备总览", titleEn: "Overview", path: "/device-management/overview" },
+      {
+        id: "dm-hardware",
+        title: "硬件",
+        titleEn: "Hardware",
+        path: "/device-management/hardware/payments",
+      },
+      { id: "dm-terminals", title: "终端管理", titleEn: "Terminals", path: "/device-management/terminals" },
+      { id: "dm-binding", title: "绑定与授权", titleEn: "Binding & authorization", path: "/device-management/binding" },
+      { id: "dm-alerts", title: "监控告警", titleEn: "Monitoring & alerts", path: "/device-management/alerts" },
+    ],
+  },
+  {
+    id: "permission-mgmt",
+    title: "权限管理中心",
+    titleEn: "Access management center",
+    icon: "permissionMgmt",
+    path: "/permissions",
+    subNavPlacement: "sidebar",
+    defaultChildPath: "/permissions/overview",
+    children: [
+      {
+        id: "perm-overview",
+        title: "权限总览",
+        titleEn: "Overview",
+        path: "/permissions/overview",
+      },
+      {
+        id: "perm-roles",
+        title: "角色与功能权限",
+        titleEn: "Roles & permissions",
+        path: "/permissions/roles",
+      },
+      {
+        id: "perm-staff",
+        title: "员工授权",
+        titleEn: "Staff assignments",
+        path: "/permissions/staff",
+      },
+      {
+        id: "perm-changelog",
+        title: "权限变更记录",
+        titleEn: "Permission change log",
+        path: "/permissions/change-log",
+      },
     ],
   },
   {
     id: "capital-turnover",
-    title: "资金周转",
-    titleEn: "Capital",
+    title: "信贷中心",
+    titleEn: "Credit center",
     icon: "capital",
     path: "/reports/capital",
-    subNavPlacement: "tabs",
     defaultChildPath: "/reports/capital",
+    children: [{ id: "capital-main", title: "信贷中心", titleEn: "Credit center", path: "/reports/capital" }],
+  },
+  {
+    id: "asset-center",
+    title: "素材中心",
+    titleEn: "Asset center",
+    icon: "assetCenter",
+    path: "/asset-center",
+    subNavPlacement: "sidebar",
+    defaultChildPath: "/asset-center/overview",
     children: [
-      { id: "capital-main", title: "资金周转", titleEn: "Capital", path: "/reports/capital" },
+      { id: "ac-overview", title: "素材总览", titleEn: "Overview", path: "/asset-center/overview" },
+      { id: "ac-images", title: "图片库", titleEn: "Image library", path: "/asset-center/images" },
+      { id: "ac-videos", title: "视频库", titleEn: "Video library", path: "/asset-center/videos" },
+      { id: "ac-templates", title: "模板与版式", titleEn: "Templates & layouts", path: "/asset-center/templates" },
+    ],
+  },
+  {
+    id: "config-center",
+    title: "配置中心",
+    titleEn: "Configuration center",
+    icon: "configCenter",
+    path: "/config-center",
+    subNavPlacement: "sidebar",
+    defaultChildPath: "/config-center/overview",
+    children: [
+      { id: "cc-overview", title: "配置总览", titleEn: "Overview", path: "/config-center/overview" },
+      { id: "cc-business", title: "业务参数", titleEn: "Business parameters", path: "/config-center/business" },
+      { id: "cc-channels", title: "渠道与对接", titleEn: "Channels & integrations", path: "/config-center/channels" },
+      { id: "cc-features", title: "功能开关", titleEn: "Feature flags", path: "/config-center/features" },
     ],
   },
   {
     id: "settings",
-    title: "设置",
-    titleEn: "Settings",
+    title: "系统设置",
+    titleEn: "System settings",
     icon: "settings",
     path: "/settings",
-    subNavPlacement: "tabs",
+    subNavPlacement: "sidebar",
     defaultChildPath: "/settings/overview",
     children: [
-      { id: "set-overview", title: "设置总揽", titleEn: "Settings overview", path: "/settings/overview" },
+      { id: "set-overview", title: "系统设置总揽", titleEn: "System settings overview", path: "/settings/overview" },
       { id: "set-basic", title: "基础设置（门店、营业时间、多门店）", path: "/settings/basic" },
       { id: "set-report", title: "报表设置", path: "/settings/reports" },
       { id: "set-print", title: "打印与票据", path: "/settings/printing" },
@@ -485,9 +522,24 @@ export const NAV_MODULES: NavModule[] = [
       },
     ],
   },
+  {
+    id: "product-center",
+    title: "商品中心A",
+    titleEn: "Product center A",
+    icon: "brandProducts",
+    path: "/product-center",
+    matchPrefixes: ["/brand-products", "/brand-menu", "/menu"],
+    subNavPlacement: "sidebar",
+    defaultChildPath: "/brand-products/products",
+    children: [
+      { id: "pc-brand-products", title: "品牌商品管理", titleEn: "Brand products", path: "/brand-products" },
+      { id: "pc-brand-menu", title: "品牌菜单管理", titleEn: "Brand menus", path: "/brand-menu" },
+      { id: "pc-store-products", title: "门店商品管理", titleEn: "Store product management", path: "/menu" },
+    ],
+  },
 ];
 
-/** 设备管理 →「硬件」：主内容区左侧细项（路由 `/device-management/hardware/...`，交互对齐 Kiosk 点餐左侧导航） */
+/** 硬件管理中心 →「硬件」：主内容区左侧细项（路由 `/device-management/hardware/...`，交互对齐 Kiosk 点餐左侧导航） */
 export interface DeviceManagementHardwareSubItem {
   id: string;
   title: string;
@@ -504,6 +556,7 @@ export const DEVICE_MANAGEMENT_HARDWARE_SUBNAV: DeviceManagementHardwareSubItem[
   { id: "dmh-kds", title: "KDS", titleEn: "KDS", path: "/device-management/hardware/kds" },
   { id: "dmh-queue-display", title: "叫号屏", titleEn: "Queue display", path: "/device-management/hardware/queue-display" },
   { id: "dmh-printers", title: "打印机", titleEn: "Printers", path: "/device-management/hardware/printers" },
+  { id: "dmh-scale", title: "电子秤", titleEn: "Electronic scale", path: "/device-management/hardware/scale" },
   { id: "dmh-kiosk", title: "Kiosk", titleEn: "Kiosk", path: "/device-management/hardware/kiosk" },
   { id: "dmh-emenu", title: "eMenu", titleEn: "eMenu devices", path: "/device-management/hardware/emenu" },
 ];
@@ -525,7 +578,7 @@ export function isDeviceManagementHardwarePath(path: string): boolean {
 }
 
 /**
- * 设置总揽：硬件与终端快捷入口，与「设备管理 → 硬件」路径一致（避免与已移除的一级「设备」`/operations/devices` 重复维护）。
+ * 系统设置总揽：硬件与终端快捷入口，与「硬件管理中心 → 硬件」路径一致（避免与已移除的一级「设备」`/operations/devices` 重复维护）。
  */
 export const SETTINGS_OVERVIEW_DEVICE_LINKS: { id: string; title: string; titleEn: string; path: string }[] =
   DEVICE_MANAGEMENT_HARDWARE_SUBNAV.map((item) => ({
@@ -534,6 +587,96 @@ export const SETTINGS_OVERVIEW_DEVICE_LINKS: { id: string; title: string; titleE
     titleEn: item.titleEn,
     path: item.path,
   }));
+
+/** 团队管理 →「小费管理」：主内容区右侧细项导航（路由 `/team/tips/...`） */
+export interface TipsManagementSubItem {
+  id: string;
+  title: string;
+  titleEn?: string;
+  path: string;
+}
+
+export const TIPS_MANAGEMENT_SUBNAV: TipsManagementSubItem[] = [
+  { id: "tips-distribution", title: "小费分配", titleEn: "Tip distribution", path: "/team/tips/distribution" },
+  { id: "tips-details", title: "分配明细", titleEn: "Distribution details", path: "/team/tips/details" },
+  { id: "tips-rules", title: "分配规则", titleEn: "Distribution rules", path: "/team/tips/rules" },
+];
+
+export function getTipsManagementDefaultPath(): string {
+  return TIPS_MANAGEMENT_SUBNAV[0]?.path ?? "/team/tips/distribution";
+}
+
+export function getActiveTipsManagementSubPath(path: string): string {
+  const sorted = [...TIPS_MANAGEMENT_SUBNAV].sort((a, b) => b.path.length - a.path.length);
+  for (const c of sorted) {
+    if (path === c.path || path.startsWith(`${c.path}/`)) return c.path;
+  }
+  return "";
+}
+
+export function isTipsManagementTertiaryPath(path: string): boolean {
+  return getActiveTipsManagementSubPath(path) !== "";
+}
+
+/** 团队管理 →「员工报表」：主内容区细项导航（路由 `/team/reports/...`） */
+export interface TeamReportsSubItem {
+  id: string;
+  title: string;
+  titleEn?: string;
+  path: string;
+}
+
+export const TEAM_REPORTS_SUBNAV: TeamReportsSubItem[] = [
+  { id: "team-rpt-overview", title: "概览", titleEn: "Overview", path: "/team/reports/overview" },
+  { id: "team-rpt-tips", title: "小费", titleEn: "Tips", path: "/team/reports/tips" },
+  { id: "team-rpt-performance", title: "绩效", titleEn: "Performance", path: "/team/reports/performance" },
+  { id: "team-rpt-payroll", title: "薪资", titleEn: "Payroll", path: "/team/reports/payroll" },
+];
+
+export function getTeamReportsDefaultPath(): string {
+  return TEAM_REPORTS_SUBNAV[0]?.path ?? "/team/reports/overview";
+}
+
+export function getActiveTeamReportsSubPath(path: string): string {
+  const sorted = [...TEAM_REPORTS_SUBNAV].sort((a, b) => b.path.length - a.path.length);
+  for (const c of sorted) {
+    if (path === c.path || path.startsWith(`${c.path}/`)) return c.path;
+  }
+  return "";
+}
+
+export function isTeamReportsTertiaryPath(path: string): boolean {
+  return getActiveTeamReportsSubPath(path) !== "";
+}
+
+/** 团队管理 →「排班与考勤」：主内容区细项导航（路由 `/team/scheduling/...`） */
+export interface TeamSchedulingSubItem {
+  id: string;
+  title: string;
+  titleEn?: string;
+  path: string;
+}
+
+export const TEAM_SCHEDULING_SUBNAV: TeamSchedulingSubItem[] = [
+  { id: "team-sch-attendance", title: "考勤记录", titleEn: "Attendance records", path: "/team/scheduling/attendance-records" },
+  { id: "team-sch-overtime", title: "加班规则", titleEn: "Overtime rules", path: "/team/scheduling/overtime-rules" },
+];
+
+export function getTeamSchedulingDefaultPath(): string {
+  return TEAM_SCHEDULING_SUBNAV[0]?.path ?? "/team/scheduling/attendance-records";
+}
+
+export function getActiveTeamSchedulingSubPath(path: string): string {
+  const sorted = [...TEAM_SCHEDULING_SUBNAV].sort((a, b) => b.path.length - a.path.length);
+  for (const c of sorted) {
+    if (path === c.path || path.startsWith(`${c.path}/`)) return c.path;
+  }
+  return "";
+}
+
+export function isTeamSchedulingTertiaryPath(path: string): boolean {
+  return getActiveTeamSchedulingSubPath(path) !== "";
+}
 
 /** POS 点餐：智能点餐 Tab 内左侧三级导航（路由 `/ordering/pos/...`） */
 export interface PosOrderingSubItem {
@@ -594,38 +737,6 @@ export function getActivePaypadOrderingSubPath(path: string): string {
 
 export function isPaypadOrderingTertiaryPath(path: string): boolean {
   return getActivePaypadOrderingSubPath(path) !== "";
-}
-
-/** 客显系统管理：主内容区左侧三级导航（路由 `/operations/customer-display/...`） */
-export interface CustomerDisplaySubItem {
-  id: string;
-  title: string;
-  titleEn?: string;
-  path: string;
-}
-
-export const CUSTOMER_DISPLAY_SUBNAV: CustomerDisplaySubItem[] = [
-  { id: "cd-cover", title: "封面图", titleEn: "Cover image", path: "/operations/customer-display/cover-image" },
-  { id: "cd-multi-language", title: "多语言", titleEn: "Multi-language", path: "/operations/customer-display/multi-language" },
-  { id: "cd-tips", title: "小费", titleEn: "Tips", path: "/operations/customer-display/tips" },
-  { id: "cd-signature", title: "签名", titleEn: "Signature", path: "/operations/customer-display/signature" },
-  { id: "cd-receipt", title: "小票", titleEn: "Receipt ticket", path: "/operations/customer-display/receipt" },
-];
-
-export function getCustomerDisplayDefaultPath(): string {
-  return CUSTOMER_DISPLAY_SUBNAV[0]?.path ?? "/operations/customer-display";
-}
-
-export function getActiveCustomerDisplaySubPath(path: string): string {
-  const sorted = [...CUSTOMER_DISPLAY_SUBNAV].sort((a, b) => b.path.length - a.path.length);
-  for (const c of sorted) {
-    if (path === c.path || path.startsWith(`${c.path}/`)) return c.path;
-  }
-  return "";
-}
-
-export function isCustomerDisplayTertiaryPath(path: string): boolean {
-  return getActiveCustomerDisplaySubPath(path) !== "";
 }
 
 /** Kiosk 点餐：智能点餐 Tab 内左侧三级导航（路由 `/ordering/kiosk/...`） */
@@ -744,7 +855,180 @@ export function getStoreBasicDefaultPath(): string {
   return STORE_BASIC_SUBNAV[0]?.path ?? "/store/basic";
 }
 
-/** 菜单 →「税种管理」内左侧三级导航 */
+/** 三级侧栏内、可折叠分组下的二级链接（交互对齐主导航可折叠模块） */
+export interface ProductCenterSidebarSubchild {
+  title: string;
+  titleEn?: string;
+  path: string;
+}
+
+/** 商品中心A · 品牌商品 / 品牌菜单 / 门店商品：左侧三级导航项（与门店基础信息同交互） */
+export interface ProductCenterSidebarSubItem {
+  id: string;
+  title: string;
+  titleEn?: string;
+  path: string;
+  /** 高亮与归属判定；缺省为 `path` */
+  activePrefix?: string;
+  /** 多个可匹配前缀（如兼容旧路由） */
+  activePrefixes?: string[];
+  /** 若存在：一级行点击仅展开/收起，子链进入路由（同侧栏 `subNavPlacement: sidebar`） */
+  sidebarChildren?: ProductCenterSidebarSubchild[];
+}
+
+function expandProductCenterSidebarPrefixes(item: ProductCenterSidebarSubItem): string[] {
+  if (item.activePrefixes?.length) return item.activePrefixes;
+  if (item.activePrefix) return [item.activePrefix];
+  return [item.path];
+}
+
+/** 品牌商品管理 · 左侧三级导航 */
+export const BRAND_PRODUCTS_SUBNAV: ProductCenterSidebarSubItem[] = [
+  { id: "bp-products", title: "商品", titleEn: "Products", path: "/brand-products/products" },
+  { id: "bp-product-categories", title: "分类", titleEn: "Categories", path: "/brand-products/product-categories" },
+  { id: "bp-spec-groups", title: "规格组", titleEn: "Spec groups", path: "/brand-products/spec-groups" },
+  { id: "bp-flavor-groups", title: "口味组", titleEn: "Flavor groups", path: "/brand-products/flavor-groups" },
+  { id: "bp-prep-groups", title: "做法组", titleEn: "Prep groups", path: "/brand-products/prep-groups" },
+  { id: "bp-addon-groups", title: "加料组", titleEn: "Add-on groups", path: "/brand-products/addon-groups" },
+  { id: "bp-combo-groups", title: "套餐组", titleEn: "Combo groups", path: "/brand-products/combo-groups" },
+  {
+    id: "bp-seasoning-mgmt",
+    title: "调味管理",
+    titleEn: "Seasoning",
+    path: "/brand-products/seasoning-mgmt/seasoning",
+    activePrefix: "/brand-products/seasoning-mgmt",
+    sidebarChildren: [
+      { title: "调味", titleEn: "Seasoning", path: "/brand-products/seasoning-mgmt/seasoning" },
+      {
+        title: "下发记录",
+        titleEn: "Distribution log",
+        path: "/brand-products/seasoning-mgmt/distribution-log",
+      },
+    ],
+  },
+  {
+    id: "bp-tags-mgmt",
+    title: "标签管理",
+    titleEn: "Tags",
+    path: "/brand-products/tags/description",
+    activePrefix: "/brand-products/tags",
+    sidebarChildren: [
+      { title: "描述标签", titleEn: "Description tags", path: "/brand-products/tags/description" },
+      { title: "商品角标", titleEn: "Product corner badges", path: "/brand-products/tags/corner-badge" },
+      { title: "统计标签", titleEn: "Statistics tags", path: "/brand-products/tags/stats" },
+    ],
+  },
+  { id: "bp-ingredients", title: "原料管理", titleEn: "Ingredients", path: "/brand-products/ingredients" },
+  {
+    id: "bp-ingredient-categories",
+    title: "原料分类",
+    titleEn: "Ingredient categories",
+    path: "/brand-products/ingredient-categories",
+  },
+  { id: "bp-images", title: "图片管理", titleEn: "Images", path: "/brand-products/images" },
+  {
+    id: "bp-recipes-mgmt",
+    title: "配方管理",
+    titleEn: "Recipes",
+    path: "/brand-products/recipes/list",
+    activePrefix: "/brand-products/recipes",
+    sidebarChildren: [
+      { title: "配方列表", titleEn: "Recipe list", path: "/brand-products/recipes/list" },
+      {
+        title: "原料管理",
+        titleEn: "Ingredients (recipes)",
+        path: "/brand-products/recipes/ingredients",
+      },
+      { title: "记录中心", titleEn: "Records center", path: "/brand-products/recipes/records" },
+    ],
+  },
+];
+
+/** 品牌菜单管理 · 左侧三级导航 */
+export const BRAND_MENU_SUBNAV: ProductCenterSidebarSubItem[] = [
+  { id: "bm-menus", title: "菜单", titleEn: "Menus", path: "/brand-menu/menus", activePrefix: "/brand-menu" },
+  {
+    id: "bm-distribution",
+    title: "下发记录",
+    titleEn: "Distribution log",
+    path: "/brand-menu/distribution-log",
+    activePrefix: "/brand-menu/distribution-log",
+  },
+];
+
+/** 门店商品管理 · 左侧三级导航 */
+export const STORE_MENU_SUBNAV: ProductCenterSidebarSubItem[] = [
+  { id: "sm-store-menu", title: "门店菜单", titleEn: "Store menu", path: "/menu/store-menu" },
+  { id: "sm-store-products", title: "门店商品", titleEn: "Store products", path: "/menu/store-products" },
+  { id: "sm-store-seasoning", title: "门店调味", titleEn: "Store seasoning", path: "/menu/store-seasoning" },
+  {
+    id: "sm-inventory-changes",
+    title: "库存变更记录",
+    titleEn: "Inventory changes",
+    path: "/menu/inventory-changes",
+  },
+  { id: "sm-print-settings", title: "打印设置", titleEn: "Print settings", path: "/menu/print-settings" },
+  {
+    id: "sm-tax-types",
+    title: "税种管理",
+    titleEn: "Tax types",
+    path: "/menu/tax-types/settings",
+    activePrefix: "/menu/tax-types",
+    sidebarChildren: [
+      { title: "税种管理", titleEn: "Tax types", path: "/menu/tax-types/settings" },
+      { title: "商品税管理", titleEn: "Product tax management", path: "/menu/tax-types/product-tax" },
+    ],
+  },
+  {
+    id: "sm-recipe-list",
+    title: "配方列表",
+    titleEn: "Recipe list",
+    path: "/menu/recipe-list",
+    activePrefixes: ["/menu/recipe-list", "/menu/product-recipe"],
+  },
+];
+
+export function getActiveProductCenterSidebarSubPath(
+  path: string,
+  items: ProductCenterSidebarSubItem[],
+): string {
+  const scored = items
+    .flatMap((item) => expandProductCenterSidebarPrefixes(item).map((prefix) => ({ item, prefix })))
+    .sort((a, b) => b.prefix.length - a.prefix.length);
+  for (const { item, prefix } of scored) {
+    if (path === prefix || path.startsWith(`${prefix}/`)) return item.path;
+  }
+  return "";
+}
+
+export function getActiveBrandProductsSubPath(path: string): string {
+  if (!path.startsWith("/brand-products")) return "";
+  return getActiveProductCenterSidebarSubPath(path, BRAND_PRODUCTS_SUBNAV);
+}
+
+export function isBrandProductsTertiaryPath(path: string): boolean {
+  return path.startsWith("/brand-products");
+}
+
+export function getActiveBrandMenuSubPath(path: string): string {
+  if (!path.startsWith("/brand-menu")) return "";
+  return getActiveProductCenterSidebarSubPath(path, BRAND_MENU_SUBNAV);
+}
+
+export function isBrandMenuTertiaryPath(path: string): boolean {
+  return path.startsWith("/brand-menu");
+}
+
+export function getActiveStoreMenuSubPath(path: string): string {
+  if (!path.startsWith("/menu")) return "";
+  return getActiveProductCenterSidebarSubPath(path, STORE_MENU_SUBNAV);
+}
+
+export function isStoreMenuTertiaryPath(path: string): boolean {
+  return path.startsWith("/menu");
+}
+
+/** 门店商品管理 →「税种管理」内左侧三级导航 */
 export interface MenuTaxTypesSubItem {
   id: string;
   title: string;
@@ -753,8 +1037,8 @@ export interface MenuTaxTypesSubItem {
 }
 
 export const MENU_TAX_TYPES_SUBNAV: MenuTaxTypesSubItem[] = [
-  { id: "mt-tax-settings", title: "税种设置", titleEn: "Tax type settings", path: "/menu/tax-types/settings" },
-  { id: "mt-product-tax", title: "商品税设置", titleEn: "Product tax settings", path: "/menu/tax-types/product-tax" },
+  { id: "mt-tax-settings", title: "税种管理", titleEn: "Tax type settings", path: "/menu/tax-types/settings" },
+  { id: "mt-product-tax", title: "商品税管理", titleEn: "Product tax management", path: "/menu/tax-types/product-tax" },
 ];
 
 export function getActiveMenuTaxSubPath(path: string): string {
@@ -769,6 +1053,105 @@ export function isMenuTaxTertiaryPath(path: string): boolean {
   return getActiveMenuTaxSubPath(path) !== "";
 }
 
+/** 品牌商品管理 →「调味管理」：主内容区左侧三级导航（路由 `/brand-products/seasoning-mgmt/...`） */
+export interface BrandSeasoningMgmtSubItem {
+  id: string;
+  title: string;
+  titleEn?: string;
+  path: string;
+}
+
+export const BRAND_SEASONING_MGMT_SUBNAV: BrandSeasoningMgmtSubItem[] = [
+  { id: "bp-sm-seasoning", title: "调味", titleEn: "Seasoning", path: "/brand-products/seasoning-mgmt/seasoning" },
+  {
+    id: "bp-sm-distribution-log",
+    title: "下发记录",
+    titleEn: "Distribution log",
+    path: "/brand-products/seasoning-mgmt/distribution-log",
+  },
+];
+
+export function getBrandSeasoningMgmtDefaultPath(): string {
+  return BRAND_SEASONING_MGMT_SUBNAV[0]?.path ?? "/brand-products/seasoning-mgmt/seasoning";
+}
+
+export function getActiveBrandSeasoningMgmtSubPath(path: string): string {
+  const sorted = [...BRAND_SEASONING_MGMT_SUBNAV].sort((a, b) => b.path.length - a.path.length);
+  for (const c of sorted) {
+    if (path === c.path || path.startsWith(`${c.path}/`)) return c.path;
+  }
+  return "";
+}
+
+export function isBrandSeasoningMgmtTertiaryPath(path: string): boolean {
+  return getActiveBrandSeasoningMgmtSubPath(path) !== "";
+}
+
+/** 品牌商品管理 →「标签管理」：主内容区左侧三级导航 */
+export interface BrandTagsMgmtSubItem {
+  id: string;
+  title: string;
+  titleEn?: string;
+  path: string;
+}
+
+export const BRAND_TAGS_MGMT_SUBNAV: BrandTagsMgmtSubItem[] = [
+  { id: "bp-tg-description", title: "描述标签", titleEn: "Description tags", path: "/brand-products/tags/description" },
+  { id: "bp-tg-corner", title: "商品角标", titleEn: "Product corner badges", path: "/brand-products/tags/corner-badge" },
+  { id: "bp-tg-stats", title: "统计标签", titleEn: "Statistics tags", path: "/brand-products/tags/stats" },
+];
+
+export function getBrandTagsMgmtDefaultPath(): string {
+  return BRAND_TAGS_MGMT_SUBNAV[0]?.path ?? "/brand-products/tags/description";
+}
+
+export function getActiveBrandTagsMgmtSubPath(path: string): string {
+  const sorted = [...BRAND_TAGS_MGMT_SUBNAV].sort((a, b) => b.path.length - a.path.length);
+  for (const c of sorted) {
+    if (path === c.path || path.startsWith(`${c.path}/`)) return c.path;
+  }
+  return "";
+}
+
+export function isBrandTagsMgmtTertiaryPath(path: string): boolean {
+  return getActiveBrandTagsMgmtSubPath(path) !== "";
+}
+
+/** 品牌商品管理 →「配方管理」：主内容区左侧三级导航 */
+export interface BrandRecipesMgmtSubItem {
+  id: string;
+  title: string;
+  titleEn?: string;
+  path: string;
+}
+
+export const BRAND_RECIPES_MGMT_SUBNAV: BrandRecipesMgmtSubItem[] = [
+  { id: "bp-rc-list", title: "配方列表", titleEn: "Recipe list", path: "/brand-products/recipes/list" },
+  {
+    id: "bp-rc-ingredients",
+    title: "原料管理",
+    titleEn: "Ingredients (recipes)",
+    path: "/brand-products/recipes/ingredients",
+  },
+  { id: "bp-rc-records", title: "记录中心", titleEn: "Records center", path: "/brand-products/recipes/records" },
+];
+
+export function getBrandRecipesMgmtDefaultPath(): string {
+  return BRAND_RECIPES_MGMT_SUBNAV[0]?.path ?? "/brand-products/recipes/list";
+}
+
+export function getActiveBrandRecipesMgmtSubPath(path: string): string {
+  const sorted = [...BRAND_RECIPES_MGMT_SUBNAV].sort((a, b) => b.path.length - a.path.length);
+  for (const c of sorted) {
+    if (path === c.path || path.startsWith(`${c.path}/`)) return c.path;
+  }
+  return "";
+}
+
+export function isBrandRecipesMgmtTertiaryPath(path: string): boolean {
+  return getActiveBrandRecipesMgmtSubPath(path) !== "";
+}
+
 /** 扁平化所有路径（用于校验 / 生成 sitemap） */
 export function flattenNavPaths(modules: NavModule[] = NAV_MODULES): string[] {
   const out: string[] = [];
@@ -781,7 +1164,17 @@ export function flattenNavPaths(modules: NavModule[] = NAV_MODULES): string[] {
   for (const pp of PAYPAD_ORDERING_SUBNAV) out.push(pp.path);
   for (const e of EMENU_ORDERING_SUBNAV) out.push(e.path);
   for (const s of STORE_BASIC_SUBNAV) out.push(s.path);
+  for (const bp of BRAND_PRODUCTS_SUBNAV) out.push(bp.path);
+  for (const bm of BRAND_MENU_SUBNAV) out.push(bm.path);
+  for (const sm of STORE_MENU_SUBNAV) out.push(sm.path);
   for (const t of MENU_TAX_TYPES_SUBNAV) out.push(t.path);
   for (const d of DEVICE_MANAGEMENT_HARDWARE_SUBNAV) out.push(d.path);
+  for (const tips of TIPS_MANAGEMENT_SUBNAV) out.push(tips.path);
+  for (const tr of TEAM_REPORTS_SUBNAV) out.push(tr.path);
+  for (const ts of TEAM_SCHEDULING_SUBNAV) out.push(ts.path);
+  for (const sm of BRAND_SEASONING_MGMT_SUBNAV) out.push(sm.path);
+  for (const tg of BRAND_TAGS_MGMT_SUBNAV) out.push(tg.path);
+  for (const rc of BRAND_RECIPES_MGMT_SUBNAV) out.push(rc.path);
+  for (const pc of PRODUCT_CENTER_DEEP_NAV) out.push(pc.path);
   return out;
 }
