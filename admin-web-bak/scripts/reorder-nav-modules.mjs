@@ -78,7 +78,10 @@ const order = [
   "permission-mgmt",
   "capital-turnover",
   "asset-center",
+  "config-center",
   "settings",
+  "product-center",
+  "product-center-a",
 ];
 for (const id of order) {
   if (!byId[id]) throw new Error("missing module: " + id);

@@ -43,21 +43,11 @@ import {
   isTeamSchedulingTertiaryPath,
   MARKETING_MGMT_SUBNAV,
   getActiveMarketingMgmtSubPath,
-  PRODUCT_CENTER_MAIN_SHEET_SETTINGS_SUBNAV,
-  getActiveProductCenterMainSettingsSubPath,
-  MARKETING_SHEET_SETTINGS_SUBNAV,
-  getActiveMarketingSettingsSubPath,
   PROMOTIONS_MGMT_SUBNAV,
   getActivePromotionsMgmtSubPath,
-  PROMOTIONS_SHEET_SETTINGS_SUBNAV,
-  getActivePromotionsSettingsSubPath,
   MEMBERS_SHEET_SUBNAV,
   getActiveMembersSheetSubPath,
   getMembersSheetSidebarChildActivePath,
-  MEMBERS_SHEET_SETTINGS_SUBNAV,
-  getActiveMembersSettingsSubPath,
-  GIFT_CARDS_SHEET_MAIN_SUBNAV,
-  GIFT_CARDS_SHEET_SETTINGS_SUBNAV,
   GIFT_CARDS_SHEET_SUBNAV,
   getActiveGiftCardsSheetSubPath,
   isReportsCenterHubPath,
@@ -74,11 +64,6 @@ import {
   getActiveNavModuleSheetSubPath,
   navModuleChildrenAsSheetSubnav,
 } from "./config/navigation";
-import {
-  getModuleSettingsCatalog,
-  groupCatalogItemsByCategory,
-  type ModuleSettingCatalogHub,
-} from "./config/module-settings-catalog";
 import {
   applyUiLocaleToDocument,
   formatNavModuleKicker,
@@ -170,6 +155,53 @@ const ICONS: Record<NavModule["icon"], string> = {
 const TERTIARY_SUBNAV_SCROLL_CLASSES =
   "tertiary-inline-subnav-scroll min-h-0 max-h-[min(52dvh,26rem)] overflow-y-auto overscroll-y-contain sm:max-h-full sm:self-stretch";
 
+function isProductCenterAPath(path: string): boolean {
+  return path === "/product-center-a" || path.startsWith("/product-center-a/");
+}
+
+const PRODUCT_CENTER_A_IFRAME_SRC = "https://itemcenter.menusifudev.com/";
+
+/** 商品中心B（路由仍为 product-center-a）：视口全屏弹层（覆盖侧栏与主区），内嵌 Item Center */
+function renderProductCenterAFullscreenModal(): string {
+  const src = escapeHtml(PRODUCT_CENTER_A_IFRAME_SRC);
+  return `<div
+      id="product-center-a-dialog"
+      class="fixed inset-0 z-[200] flex animate-fade-in flex-col bg-background shadow-2xl ring-1 ring-border"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="product-center-a-title"
+      tabindex="-1"
+    >
+      <div class="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-border bg-card px-3 sm:h-14 sm:px-4">
+        <h2 id="product-center-a-title" class="min-w-0 truncate text-sm font-semibold text-card-foreground sm:text-base">商品中心B</h2>
+        <button
+          type="button"
+          id="product-center-a-close"
+          class="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-border bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          关闭
+        </button>
+      </div>
+      <div class="relative flex min-h-0 flex-1 flex-col">
+        <p class="sr-only">商品中心B 全屏浮层内嵌外部页面。若内容空白，请确认 itemcenter.menusifudev.com 在 CSP frame-ancestors 或 X-Frame-Options 中允许被本后台来源嵌入。</p>
+        <iframe
+          title="商品中心B · Item Center"
+          class="block h-full min-h-0 w-full flex-1 border-0 bg-background"
+          src="${src}"
+          referrerpolicy="no-referrer-when-downgrade"
+          allow="clipboard-read; clipboard-write; fullscreen"
+        ></iframe>
+      </div>
+    </div>`;
+}
+
+function renderProductCenterAMainUnderlay(): string {
+  return `<div tabindex="-1" class="rounded-xl border border-dashed border-border bg-muted/20 p-6 text-sm text-muted-foreground outline-none">
+      <p class="text-card-foreground">「商品中心B」已在<strong class="font-medium text-foreground">全屏浮层</strong>中打开（覆盖侧栏与主区）。</p>
+      <p class="mt-2">按键盘 <kbd class="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-xs text-foreground">Esc</kbd> 或点击浮层右上角「关闭」返回工作台。</p>
+    </div>`;
+}
+
 /** 礼品卡中心 · Cards：云端礼品卡工厂（QA），主内容区 iframe */
 const GIFT_CARDS_FACTORY_IFRAME_SRC = "https://cloud.menusifucloudqa.com/factory/giftcardb";
 
@@ -201,11 +233,6 @@ const INVENTORY_EXPIRY_WMS_IFRAME_SRC =
 
 function isInventoryExpiryIframePath(path: string): boolean {
   return path === "/operations/inventory-ordering/expiry" || path.startsWith("/operations/inventory-ordering/expiry/");
-}
-
-function getModuleDefaultChildPath(moduleId: string, fallbackPath: string): string {
-  const mod = NAV_MODULES.find((x) => x.id === moduleId);
-  return mod?.defaultChildPath ?? fallbackPath;
 }
 
 /** 主区全宽嵌入 WMS 效期分类 */
@@ -753,12 +780,6 @@ function renderProductCenterMainSecondarySheet(hash: string, open: boolean): str
               })}
             </div>
           </section>
-          <section class="${pcmHubSectionRest}">
-            ${renderPcSheetDarkSubnav(hash, PRODUCT_CENTER_MAIN_SHEET_SETTINGS_SUBNAV, getActiveProductCenterMainSettingsSubPath, pcmSheetNavNoChildPath, {
-              brandProductSecondLevel: true,
-              sheetGroupedSubnavAriaLabel: `${pick(pcmHubMod.title, pcmHubMod.titleEn)} · ${t("nav.subNavQualifier")}`,
-            })}
-          </section>
         </div>`;
   return `
     <div
@@ -819,12 +840,6 @@ function renderMarketingSecondarySheet(hash: string, open: boolean): string {
               })}
             </div>
           </section>
-          <section class="${SBR_DIVIDER_T} pt-3">
-            ${renderPcSheetDarkSubnav(hash, MARKETING_SHEET_SETTINGS_SUBNAV, getActiveMarketingSettingsSubPath, pcmSheetNavNoChildPath, {
-              brandProductSecondLevel: true,
-              sheetGroupedSubnavAriaLabel: `${pick(mktMod.title, mktMod.titleEn)} · ${t("nav.subNavQualifier")}`,
-            })}
-          </section>
         </div>`;
   return `
     <div
@@ -869,12 +884,6 @@ function renderPromotionsSecondarySheet(hash: string, open: boolean): string {
             ${renderPcSheetDarkSubnav(hash, PROMOTIONS_MGMT_SUBNAV, getActivePromotionsMgmtSubPath, pcmSheetNavNoChildPath, {
               brandProductSecondLevel: true,
               sheetGroupedSubnavAriaLabel: promoSheetAria,
-            })}
-          </section>
-          <section class="${SBR_DIVIDER_T} pt-3">
-            ${renderPcSheetDarkSubnav(hash, PROMOTIONS_SHEET_SETTINGS_SUBNAV, getActivePromotionsSettingsSubPath, pcmSheetNavNoChildPath, {
-              brandProductSecondLevel: true,
-              sheetGroupedSubnavAriaLabel: `${pick(prMod.title, prMod.titleEn)} · ${t("nav.subNavQualifier")}`,
             })}
           </section>
         </div>`;
@@ -922,12 +931,6 @@ function renderMembersSecondarySheet(hash: string, open: boolean): string {
               sheetGroupedSubnavAriaLabel: memGroupedAria,
             })}
           </section>
-          <section class="${SBR_DIVIDER_T} pt-3">
-            ${renderPcSheetDarkSubnav(hash, MEMBERS_SHEET_SETTINGS_SUBNAV, getActiveMembersSettingsSubPath, pcmSheetNavNoChildPath, {
-              brandProductSecondLevel: true,
-              sheetGroupedSubnavAriaLabel: `${pick(memMod.title, memMod.titleEn)} · ${t("nav.subNavQualifier")}`,
-            })}
-          </section>
         </div>`;
   return `
     <div
@@ -968,15 +971,9 @@ function renderGiftCardsSecondarySheet(hash: string, open: boolean): string {
   const hubBody = `
         <div class="space-y-4">
           <section class="pt-0">
-            ${renderPcSheetDarkSubnav(hash, GIFT_CARDS_SHEET_MAIN_SUBNAV, getActiveGiftCardsSheetSubPath, pcmSheetNavNoChildPath, {
+            ${renderPcSheetDarkSubnav(hash, GIFT_CARDS_SHEET_SUBNAV, getActiveGiftCardsSheetSubPath, pcmSheetNavNoChildPath, {
               brandProductSecondLevel: true,
               sheetGroupedSubnavAriaLabel: gcGroupedAria,
-            })}
-          </section>
-          <section class="${SBR_DIVIDER_T} pt-3">
-            ${renderPcSheetDarkSubnav(hash, GIFT_CARDS_SHEET_SETTINGS_SUBNAV, getActiveGiftCardsSheetSubPath, pcmSheetNavNoChildPath, {
-              brandProductSecondLevel: true,
-              sheetGroupedSubnavAriaLabel: `${pick(giftMod.title, giftMod.titleEn)} · ${t("nav.subNavQualifier")}`,
             })}
           </section>
         </div>`;
@@ -1247,6 +1244,9 @@ function findTitle(path: string): { title: string; module?: string } {
   if (path === "/ai-assistant/chat" || path.startsWith("/ai-assistant/")) {
     return { title: t("findTitle.aiChat"), module: t("findTitle.aiModule") };
   }
+  if (isProductCenterAPath(path)) {
+    return { title: t("findTitle.productCenterB"), module: t("findTitle.productCenterBModule") };
+  }
   if (path.startsWith("/gift-cards")) {
     const giftMod = NAV_MODULES.find((x) => x.id === "gift-cards")!;
     const sortedGc = [...GIFT_CARDS_SHEET_SUBNAV].sort((a, b) => b.path.length - a.path.length);
@@ -1407,7 +1407,7 @@ function findTitle(path: string): { title: string; module?: string } {
   return { title: t("findTitle.page"), module: undefined };
 }
 
-/** 当前路由是否落在该导航模块下（支持 `matchPrefixes` 聚合模块，如商品中心） */
+/** 当前路由是否落在该导航模块下（支持 `matchPrefixes` 聚合模块，如商品中心A） */
 function pathBelongsToModule(path: string, m: NavModule): boolean {
   const prefixes = m.matchPrefixes?.length ? m.matchPrefixes : [m.path];
   return prefixes.some((p) => path === p || path.startsWith(`${p}/`));
@@ -1520,22 +1520,7 @@ function rememberSidebarNavScroll(scrollTop: number): void {
 /** 将 `#/menu`、`#/reports` 等仅一级路径规范为各自 defaultChildPath（单页模块 path===default 时不跳转） */
 function normalizeTabModuleHashes(): void {
   const raw = location.hash.slice(1);
-  /* 侧栏已移除一级「配置中心」，旧书签统一到系统设置 */
-  if (raw === "/config-center" || raw.startsWith("/config-center/")) {
-    replaceHashPath("/settings/overview");
-    return;
-  }
-  /* 侧栏已移除一级「商品中心B」，旧书签回到工作台 */
-  if (raw === "/product-center-a" || raw.startsWith("/product-center-a/")) {
-    replaceHashPath("/dashboard/overview");
-    return;
-  }
-  /* 侧栏已移除一级「商品中心A」占位 path，旧书签落到商品中心默认子路由 */
-  if (raw === "/product-center" || raw === "/product-center/") {
-    replaceHashPath("/brand-products/products");
-    return;
-  }
-  /* 商品中心：二级入口仅一级 path 时落到各自默认子路由 */
+  /* 商品中心A：二级入口仅一级 path 时落到各自默认子路由 */
   if (raw === "/brand-products" || raw === "/brand-products/") {
     replaceHashPath("/brand-products/products");
     return;
@@ -1566,6 +1551,10 @@ function normalizeTabModuleHashes(): void {
   }
   if (raw === "/reports" || raw === "/reports/") {
     replaceHashPath("/reports/revenue");
+    return;
+  }
+  if (raw === "/members/settings" || raw === "/members/settings/" || raw.startsWith("/members/settings/")) {
+    replaceHashPath("/members/card/coupon-mgmt");
     return;
   }
   if (raw === "/members" || raw === "/members/") {
@@ -1913,7 +1902,7 @@ function getStoreMenuSidebarChildActivePath(path: string, item: ProductCenterSid
 
 const TERTIARY_SIDEBAR_CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
 
-/** 商品中心下三级侧栏：扁平项 + 可选折叠分组（与主导航可折叠模块交互一致） */
+/** 商品中心A下三级侧栏：扁平项 + 可选折叠分组（与主导航可折叠模块交互一致） */
 function renderProductCenterTertiarySidebar(
   path: string,
   opts: {
@@ -1999,8 +1988,8 @@ function renderProductCenterTertiarySidebar(
 }
 
 function renderBrandMenuSidebar(path: string): string {
-  const pcm = NAV_MODULES.find((x) => x.id === "product-center-main")!;
-  const bmChild = pcm.children.find((c) => c.id === "pcm-brand-menu")!;
+  const pcA = NAV_MODULES.find((x) => x.id === "product-center")!;
+  const bmChild = pcA.children.find((c) => c.path === "/brand-menu")!;
   const navHeading = pick(bmChild.title, bmChild.titleEn);
   const navLabel = navHeading.replace(/"/g, "&quot;");
   const activeSub = getActiveBrandMenuSubPath(path);
@@ -2028,8 +2017,8 @@ function renderBrandMenuSidebar(path: string): string {
 }
 
 function renderStoreMenuSidebar(path: string): string {
-  const pcm = NAV_MODULES.find((x) => x.id === "product-center-main")!;
-  const smChild = pcm.children.find((c) => c.id === "pcm-store-mgmt")!;
+  const pcA = NAV_MODULES.find((x) => x.id === "product-center")!;
+  const smChild = pcA.children.find((c) => c.path === "/menu")!;
   const navHeading = pick(smChild.title, smChild.titleEn);
   return renderProductCenterTertiarySidebar(path, {
     navClass: "store-menu-subnav",
@@ -2208,7 +2197,16 @@ function renderTeamSchedulingSidebar(path: string): string {
 /** 侧栏折叠模块：一级行点击仅展开/收起；子项在下方二级链接进入（顺序见 navigation.ts NAV_MODULES） */
 function renderExpandableSidebarModule(m: NavModule, hash: string, expanded: boolean): string {
   const inModule = pathBelongsToModule(hash, m);
-  const activeChildPath = getActiveChildTabPath(hash, m.children);
+  let activeChildPath = getActiveChildTabPath(hash, m.children);
+  if (m.id === "product-center" && isBrandProductsTertiaryPath(hash)) {
+    activeChildPath = "/brand-products";
+  }
+  if (m.id === "product-center" && isBrandMenuTertiaryPath(hash)) {
+    activeChildPath = "/brand-menu";
+  }
+  if (m.id === "product-center" && isStoreMenuTertiaryPath(hash)) {
+    activeChildPath = "/menu";
+  }
   const childrenId = `sidebar-children-${m.id}`;
   const chevron = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
   return `
@@ -2493,192 +2491,6 @@ function renderModule(m: NavModule, hash: string): string {
         <span class="text-sidebar-active shrink-0 [&>svg]:block" aria-hidden="true">${ICONS[m.icon]}</span>
         <span class="min-w-0 flex-1 truncate">${navPrimaryLabel(m)}</span>
       </a>
-    </div>`;
-}
-
-/** 滑层「设置」页：无归类条目的 hub（评价中心、品牌设置等） */
-const MODULE_HUB_SETTINGS_EMPTY_PATHS = new Set(["/reviews/settings", "/brand/settings"]);
-
-type ModuleSettingsGroup = ReturnType<typeof groupCatalogItemsByCategory>[number];
-
-function isModuleHubSettingsCatalogPath(path: string): boolean {
-  if (path === "/settings/overview") return false;
-  if (path === "/menu/tax-types/settings") return false;
-  const catalog = getModuleSettingsCatalog(path);
-  if (catalog) {
-    return path === catalog.settingsPath || path.startsWith(`${catalog.settingsPath}/`);
-  }
-  return MODULE_HUB_SETTINGS_EMPTY_PATHS.has(path);
-}
-
-function slugifyModuleSettingsCategory(category: string): string {
-  return (
-    category
-      .toLowerCase()
-      .replace(/[^\w\u4e00-\u9fff]+/g, "-")
-      .replace(/^-|-$/g, "")
-      .slice(0, 48) || "item"
-  );
-}
-
-function getModuleSettingsCategoryPath(settingsPath: string, groupKey: string): string {
-  return `${settingsPath}/${encodeURIComponent(slugifyModuleSettingsCategory(groupKey))}`;
-}
-
-function moduleSettingsCategoryDomId(groupKey: string): string {
-  return `module-settings-cat-${slugifyModuleSettingsCategory(groupKey)}`;
-}
-
-/** 仅当 URL 含归类 slug 时高亮二级导航（根路径 `/…/settings` 不高亮） */
-function getModuleSettingsCategorySlugFromPath(path: string, settingsPath: string): string {
-  if (!path.startsWith(`${settingsPath}/`)) return "";
-  const raw = path.slice(settingsPath.length + 1).split("/")[0] ?? "";
-  try {
-    return decodeURIComponent(raw);
-  } catch {
-    return raw;
-  }
-}
-
-function getModuleSettingsActiveGroup(
-  path: string,
-  settingsPath: string,
-  groups: ModuleSettingsGroup[],
-): ModuleSettingsGroup | undefined {
-  if (groups.length === 0 || path === settingsPath) return undefined;
-  const slug = getModuleSettingsCategorySlugFromPath(path, settingsPath);
-  if (!slug) return undefined;
-  return groups.find((g) => slugifyModuleSettingsCategory(g.groupKey) === slugifyModuleSettingsCategory(slug));
-}
-
-function scrollToModuleSettingsCategory(groupKey: string): void {
-  const targetId = moduleSettingsCategoryDomId(groupKey);
-  const run = (): void => {
-    const el = document.getElementById(targetId);
-    if (!el) return;
-    const scrollHost = el.closest(".module-settings-scroll-host") as HTMLElement | null;
-    if (scrollHost) {
-      const hostRect = scrollHost.getBoundingClientRect();
-      const elRect = el.getBoundingClientRect();
-      const nextTop = scrollHost.scrollTop + (elRect.top - hostRect.top) - 12;
-      scrollHost.scrollTo({ top: Math.max(0, nextTop), behavior: "smooth" });
-      return;
-    }
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-  requestAnimationFrame(() => requestAnimationFrame(run));
-}
-
-function scrollToModuleSettingsCategoryFromPath(path: string): void {
-  const catalog = getModuleSettingsCatalog(path);
-  if (!catalog) return;
-  const groups = groupCatalogItemsByCategory(catalog.items);
-  const active = getModuleSettingsActiveGroup(path, catalog.settingsPath, groups);
-  if (!active) return;
-  scrollToModuleSettingsCategory(active.groupKey);
-}
-
-function bindModuleSettingsCategoryNav(): void {
-  document.querySelectorAll<HTMLAnchorElement>(".module-settings-subnav a[href^='#']").forEach((link) => {
-    link.addEventListener("click", () => {
-      const href = link.getAttribute("href")?.slice(1);
-      if (!href) return;
-      const catalog = getModuleSettingsCatalog(href);
-      if (!catalog) return;
-      const groups = groupCatalogItemsByCategory(catalog.items);
-      const active = getModuleSettingsActiveGroup(href, catalog.settingsPath, groups);
-      if (!active) return;
-      window.setTimeout(() => scrollToModuleSettingsCategory(active.groupKey), 0);
-    });
-  });
-}
-
-function renderModuleHubSettingsCategorySidebar(path: string, pageTitle: string): string {
-  const catalog = getModuleSettingsCatalog(path);
-  if (!catalog || catalog.items.length === 0) return "";
-  const groups = groupCatalogItemsByCategory(catalog.items);
-  const activeGroup = getModuleSettingsActiveGroup(path, catalog.settingsPath, groups);
-  return `
-    <nav class="module-settings-subnav w-56 shrink-0 border-r border-border pr-4 ${TERTIARY_SUBNAV_SCROLL_CLASSES}" aria-label="${escapeHtml(pageTitle)}">
-      <p class="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">${escapeHtml(pageTitle)}</p>
-      <ul class="space-y-0.5" role="list">
-        ${groups
-          .map((group) => {
-            const href = getModuleSettingsCategoryPath(catalog.settingsPath, group.groupKey);
-            const selected = activeGroup?.groupKey === group.groupKey;
-            return `
-              <li>
-                <a href="#${href}"
-                  class="flex min-h-9 items-center rounded-md px-2.5 py-1.5 text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
-                    selected ? "bg-primary/10 font-medium text-primary" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-                  }"
-                  ${selected ? 'aria-current="page"' : ""}
-                >
-                  <span class="min-w-0 flex-1 truncate">${escapeHtml(group.groupTitle)}</span>
-                  <span class="ml-2 shrink-0 text-xs tabular-nums text-muted-foreground">${group.items.length}</span>
-                </a>
-              </li>`;
-          })
-          .join("")}
-      </ul>
-    </nav>
-  `;
-}
-
-function renderModuleHubSettingsPage(path: string, pageTitle: string): string {
-  const catalog: ModuleSettingCatalogHub | undefined = getModuleSettingsCatalog(path);
-  const items = catalog?.items ?? [];
-
-  if (items.length === 0) {
-    return `
-    <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
-      <h2 class="text-base font-semibold tracking-tight text-card-foreground">${escapeHtml(pageTitle)}</h2>
-      <p class="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">${t("moduleSettings.empty")}</p>
-    </div>`;
-  }
-
-  const groups = groupCatalogItemsByCategory(items);
-  const countLabel = tf("moduleSettings.count", { count: String(items.length) });
-  const sections = groups
-    .map((group) => {
-      const sectionId = moduleSettingsCategoryDomId(group.groupKey);
-      const rows = group.items
-        .map((item) => {
-          const sceneLine = item.sceneDesc.trim();
-          const descHtml = sceneLine
-            ? `<p class="m-0 text-xs leading-relaxed text-muted-foreground">${escapeHtml(sceneLine)}</p>`
-            : "";
-          return `
-        <li class="px-3 py-2.5">
-          <div class="flex min-w-0 flex-col gap-1">
-            <span class="text-sm font-medium text-card-foreground">${escapeHtml(item.title)}</span>
-            ${descHtml}
-          </div>
-        </li>`;
-        })
-        .join("");
-      return `
-      <section
-        id="${sectionId}"
-        class="module-settings-category-card scroll-mt-4 rounded-xl border border-border bg-card shadow-sm"
-        aria-label="${escapeHtml(tf("moduleSettings.categoryAria", { category: group.groupTitle }))}"
-      >
-        <div class="flex items-baseline justify-between gap-3 border-b border-border px-4 py-3">
-          <h3 class="text-sm font-semibold text-card-foreground">${escapeHtml(group.groupTitle)}</h3>
-          <span class="shrink-0 text-xs tabular-nums text-muted-foreground">${group.items.length}</span>
-        </div>
-        <ul class="m-0 list-none divide-y divide-border p-0" role="list">${rows}</ul>
-      </section>`;
-    })
-    .join("");
-
-  return `
-    <div class="module-settings-main space-y-4">
-      <div class="rounded-xl border border-border bg-card p-5 shadow-sm">
-        <p class="text-sm leading-relaxed text-muted-foreground">${t("moduleSettings.intro")}</p>
-        <p class="mt-2 text-xs font-medium tabular-nums text-muted-foreground">${escapeHtml(countLabel)}</p>
-      </div>
-      <div class="flex flex-col gap-4">${sections}</div>
     </div>`;
 }
 
@@ -3017,9 +2829,9 @@ function renderMain(): string {
   const isTipsManagementTertiary = isTipsManagementTertiaryPath(path);
   const isTeamReportsTertiary = isTeamReportsTertiaryPath(path);
   const isTeamSchedulingTertiary = isTeamSchedulingTertiaryPath(path);
+  const isProductCenterA = isProductCenterAPath(path);
   const isGiftCardsFactory = isGiftCardsFactoryPath(path);
   const isInventoryExpiryIframe = isInventoryExpiryIframePath(path);
-  const isModuleSettingsCatalog = isModuleHubSettingsCatalogPath(path);
   const wideContentLayout =
     isAiAssistant ||
     isBrandMenuTertiary ||
@@ -3029,8 +2841,7 @@ function renderMain(): string {
     isTeamReportsTertiary ||
     isTeamSchedulingTertiary ||
     isInventoryExpiryIframe ||
-    isGiftCardsFactory ||
-    isModuleSettingsCatalog;
+    isGiftCardsFactory;
   const showModuleTabs = shouldShowModuleTabs(tabModule);
 
   const tertiaryRowClass =
@@ -3088,6 +2899,8 @@ function renderMain(): string {
             ${
               isAiAssistant
                 ? renderAiAssistantChat()
+                : isProductCenterA
+                  ? renderProductCenterAMainUnderlay()
                 : isGiftCardsFactory
                   ? renderGiftCardsFactoryIframePanel()
                 : isInventoryExpiryIframe
@@ -3126,12 +2939,7 @@ function renderMain(): string {
                   </div>`
                     : path === "/settings/overview"
                       ? renderSettingsOverview()
-                      : isModuleHubSettingsCatalogPath(path)
-                        ? `<div class="${tertiaryRowClass}">
-                    ${renderModuleHubSettingsCategorySidebar(path, title)}
-                    <div class="${tertiaryMainClass} module-settings-scroll-host">${renderModuleHubSettingsPage(path, title)}</div>
-                  </div>`
-                        : renderPlaceholder(path, title, tabModule)
+                      : renderPlaceholder(path, title, tabModule)
             }
           </div>
         </div>
@@ -3331,12 +3139,16 @@ function mount(): void {
   const prevNavScrollTop = document.getElementById("nav-tree")?.scrollTop ?? 0;
   const targetNavScroll = Math.max(prevNavScrollTop, readSidebarNavScrollMemory());
 
+  const mountPath = mountPathForSheet;
+  const showProductCenterAModal = isProductCenterAPath(mountPath);
+
   app.innerHTML = `
     <div class="relative h-dvh min-h-0 w-full overflow-hidden">
       <div class="flex h-full min-h-0 w-full">
         ${renderSidebar()}
         ${renderMain()}
       </div>
+      ${showProductCenterAModal ? renderProductCenterAFullscreenModal() : ""}
     </div>
   `;
 
@@ -3376,8 +3188,7 @@ function mount(): void {
         setReportsSecondarySheetOpen(false);
         setPrintSecondarySheetOpen(false);
         setReservationsSecondarySheetOpen(false);
-        setInventorySecondarySheetOpen(true);
-        replaceHashPath(getModuleDefaultChildPath("inventory-ordering", "/operations/inventory-ordering/expiry"));
+        setInventorySecondarySheetOpen(!readInventorySecondarySheetOpen());
         mount();
         return;
       }
@@ -3393,8 +3204,7 @@ function mount(): void {
         setReportsSecondarySheetOpen(false);
         setPrintSecondarySheetOpen(false);
         setReservationsSecondarySheetOpen(false);
-        setProductCenterMainSecondarySheetOpen(true);
-        replaceHashPath(getModuleDefaultChildPath("product-center-main", "/brand-products/products"));
+        setProductCenterMainSecondarySheetOpen(!readProductCenterMainSecondarySheetOpen());
         mount();
         return;
       }
@@ -3410,8 +3220,7 @@ function mount(): void {
         setReportsSecondarySheetOpen(false);
         setPrintSecondarySheetOpen(false);
         setReservationsSecondarySheetOpen(false);
-        setMarketingSecondarySheetOpen(true);
-        replaceHashPath(getModuleDefaultChildPath("marketing", "/marketing/campaigns"));
+        setMarketingSecondarySheetOpen(!readMarketingSecondarySheetOpen());
         mount();
         return;
       }
@@ -3427,8 +3236,7 @@ function mount(): void {
         setReportsSecondarySheetOpen(false);
         setPrintSecondarySheetOpen(false);
         setReservationsSecondarySheetOpen(false);
-        setPromotionsSecondarySheetOpen(true);
-        replaceHashPath(getModuleDefaultChildPath("promotions", "/promotions/campaigns"));
+        setPromotionsSecondarySheetOpen(!readPromotionsSecondarySheetOpen());
         mount();
         return;
       }
@@ -3444,8 +3252,7 @@ function mount(): void {
         setReportsSecondarySheetOpen(false);
         setPrintSecondarySheetOpen(false);
         setReservationsSecondarySheetOpen(false);
-        setMembersSecondarySheetOpen(true);
-        replaceHashPath(getModuleDefaultChildPath("members", "/members/card/coupon-mgmt"));
+        setMembersSecondarySheetOpen(!readMembersSecondarySheetOpen());
         mount();
         return;
       }
@@ -3461,8 +3268,7 @@ function mount(): void {
         setGiftCardsSecondarySheetOpen(false);
         setPrintSecondarySheetOpen(false);
         setReservationsSecondarySheetOpen(false);
-        setReportsSecondarySheetOpen(true);
-        replaceHashPath(getModuleDefaultChildPath("reports-finance", "/reports/revenue"));
+        setReportsSecondarySheetOpen(!readReportsSecondarySheetOpen());
         mount();
         return;
       }
@@ -3478,8 +3284,7 @@ function mount(): void {
         setGiftCardsSecondarySheetOpen(false);
         setReportsSecondarySheetOpen(false);
         setReservationsSecondarySheetOpen(false);
-        setPrintSecondarySheetOpen(true);
-        replaceHashPath(getModuleDefaultChildPath("print-templates", "/print-templates/decoration"));
+        setPrintSecondarySheetOpen(!readPrintSecondarySheetOpen());
         mount();
         return;
       }
@@ -3495,8 +3300,7 @@ function mount(): void {
         setGiftCardsSecondarySheetOpen(false);
         setReportsSecondarySheetOpen(false);
         setPrintSecondarySheetOpen(false);
-        setReservationsSecondarySheetOpen(true);
-        replaceHashPath(getModuleDefaultChildPath("reservations", "/operations/reservations/waitlist"));
+        setReservationsSecondarySheetOpen(!readReservationsSecondarySheetOpen());
         mount();
         return;
       }
@@ -3512,8 +3316,7 @@ function mount(): void {
         setReportsSecondarySheetOpen(false);
         setPrintSecondarySheetOpen(false);
         setReservationsSecondarySheetOpen(false);
-        setGiftCardsSecondarySheetOpen(true);
-        replaceHashPath(getModuleDefaultChildPath("gift-cards", "/gift-cards/cards"));
+        setGiftCardsSecondarySheetOpen(!readGiftCardsSecondarySheetOpen());
         mount();
         return;
       }
@@ -3522,6 +3325,7 @@ function mount(): void {
         const sid = navModSheetBtn.getAttribute("data-nav-module-sheet-sidebar-open");
         if (!sid) return;
         e.preventDefault();
+        const nextOpen = !readNavModuleSheetOpen(sid);
         setInventorySecondarySheetOpen(false);
         setProductCenterMainSecondarySheetOpen(false);
         setMarketingSecondarySheetOpen(false);
@@ -3532,9 +3336,7 @@ function mount(): void {
         setPrintSecondarySheetOpen(false);
         setReservationsSecondarySheetOpen(false);
         closeAllNavModuleSheets();
-        setNavModuleSheetOpen(sid, true);
-        const mod = NAV_MODULES.find((x) => x.id === sid);
-        if (mod) replaceHashPath(mod.defaultChildPath ?? mod.path);
+        if (nextOpen) setNavModuleSheetOpen(sid, true);
         mount();
         return;
       }
@@ -3787,12 +3589,14 @@ function mount(): void {
     document.querySelector('meta[name="theme-color"]')?.setAttribute("content", dark ? "#0f172a" : "#f8fafc");
   });
 
+  if (showProductCenterAModal) {
+    bindFullscreenIframeModal("product-center-a-dialog", "product-center-a-close");
+  }
+
   bindAiAssistantHandlers();
   bindHeaderScopeFilters();
   bindGlobalUiLocaleControl();
   ensureInventorySheetEscapeListener();
-  bindModuleSettingsCategoryNav();
-  scrollToModuleSettingsCategoryFromPath(mountPathForSheet);
 }
 
 window.addEventListener("hashchange", mount);

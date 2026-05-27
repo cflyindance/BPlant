@@ -44,17 +44,17 @@ const messages = {
     "findTitle.page": "页面",
     "findTitle.inventoryChangeTitle": "库存变更记录",
     "findTitle.inventoryChangeModule": "库存管理中心 / Inventory management center",
-    "findTitle.moduleTax": "商品中心 · 门店管理 · 税种管理",
-    "findTitle.moduleSeasoning": "商品中心 · 商品管理 · 调味管理",
-    "findTitle.moduleTags": "商品中心 · 商品管理 · 标签管理",
-    "findTitle.moduleRecipes": "商品中心 · 商品管理 · 配方管理",
+    "findTitle.moduleTax": "商品中心A · 门店商品管理 · 税种管理",
+    "findTitle.moduleSeasoning": "商品中心A · 品牌商品管理 · 调味管理",
+    "findTitle.moduleTags": "商品中心A · 品牌商品管理 · 标签管理",
+    "findTitle.moduleRecipes": "商品中心A · 品牌商品管理 · 配方管理",
     "findTitle.moduleDmHw": "硬件管理中心 · 硬件",
     "findTitle.moduleTips": "团队管理 · 小费管理",
     "findTitle.moduleTeamReports": "团队管理 · 员工报表",
     "findTitle.moduleTeamScheduling": "团队管理 · 排班与考勤",
-    "findTitle.moduleBrandProducts": "商品中心 · 商品管理",
-    "findTitle.moduleBrandMenu": "商品中心 · 品牌菜单",
-    "findTitle.moduleStoreProducts": "商品中心 · 门店管理",
+    "findTitle.moduleBrandProducts": "商品中心A · 品牌商品管理",
+    "findTitle.moduleBrandMenu": "商品中心A · 品牌菜单管理",
+    "findTitle.moduleStoreProducts": "商品中心A · 门店商品管理",
     "findTitle.moduleGiftCards": "礼品卡中心 · Gift card center",
     "findTitle.moduleMembers": "会员中心 · Member center",
     "findTitle.moduleMembersCards": "会员中心 · 卡券管理",
@@ -86,7 +86,7 @@ const messages = {
     "capital.newTab": "在新标签页打开如意财（EZ Capital）",
     "capital.aria": "信贷中心：在新标签页打开 EZ Capital",
     "placeholder.navDocLong":
-      "侧栏一级顺序：品牌管理、门店管理、主页、团队管理、商品中心、订单中心、支付中心、外卖/来取、营销中心、营促销中心、会员中心、礼品卡中心、评价中心、前厅管理中心、后厨管理中心、预约等位中心、报表中心、财务中心、打印中心、消息中心、库存管理中心、硬件管理中心、权限管理中心、信贷中心、素材中心、系统设置。**品牌管理、门店管理、团队管理、订单中心、支付中心、外卖/来取、前厅管理中心、后厨管理中心、评价中心、财务中心、硬件管理中心、权限管理中心、素材管理中心**与**商品中心**、**营销中心**、**促销中心**、**会员中心**、**礼品卡中心**、**报表中心**、**打印中心**、**预约等位中心**、**库存管理中心**均为侧栏自右滑入的二级导航；**主页、消息中心、系统设置**的二级仍在主导航树内可折叠展开（一级行展开/收起，再点子项）。品牌/门店置顶；**商品中心**紧接**团队管理**之后。外卖/来取、前厅管理中心、后厨管理中心滑层内均为业务主入口与「设置」；营销中心滑层内为「营销管理」及子项「营销活动」「手动营销」，并含「设置」；商品中心滑层含商品管理、品牌菜单、门店管理及「设置」；库存管理中心滑层含效期管理、物料管理及「设置」；促销中心滑层内为「促销活动」与「设置」；会员中心滑层内为「卡券管理」（含「优惠券管理」「付费会员明细」「付费会员配置」）、「积分配置」与「设置」；礼品卡中心滑层内为「礼品卡工厂」与「设置」，其中礼品卡工厂在主内容区嵌入云端礼品卡工厂；评价中心滑层含「评价洞察」「评价明细」「评价统计」与「设置」；报表中心滑层内为「营业汇总」「销售汇总」（子项：订单、支付、折扣金额、加收）、「商品报表」（排名、商品潜力分析）、「员工报表」（员工概观、小费分配）、「走势详情」（分店概观、销售额比对）及「月度经营分析」；打印中心滑层内仅「打印装修」；预约等位中心滑层内为「Waitlist」「RSV」「History」「Section」「设置」，界面语言在顶栏全局。其它模块二级多在上方 Tab。 <strong class=\"text-card-foreground\">AI智能助手</strong> 仅顶栏全局入口（<code class=\"font-mono text-xs\">#/ai-assistant/chat</code>），非侧栏一级。结构来源：<strong class=\"text-card-foreground\">docs/餐饮商家后台-导航与目录结构建议.md</strong>",
+      "侧栏一级顺序：品牌管理、门店管理、主页、团队管理、商品中心、订单中心、支付中心、外卖/来取、营销中心、营促销中心、会员中心、礼品卡中心、评价中心、前厅管理中心、后厨管理中心、预约等位中心、报表中心、财务中心、打印中心、消息中心、库存管理中心、硬件管理中心、权限管理中心、信贷中心、素材中心、配置中心、系统设置、商品中心A、商品中心B（商品中心A 二级含品牌商品管理、品牌菜单管理、门店商品管理）。**品牌管理、门店管理、团队管理、订单中心、支付中心、评价中心、财务中心、硬件管理中心、权限管理中心、素材管理中心**与**商品中心**、**营销中心**、**促销中心**、**会员中心**、**礼品卡中心**、**报表中心**、**打印中心**、**预约等位中心**、**库存管理中心**均为侧栏自右滑入的二级导航；**主页、消息中心、配置中心、系统设置、商品中心A**的二级仍在主导航树内可折叠展开（一级行展开/收起，再点子项）。品牌/门店置顶；**商品中心**紧接**团队管理**之后；**商品中心B**在主导航**最末**（**商品中心A**之后）。营销中心滑层内为「营销管理」及子项「营销活动」「手动营销」；促销中心滑层内仅「促销活动」；会员中心滑层内为「卡券管理」（含「优惠券管理」「付费会员明细」「付费会员配置」）与「积分配置」；礼品卡中心滑层内为「Cards」「Settings」，其中 Cards 在主内容区嵌入云端礼品卡工厂；报表中心滑层内为「营业汇总」「销售汇总」（子项：订单、支付、折扣金额、加收）、「商品报表」（排名、商品潜力分析）、「员工报表」（员工概观、小费分配）、「走势详情」（分店概观、销售额比对）及「月度经营分析」；打印中心滑层内仅「打印装修」；预约等位中心滑层内为「Waitlist」「RSV」「History」「Section」「设置」，界面语言在顶栏全局。其它模块二级多在上方 Tab。 <strong class=\"text-card-foreground\">AI智能助手</strong> 仅顶栏全局入口（<code class=\"font-mono text-xs\">#/ai-assistant/chat</code>），非侧栏一级。结构来源：<strong class=\"text-card-foreground\">docs/餐饮商家后台-导航与目录结构建议.md</strong>",
     "placeholder.navDocShort": "侧栏一级入口；多数模块二级在上方 Tab。",
     "ai.welcomeHtml":
       "您好，我是 <strong class=\"text-card-foreground\">MenuSifu 智能助手</strong>（单一智能体）。您可以用<strong class=\"text-card-foreground\">文字或语音</strong>让我：检索全站模块与数据、说明或协助调整<strong class=\"text-card-foreground\">配置与权限</strong>、做经营<strong class=\"text-card-foreground\">分析摘要</strong>。下方为演示回复，接入大模型与业务 API 后即可真实执行（受策略与审批约束）。",
@@ -104,12 +104,6 @@ const messages = {
     "settings.overview.title": "硬件与终端",
     "settings.overview.desc":
       "从系统设置总揽快速进入 <strong class=\"text-card-foreground\">硬件管理中心 → 硬件</strong> 下各终端配置页（含 POS GO）；左侧主导航请展开 <strong class=\"text-card-foreground\">硬件管理中心</strong> → <strong class=\"text-card-foreground\">硬件</strong>。",
-    "moduleSettings.intro":
-      "以下按<strong class=\"text-card-foreground\">功能场景</strong>归类展示本模块相关「功能设置」（来源：<code class=\"font-mono text-xs\">docs/分析.md</code> 与 CSV 归类表）。点击项为占位，后续可对接具体配置页。",
-    "moduleSettings.count": "共 {count} 项",
-    "moduleSettings.empty":
-      "当前模块在归类表中尚无「功能设置」条目；可在 <code class=\"font-mono text-xs\">docs/分析.md</code> 补充后重新运行 <code class=\"font-mono text-xs\">node scripts/build-module-settings-catalog.mjs</code> 生成目录。",
-    "moduleSettings.categoryAria": "{category} 设置项",
     "sheet.marketingMgmt": "营销管理",
     "placeholder.bullet.deviceHw":
       "<strong class=\"text-card-foreground\">硬件管理中心 · 硬件</strong>：在左侧主导航点击「硬件管理中心」打开<strong class=\"text-card-foreground\">右滑二级导航</strong>后选择 <strong class=\"text-card-foreground\">硬件</strong>；本区域左侧为硬件细项（支付、钱箱、路由器、POS、POS GO、KDS、叫号屏、打印机、电子秤、Kiosk、eMenu），交互同本后台其它三级侧栏。",
@@ -120,11 +114,11 @@ const messages = {
     "placeholder.bullet.teamScheduling":
       "<strong class=\"text-card-foreground\">团队管理 · 排班与考勤</strong>：在左侧主导航点击「团队管理」打开<strong class=\"text-card-foreground\">右滑二级导航</strong>后选择 <strong class=\"text-card-foreground\">排班与考勤</strong>；本区域左侧为细项（考勤记录、加班规则），交互同小费管理。",
     "placeholder.bullet.brandProducts":
-      "<strong class=\"text-card-foreground\">商品管理</strong>：侧栏打开「<strong class=\"text-card-foreground\">商品中心</strong>」滑层后，在「<strong class=\"text-card-foreground\">商品管理</strong>」下为全部细项二级导航（商品、分类、规格组、口味组、做法组、加料组、套餐组、调味管理、标签管理、原料管理、原料分类、图片管理、配方管理）；调味/标签/配方分组可折叠，交互与主区左侧三级侧栏一致。配方内「原料管理」：<code class=\"font-mono text-xs\">/brand-products/recipes/ingredients</code>。",
+      "<strong class=\"text-card-foreground\">品牌商品管理</strong>：侧栏打开「<strong class=\"text-card-foreground\">商品中心</strong>」滑层后，在「<strong class=\"text-card-foreground\">商品管理</strong>」下为全部细项二级导航（商品、分类、规格组、口味组、做法组、加料组、套餐组、调味管理、标签管理、原料管理、原料分类、图片管理、配方管理）；调味/标签/配方分组可折叠，交互与原先主区左侧三级侧栏一致。亦可从主导航「商品中心A」→「品牌商品管理」进入同一路由。配方内「原料管理」：<code class=\"font-mono text-xs\">/brand-products/recipes/ingredients</code>。",
     "placeholder.bullet.brandMenu":
-      "<strong class=\"text-card-foreground\">品牌菜单</strong>：侧栏打开「<strong class=\"text-card-foreground\">商品中心</strong>」滑层后选择「<strong class=\"text-card-foreground\">品牌菜单</strong>」；本区域左侧为 <strong class=\"text-card-foreground\">菜单、下发记录</strong> 三级导航。其它品牌菜单路由（如分组、渠道可见性）仍可通过链接进入，侧栏「菜单」项保持高亮。",
+      "<strong class=\"text-card-foreground\">品牌菜单管理</strong>：主导航展开「商品中心A」→「品牌菜单管理」；本区域左侧为 <strong class=\"text-card-foreground\">菜单、下发记录</strong> 三级导航（同商品中心A三级页）。其它品牌菜单路由（如分组、渠道可见性）仍可通过链接进入，侧栏「菜单」项保持高亮。",
     "placeholder.bullet.storeMenu":
-      "<strong class=\"text-card-foreground\">门店管理</strong>：侧栏打开「<strong class=\"text-card-foreground\">商品中心</strong>」滑层后选择「<strong class=\"text-card-foreground\">门店管理</strong>」；本区域左侧为 <strong class=\"text-card-foreground\">门店菜单、门店商品、门店调味、库存变更记录、打印设置、税种管理、配方列表</strong> 三级导航。其中 <strong class=\"text-card-foreground\">税种管理</strong> 为可折叠分组，内含二级入口 <strong class=\"text-card-foreground\">税种管理、商品税管理</strong>（一级行点击仅展开/收起，交互同左侧主导航可折叠模块）。",
+      "<strong class=\"text-card-foreground\">门店商品管理</strong>：主导航展开「商品中心A」→「门店商品管理」；本区域左侧为 <strong class=\"text-card-foreground\">门店菜单、门店商品、门店调味、库存变更记录、打印设置、税种管理、配方列表</strong> 三级导航（同商品中心A三级页）。其中 <strong class=\"text-card-foreground\">税种管理</strong> 为可折叠分组，内含二级入口 <strong class=\"text-card-foreground\">税种管理、商品税管理</strong>（一级行点击仅展开/收起，交互同左侧主导航可折叠模块）。",
     "placeholder.bullet.permissions":
       "<strong class=\"text-card-foreground\">权限管理中心</strong>（RBAC）：侧栏点击「权限管理中心」打开右滑二级导航；在「<strong class=\"text-card-foreground\">角色与功能权限</strong>」中配置各 <strong class=\"text-card-foreground\">角色</strong> 可访问的后台模块与操作（查看、编辑、导出、审核等）；在「<strong class=\"text-card-foreground\">员工授权</strong>」中指定 <strong class=\"text-card-foreground\">哪位员工</strong> 拥有哪些角色。「权限总览」便于审计当前策略；「权限变更记录」留痕赋权调整。与「系统设置 → 账号与权限」可分工：本模块侧重可编排的权限矩阵与员工赋权，系统设置侧重账号安全与基础开关。",
     "placeholder.bullet.reservations":
@@ -175,17 +169,17 @@ const messages = {
     "findTitle.page": "Page",
     "findTitle.inventoryChangeTitle": "Inventory change log",
     "findTitle.inventoryChangeModule": "Inventory management center",
-    "findTitle.moduleTax": "Product center · Store management · Tax types",
-    "findTitle.moduleSeasoning": "Product center · Product management · Seasoning",
-    "findTitle.moduleTags": "Product center · Product management · Tags",
-    "findTitle.moduleRecipes": "Product center · Product management · Recipes",
+    "findTitle.moduleTax": "Product center A · Store products · Tax types",
+    "findTitle.moduleSeasoning": "Product center A · Brand products · Seasoning",
+    "findTitle.moduleTags": "Product center A · Brand products · Tags",
+    "findTitle.moduleRecipes": "Product center A · Brand products · Recipes",
     "findTitle.moduleDmHw": "Hardware · Devices",
     "findTitle.moduleTips": "Team · Tips",
     "findTitle.moduleTeamReports": "Team · Staff reports",
     "findTitle.moduleTeamScheduling": "Team · Scheduling & attendance",
-    "findTitle.moduleBrandProducts": "Product center · Product management",
-    "findTitle.moduleBrandMenu": "Product center · Brand menus",
-    "findTitle.moduleStoreProducts": "Product center · Store management",
+    "findTitle.moduleBrandProducts": "Product center A · Brand products",
+    "findTitle.moduleBrandMenu": "Product center A · Brand menus",
+    "findTitle.moduleStoreProducts": "Product center A · Store products",
     "findTitle.moduleGiftCards": "Gift card center",
     "findTitle.moduleMembers": "Member center",
     "findTitle.moduleMembersCards": "Member center · Cards & coupons",
@@ -221,7 +215,7 @@ const messages = {
     "capital.newTab": "Open EZ Capital in a new tab",
     "capital.aria": "Credit center: open EZ Capital in a new tab",
     "placeholder.navDocLong":
-      "Sidebar order: Brand, Stores, Home, Team, Product center, Orders, Payments, Delivery & pickup, Marketing, Promotions, Members, Gift cards, Reviews, Front of house, Kitchen, Reservations, Reports, Finance, Print, Messages, Inventory, Hardware, Permissions, Credit, Assets, Settings. **Brand, Stores, Team, Orders, Payments, Delivery & pickup, Front of house, Kitchen, Reviews, Finance, Hardware, Permissions, Assets**, plus **Product center**, **Marketing**, **Promotions**, **Members**, **Gift cards**, **Reports**, **Print**, **Reservations**, and **Inventory** use a slide-in secondary sheet; **Home**, **Messages**, and **Settings** keep collapsible children in the main tree. Delivery & pickup, front of house, and kitchen sheets: main entry plus Settings; Marketing sheet: campaigns, manual marketing, and Settings; Product center sheet: product management, brand menus, store management, and Settings; Inventory sheet: expiry, materials, and Settings; Promotions: campaigns & Settings; Members: cards & coupons, points & Settings; Gift cards: factory (embedded) & Settings; Reviews: insights, detail, stats & Settings; Reports: business summary, sales, products, staff, trends, monthly analysis; Print: decoration only; Reservations: Waitlist, RSV, History, Section, Settings; UI language is global in the header. Most other modules use top tabs. <strong class=\"text-card-foreground\">AI Assistant</strong> is header-only (<code class=\"font-mono text-xs\">#/ai-assistant/chat</code>). Source: docs/餐饮商家后台-导航与目录结构建议.md",
+      "Sidebar order: Brand, Stores, Home, Team, Product center, Orders, Payments, Delivery & pickup, Marketing, Promotions, Members, Gift cards, Reviews, Front of house, Kitchen, Reservations, Reports, Finance, Print, Messages, Inventory, Hardware, Permissions, Credit, Assets, Config, Settings, Product center A, Product center B (A covers brand products, brand menus, and store products). **Brand, Stores, Team, Orders, Payments, Reviews, Finance, Hardware, Permissions, Assets**, plus **Product center**, **Marketing**, **Promotions**, **Members**, **Gift cards**, **Reports**, **Print**, **Reservations**, and **Inventory** use a slide-in secondary sheet; **Home**, **Messages**, **Config**, **Settings**, and **Product center A** keep collapsible children in the main tree. Marketing sheet: campaigns & manual marketing; Promotions: campaigns only; Members: cards & coupons plus points; Gift cards: Cards (embedded factory) & Settings; Reports: business summary, sales, products, staff, trends, monthly analysis; Print: decoration only; Reservations: Waitlist, RSV, History, Section, Settings; UI language is global in the header. Most other modules use top tabs. <strong class=\"text-card-foreground\">AI Assistant</strong> is header-only (<code class=\"font-mono text-xs\">#/ai-assistant/chat</code>). Source: docs/餐饮商家后台-导航与目录结构建议.md",
     "placeholder.navDocShort": "Sidebar entries; most modules use top tabs for level-2 navigation.",
     "ai.welcomeHtml":
       "Hello, I am the <strong class=\"text-card-foreground\">MenuSifu assistant</strong> (single agent). Use <strong class=\"text-card-foreground\">text or voice</strong> to search modules and data, explain or help adjust <strong class=\"text-card-foreground\">configuration & permissions</strong>, and run <strong class=\"text-card-foreground\">analytics summaries</strong>. Replies below are demos; connect an LLM and business APIs for real actions (subject to policy and approvals).",
@@ -239,12 +233,6 @@ const messages = {
     "settings.overview.title": "Hardware & terminals",
     "settings.overview.desc":
       "From this overview jump to <strong class=\"text-card-foreground\">Hardware management → Hardware</strong> for each terminal (including POS GO). In the sidebar open <strong class=\"text-card-foreground\">Hardware management</strong> → <strong class=\"text-card-foreground\">Hardware</strong>.",
-    "moduleSettings.intro":
-      "Grouped by <strong class=\"text-card-foreground\">functional scenario</strong> from the classification table (<code class=\"font-mono text-xs\">docs/分析.md</code> / CSV). Rows are placeholders until wired to real config screens.",
-    "moduleSettings.count": "{count} items",
-    "moduleSettings.empty":
-      "No classified settings for this module yet. Add rows in <code class=\"font-mono text-xs\">docs/分析.md</code>, then run <code class=\"font-mono text-xs\">node scripts/build-module-settings-catalog.mjs</code>.",
-    "moduleSettings.categoryAria": "Settings in {category}",
     "sheet.marketingMgmt": "Marketing management",
     "placeholder.bullet.deviceHw":
       "<strong class=\"text-card-foreground\">Hardware · Devices</strong>: open <strong class=\"text-card-foreground\">Hardware management</strong> from the sidebar, then the <strong class=\"text-card-foreground\">slide-in sheet</strong> and choose <strong class=\"text-card-foreground\">Devices</strong>. The left column lists terminals (payments, cash drawer, router, POS, POS GO, KDS, queue display, printers, scales, Kiosk, eMenu)—same tertiary pattern as elsewhere.",
