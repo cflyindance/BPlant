@@ -9,14 +9,8 @@ import { parseConfigMd, slugify } from "./lib/parse-bplant-config-md.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
-const repoDocs = path.join(root, "..", "docs");
-const projectDocs = path.join(repoDocs, "项目文档");
-const sourcePath = [projectDocs, repoDocs]
-  .map((d) => path.join(d, "配置归类-终版.md"))
-  .find((p) => fs.existsSync(p));
-const mappingPath = [projectDocs, repoDocs]
-  .map((d) => path.join(d, "配置归类-分组映射.csv"))
-  .find((p) => fs.existsSync(p));
+const sourcePath = path.join(root, "..", "docs", "配置归类-终版.md");
+const mappingPath = path.join(root, "..", "docs", "配置归类-分组映射.csv");
 const outPath = path.join(root, "src", "config", "module-settings-catalog.ts");
 
 /** B 平台一级导航 → 滑层「设置」路由 */

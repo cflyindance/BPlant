@@ -149,7 +149,7 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Dashboard",
     icon: "home",
     path: "/dashboard",
-    subNavPlacement: "sheet",
+    subNavPlacement: "sidebar",
     defaultChildPath: "/dashboard/overview",
     children: [
       { id: "dash-overview", title: "今日概览", path: "/dashboard/overview" },
@@ -271,7 +271,6 @@ export const NAV_MODULES: NavModule[] = [
     children: [
       { id: "mkt-campaigns", title: "营销活动", titleEn: "Campaigns", path: "/marketing/campaigns" },
       { id: "mkt-manual", title: "手动营销", titleEn: "Manual marketing", path: "/marketing/manual" },
-      { id: "mkt-screensaver", title: "屏保", titleEn: "Screensaver", path: "/marketing/screensaver" },
       { id: "mkt-settings", title: "设置", titleEn: "Settings", path: "/marketing/settings" },
     ],
   },
@@ -424,7 +423,7 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Message center",
     icon: "notifications",
     path: "/notifications",
-    subNavPlacement: "sheet",
+    subNavPlacement: "sidebar",
     defaultChildPath: "/notifications/center",
     children: [
       { id: "notif-center", title: "收件箱", titleEn: "Inbox", path: "/notifications/center" },
@@ -511,12 +510,6 @@ export const NAV_MODULES: NavModule[] = [
         titleEn: "Permission change log",
         path: "/permissions/change-log",
       },
-      {
-        id: "perm-order-limit",
-        title: "下单限制",
-        titleEn: "Order limits",
-        path: "/permissions/order-limit",
-      },
       { id: "perm-settings", title: "设置", path: "/permissions/settings" },
     ],
   },
@@ -536,10 +529,12 @@ export const NAV_MODULES: NavModule[] = [
     icon: "assetCenter",
     path: "/asset-center",
     subNavPlacement: "sheet",
-    defaultChildPath: "/asset-center/materials",
+    defaultChildPath: "/asset-center/overview",
     children: [
-      { id: "ac-materials", title: "图片素材", titleEn: "Image materials", path: "/asset-center/materials" },
+      { id: "ac-overview", title: "素材总览", titleEn: "Overview", path: "/asset-center/overview" },
+      { id: "ac-images", title: "图片库", titleEn: "Image library", path: "/asset-center/images" },
       { id: "ac-videos", title: "视频库", titleEn: "Video library", path: "/asset-center/videos" },
+      { id: "ac-templates", title: "模板与版式", titleEn: "Templates & layouts", path: "/asset-center/templates" },
       { id: "ac-settings", title: "设置", path: "/asset-center/settings" },
     ],
   },
@@ -549,7 +544,7 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "System settings",
     icon: "settings",
     path: "/settings",
-    subNavPlacement: "sheet",
+    subNavPlacement: "sidebar",
     defaultChildPath: "/settings/overview",
     children: [
       { id: "set-overview", title: "系统设置总揽", titleEn: "System settings overview", path: "/settings/overview" },
@@ -993,7 +988,6 @@ export const BRAND_MENU_SUBNAV: ProductCenterSidebarSubItem[] = [
 export const MARKETING_MGMT_SUBNAV: ProductCenterSidebarSubItem[] = [
   { id: "mkt-campaigns", title: "营销活动", titleEn: "Campaigns", path: "/marketing/campaigns" },
   { id: "mkt-manual", title: "手动营销", titleEn: "Manual marketing", path: "/marketing/manual" },
-  { id: "mkt-screensaver", title: "屏保", titleEn: "Screensaver", path: "/marketing/screensaver" },
 ];
 
 /** 商品中心侧滑层 · 设置 */

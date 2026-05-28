@@ -199,27 +199,8 @@ const CAPITAL_EXTERNAL_URL = "https://www.ezcapital.com/zh";
 const INVENTORY_EXPIRY_WMS_IFRAME_SRC =
   "https://wms.menusifuchina.com/platform-expiration-category";
 
-/** 营销中心 → 屏保：复用 Configuration center 屏保功能页（主内容区 iframe） */
-const MARKETING_SCREENSAVER_IFRAME_SRC = "./Configuration%20center/kiosk-screensaver.html?embedded=1";
-/** 素材中心 → 图片素材：复用 Configuration center 图片素材页（主内容区 iframe） */
-const ASSET_CENTER_MATERIALS_IFRAME_SRC = "./Configuration%20center/material.html?embedded=1";
-/** 权限管理 → 下单限制：复用 Configuration center 下单限制配置页（主内容区 iframe） */
-const PERMISSIONS_ORDER_LIMIT_IFRAME_SRC = "./Configuration%20center/order-limit.html?embedded=1";
-
 function isInventoryExpiryIframePath(path: string): boolean {
   return path === "/operations/inventory-ordering/expiry" || path.startsWith("/operations/inventory-ordering/expiry/");
-}
-
-function isMarketingScreensaverIframePath(path: string): boolean {
-  return path === "/marketing/screensaver" || path.startsWith("/marketing/screensaver/");
-}
-
-function isAssetCenterMaterialsIframePath(path: string): boolean {
-  return path === "/asset-center/materials" || path.startsWith("/asset-center/materials/");
-}
-
-function isPermissionsOrderLimitIframePath(path: string): boolean {
-  return path === "/permissions/order-limit" || path.startsWith("/permissions/order-limit/");
 }
 
 function getModuleDefaultChildPath(moduleId: string, fallbackPath: string): string {
@@ -235,48 +216,6 @@ function renderInventoryExpiryIframeSplit(): string {
         title="${escapeHtml(t("inventory.iframeTitle"))}"
         class="block h-full min-h-[22rem] w-full flex-1 border-0 sm:min-h-0"
         src="${INVENTORY_EXPIRY_WMS_IFRAME_SRC}"
-        referrerpolicy="no-referrer-when-downgrade"
-        allow="clipboard-read; clipboard-write; fullscreen"
-      ></iframe>
-    </div>`;
-}
-
-/** 主区全宽嵌入营销中心屏保功能页 */
-function renderMarketingScreensaverIframePanel(): string {
-  return `
-    <div class="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-      <iframe
-        title="营销中心屏保功能"
-        class="block h-full w-full flex-1 border-0"
-        src="${MARKETING_SCREENSAVER_IFRAME_SRC}"
-        referrerpolicy="no-referrer-when-downgrade"
-        allow="clipboard-read; clipboard-write; fullscreen"
-      ></iframe>
-    </div>`;
-}
-
-/** 主区全宽嵌入素材中心图片素材功能页 */
-function renderAssetCenterMaterialsIframePanel(): string {
-  return `
-    <div class="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-      <iframe
-        title="素材中心图片素材功能"
-        class="block h-full w-full flex-1 border-0"
-        src="${ASSET_CENTER_MATERIALS_IFRAME_SRC}"
-        referrerpolicy="no-referrer-when-downgrade"
-        allow="clipboard-read; clipboard-write; fullscreen"
-      ></iframe>
-    </div>`;
-}
-
-/** 主区全宽嵌入权限管理下单限制配置页 */
-function renderPermissionsOrderLimitIframePanel(): string {
-  return `
-    <div class="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-      <iframe
-        title="权限管理下单限制配置"
-        class="block h-full w-full flex-1 border-0"
-        src="${PERMISSIONS_ORDER_LIMIT_IFRAME_SRC}"
         referrerpolicy="no-referrer-when-downgrade"
         allow="clipboard-read; clipboard-write; fullscreen"
       ></iframe>
@@ -1625,20 +1564,6 @@ function normalizeTabModuleHashes(): void {
     replaceHashPath("/marketing/campaigns");
     return;
   }
-  if (
-    raw === "/asset-center/overview" ||
-    raw === "/asset-center/overview/" ||
-    raw.startsWith("/asset-center/overview/") ||
-    raw === "/asset-center/images" ||
-    raw === "/asset-center/images/" ||
-    raw.startsWith("/asset-center/images/") ||
-    raw === "/asset-center/templates" ||
-    raw === "/asset-center/templates/" ||
-    raw.startsWith("/asset-center/templates/")
-  ) {
-    replaceHashPath("/asset-center/materials");
-    return;
-  }
   if (raw === "/reports" || raw === "/reports/") {
     replaceHashPath("/reports/revenue");
     return;
@@ -2575,7 +2500,6 @@ function renderModule(m: NavModule, hash: string): string {
 const MODULE_HUB_SETTINGS_EMPTY_PATHS = new Set(["/reviews/settings", "/brand/settings"]);
 
 type ModuleSettingsGroup = ReturnType<typeof groupCatalogItemsByCategory>[number];
-const moduleSettingsScrollTopByBasePath = new Map<string, number>();
 
 function isModuleHubSettingsCatalogPath(path: string): boolean {
   if (path === "/settings/overview") return false;
@@ -2654,21 +2578,6 @@ function scrollToModuleSettingsCategoryFromPath(path: string): void {
   scrollToModuleSettingsCategory(active.groupKey);
 }
 
-function rememberModuleSettingsScroll(settingsPath: string, scrollTop: number): void {
-  moduleSettingsScrollTopByBasePath.set(settingsPath, Math.max(0, Math.floor(scrollTop)));
-}
-
-function restoreModuleSettingsScroll(path: string): void {
-  const catalog = getModuleSettingsCatalog(path);
-  if (!catalog) return;
-  const remembered = moduleSettingsScrollTopByBasePath.get(catalog.settingsPath);
-  if (typeof remembered !== "number") return;
-  const host = document.querySelector<HTMLElement>(".module-settings-scroll-host");
-  if (!host) return;
-  const maxScroll = Math.max(0, host.scrollHeight - host.clientHeight);
-  host.scrollTop = Math.min(remembered, maxScroll);
-}
-
 function bindModuleSettingsCategoryNav(): void {
   document.querySelectorAll<HTMLAnchorElement>(".module-settings-subnav a[href^='#']").forEach((link) => {
     link.addEventListener("click", () => {
@@ -2676,10 +2585,6 @@ function bindModuleSettingsCategoryNav(): void {
       if (!href) return;
       const catalog = getModuleSettingsCatalog(href);
       if (!catalog) return;
-      const scrollHost = document.querySelector<HTMLElement>(".module-settings-scroll-host");
-      if (scrollHost) {
-        rememberModuleSettingsScroll(catalog.settingsPath, scrollHost.scrollTop);
-      }
       const groups = groupCatalogItemsByCategory(catalog.items);
       const active = getModuleSettingsActiveGroup(href, catalog.settingsPath, groups);
       if (!active) return;
@@ -3114,11 +3019,6 @@ function renderMain(): string {
   const isTeamSchedulingTertiary = isTeamSchedulingTertiaryPath(path);
   const isGiftCardsFactory = isGiftCardsFactoryPath(path);
   const isInventoryExpiryIframe = isInventoryExpiryIframePath(path);
-  const isMarketingScreensaverIframe = isMarketingScreensaverIframePath(path);
-  const isAssetCenterMaterialsIframe = isAssetCenterMaterialsIframePath(path);
-  const isPermissionsOrderLimitIframe = isPermissionsOrderLimitIframePath(path);
-  const isFullBleedEmbeddedIframe =
-    isMarketingScreensaverIframe || isAssetCenterMaterialsIframe || isPermissionsOrderLimitIframe;
   const isModuleSettingsCatalog = isModuleHubSettingsCatalogPath(path);
   const wideContentLayout =
     isAiAssistant ||
@@ -3129,9 +3029,6 @@ function renderMain(): string {
     isTeamReportsTertiary ||
     isTeamSchedulingTertiary ||
     isInventoryExpiryIframe ||
-    isMarketingScreensaverIframe ||
-    isAssetCenterMaterialsIframe ||
-    isPermissionsOrderLimitIframe ||
     isGiftCardsFactory ||
     isModuleSettingsCatalog;
   const showModuleTabs = shouldShowModuleTabs(tabModule);
@@ -3140,19 +3037,15 @@ function renderMain(): string {
     "flex min-h-0 flex-1 flex-col gap-6 overflow-hidden sm:flex-row sm:items-stretch";
   const tertiaryMainClass = "min-w-0 min-h-0 flex-1 overflow-y-auto";
 
-  const mainTagClass = isFullBleedEmbeddedIframe
-    ? "min-h-0 flex-1 flex flex-col overflow-hidden p-0 animate-fade-in"
-    : wideContentLayout
-      ? "min-h-0 flex-1 flex flex-col overflow-hidden p-4 md:p-6 animate-fade-in"
-      : "min-h-0 flex-1 overflow-y-auto p-4 md:p-6 animate-fade-in";
+  const mainTagClass = wideContentLayout
+    ? "min-h-0 flex-1 flex flex-col overflow-hidden p-4 md:p-6 animate-fade-in"
+    : "min-h-0 flex-1 overflow-y-auto p-4 md:p-6 animate-fade-in";
 
-  const innerWrapperClass = isFullBleedEmbeddedIframe
-    ? "flex w-full min-h-0 min-w-0 flex-1 flex-col"
-    : isAiAssistant
-      ? "mx-auto flex w-full min-h-0 min-w-0 max-w-3xl flex-1 flex-col"
-      : wideContentLayout
-        ? "mx-auto flex w-full min-h-0 flex-1 flex-col max-w-[90rem]"
-        : `mx-auto max-w-6xl space-y-6`;
+  const innerWrapperClass = isAiAssistant
+    ? "mx-auto flex w-full min-h-0 min-w-0 max-w-3xl flex-1 flex-col"
+    : wideContentLayout
+      ? "mx-auto flex w-full min-h-0 flex-1 flex-col max-w-[90rem]"
+      : `mx-auto max-w-6xl space-y-6`;
 
   const tabsSection = showModuleTabs
     ? wideContentLayout
@@ -3199,12 +3092,6 @@ function renderMain(): string {
                   ? renderGiftCardsFactoryIframePanel()
                 : isInventoryExpiryIframe
                   ? renderInventoryExpiryIframeSplit()
-                : isMarketingScreensaverIframe
-                  ? renderMarketingScreensaverIframePanel()
-                : isAssetCenterMaterialsIframe
-                  ? renderAssetCenterMaterialsIframePanel()
-                : isPermissionsOrderLimitIframe
-                  ? renderPermissionsOrderLimitIframePanel()
                 : isBrandProductsTertiary
                   ? renderPlaceholder(path, title, tabModule, { brandProductsSubnav: true })
                 : isBrandMenuTertiary
@@ -3904,7 +3791,6 @@ function mount(): void {
   bindHeaderScopeFilters();
   bindGlobalUiLocaleControl();
   ensureInventorySheetEscapeListener();
-  restoreModuleSettingsScroll(mountPathForSheet);
   bindModuleSettingsCategoryNav();
   scrollToModuleSettingsCategoryFromPath(mountPathForSheet);
 }

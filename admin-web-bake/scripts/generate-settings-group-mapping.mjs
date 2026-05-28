@@ -10,15 +10,8 @@ import { parseConfigMd, slugify } from "./lib/parse-bplant-config-md.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
-const repoDocs = path.join(root, "..", "docs");
-const projectDocs = path.join(repoDocs, "项目文档");
-const sourcePath = [projectDocs, repoDocs]
-  .map((d) => path.join(d, "配置归类-终版.md"))
-  .find((p) => fs.existsSync(p));
-const outPath = [projectDocs, repoDocs]
-  .map((d) => path.join(d, "配置归类-分组映射.csv"))
-  .find((p) => fs.existsSync(p))
-  ?? path.join(projectDocs, "配置归类-分组映射.csv");
+const sourcePath = path.join(root, "..", "docs", "配置归类-终版.md");
+const outPath = path.join(root, "..", "docs", "配置归类-分组映射.csv");
 
 /** 从功能场景描述提取短分组名（初稿；最终以 CSV 人工修订为准） */
 const SCENE_THEME_RULES = [
