@@ -205,16 +205,6 @@ const MARKETING_SCREENSAVER_IFRAME_SRC = "./Configuration%20center/kiosk-screens
 const ASSET_CENTER_MATERIALS_IFRAME_SRC = "./Configuration%20center/material.html?embedded=1";
 /** 权限管理 → 下单限制：复用 Configuration center 下单限制配置页（主内容区 iframe） */
 const PERMISSIONS_ORDER_LIMIT_IFRAME_SRC = "./Configuration%20center/order-limit.html?embedded=1";
-/** 报表中心 → 员工报表 → 小费分配：嵌入 TipOut 项目 */
-const REPORTS_TIPS_ALLOCATION_IFRAME_SRC = "./TipOut/index.html?embedded=1";
-/** 团队管理 → 角色与员工：嵌入 TipOut 员工列表 */
-const TEAM_ROLES_EMPLOYEES_IFRAME_SRC = "./TipOut/employees.html?embedded=1";
-/** 团队管理 → 小费管理：嵌入 TipOut（默认小费分配） */
-const TEAM_TIPS_DISTRIBUTION_IFRAME_SRC = "./TipOut/index.html?embedded=1";
-const TEAM_TIPS_DETAILS_IFRAME_SRC = "./TipOut/detail.html?embedded=1";
-const TEAM_TIPS_RULES_IFRAME_SRC = "./TipOut/rules.html?embedded=1";
-/** 团队管理 → 报税报表：嵌入 TipOut Payroll 报表 */
-const TEAM_PAYROLL_REPORT_IFRAME_SRC = "./TipOut/payroll.html?embedded=1";
 
 function isInventoryExpiryIframePath(path: string): boolean {
   return path === "/operations/inventory-ordering/expiry" || path.startsWith("/operations/inventory-ordering/expiry/");
@@ -230,28 +220,6 @@ function isAssetCenterMaterialsIframePath(path: string): boolean {
 
 function isPermissionsOrderLimitIframePath(path: string): boolean {
   return path === "/permissions/order-limit" || path.startsWith("/permissions/order-limit/");
-}
-
-function isReportsTipsAllocationIframePath(path: string): boolean {
-  return path === "/reports/staff/tips-allocation" || path.startsWith("/reports/staff/tips-allocation/");
-}
-
-function isTeamRolesEmployeesIframePath(path: string): boolean {
-  return path === "/team/roles-employees" || path.startsWith("/team/roles-employees/");
-}
-
-function isTeamTipsManagementIframePath(path: string): boolean {
-  return path === "/team/tips" || path.startsWith("/team/tips/");
-}
-
-function isTeamPayrollReportIframePath(path: string): boolean {
-  return path === "/team/payroll-report" || path.startsWith("/team/payroll-report/");
-}
-
-function getTeamTipsManagementIframeSrc(path: string): string {
-  if (path === "/team/tips/rules" || path.startsWith("/team/tips/rules/")) return TEAM_TIPS_RULES_IFRAME_SRC;
-  if (path === "/team/tips/details" || path.startsWith("/team/tips/details/")) return TEAM_TIPS_DETAILS_IFRAME_SRC;
-  return TEAM_TIPS_DISTRIBUTION_IFRAME_SRC;
 }
 
 function getModuleDefaultChildPath(moduleId: string, fallbackPath: string): string {
@@ -309,63 +277,6 @@ function renderPermissionsOrderLimitIframePanel(): string {
         title="权限管理下单限制配置"
         class="block h-full w-full flex-1 border-0"
         src="${PERMISSIONS_ORDER_LIMIT_IFRAME_SRC}"
-        referrerpolicy="no-referrer-when-downgrade"
-        allow="clipboard-read; clipboard-write; fullscreen"
-      ></iframe>
-    </div>`;
-}
-
-/** 主区全宽嵌入报表中心小费分配（TipOut） */
-function renderReportsTipsAllocationIframePanel(): string {
-  return `
-    <div class="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-      <iframe
-        title="报表中心小费分配"
-        class="block h-full w-full flex-1 border-0"
-        src="${REPORTS_TIPS_ALLOCATION_IFRAME_SRC}"
-        referrerpolicy="no-referrer-when-downgrade"
-        allow="clipboard-read; clipboard-write; fullscreen"
-      ></iframe>
-    </div>`;
-}
-
-/** 主区全宽嵌入团队管理角色与员工（TipOut 员工列表） */
-function renderTeamRolesEmployeesIframePanel(): string {
-  return `
-    <div class="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-      <iframe
-        title="团队管理角色与员工"
-        class="block h-full w-full flex-1 border-0"
-        src="${TEAM_ROLES_EMPLOYEES_IFRAME_SRC}"
-        referrerpolicy="no-referrer-when-downgrade"
-        allow="clipboard-read; clipboard-write; fullscreen"
-      ></iframe>
-    </div>`;
-}
-
-/** 主区全宽嵌入团队管理小费管理（TipOut） */
-function renderTeamTipsManagementIframePanel(path: string): string {
-  const src = getTeamTipsManagementIframeSrc(path);
-  return `
-    <div class="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-      <iframe
-        title="团队管理小费管理"
-        class="block h-full w-full flex-1 border-0"
-        src="${src}"
-        referrerpolicy="no-referrer-when-downgrade"
-        allow="clipboard-read; clipboard-write; fullscreen"
-      ></iframe>
-    </div>`;
-}
-
-/** 主区全宽嵌入团队管理报税报表（TipOut Payroll） */
-function renderTeamPayrollReportIframePanel(): string {
-  return `
-    <div class="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-      <iframe
-        title="团队管理报税报表"
-        class="block h-full w-full flex-1 border-0"
-        src="${TEAM_PAYROLL_REPORT_IFRAME_SRC}"
         referrerpolicy="no-referrer-when-downgrade"
         allow="clipboard-read; clipboard-write; fullscreen"
       ></iframe>
@@ -3206,18 +3117,8 @@ function renderMain(): string {
   const isMarketingScreensaverIframe = isMarketingScreensaverIframePath(path);
   const isAssetCenterMaterialsIframe = isAssetCenterMaterialsIframePath(path);
   const isPermissionsOrderLimitIframe = isPermissionsOrderLimitIframePath(path);
-  const isReportsTipsAllocationIframe = isReportsTipsAllocationIframePath(path);
-  const isTeamRolesEmployeesIframe = isTeamRolesEmployeesIframePath(path);
-  const isTeamTipsManagementIframe = isTeamTipsManagementIframePath(path);
-  const isTeamPayrollReportIframe = isTeamPayrollReportIframePath(path);
   const isFullBleedEmbeddedIframe =
-    isMarketingScreensaverIframe ||
-    isAssetCenterMaterialsIframe ||
-    isPermissionsOrderLimitIframe ||
-    isReportsTipsAllocationIframe ||
-    isTeamRolesEmployeesIframe ||
-    isTeamTipsManagementIframe ||
-    isTeamPayrollReportIframe;
+    isMarketingScreensaverIframe || isAssetCenterMaterialsIframe || isPermissionsOrderLimitIframe;
   const isModuleSettingsCatalog = isModuleHubSettingsCatalogPath(path);
   const wideContentLayout =
     isAiAssistant ||
@@ -3231,10 +3132,6 @@ function renderMain(): string {
     isMarketingScreensaverIframe ||
     isAssetCenterMaterialsIframe ||
     isPermissionsOrderLimitIframe ||
-    isReportsTipsAllocationIframe ||
-    isTeamRolesEmployeesIframe ||
-    isTeamTipsManagementIframe ||
-    isTeamPayrollReportIframe ||
     isGiftCardsFactory ||
     isModuleSettingsCatalog;
   const showModuleTabs = shouldShowModuleTabs(tabModule);
@@ -3308,14 +3205,6 @@ function renderMain(): string {
                   ? renderAssetCenterMaterialsIframePanel()
                 : isPermissionsOrderLimitIframe
                   ? renderPermissionsOrderLimitIframePanel()
-                : isReportsTipsAllocationIframe
-                  ? renderReportsTipsAllocationIframePanel()
-                : isTeamRolesEmployeesIframe
-                  ? renderTeamRolesEmployeesIframePanel()
-                : isTeamTipsManagementIframe
-                  ? renderTeamTipsManagementIframePanel(path)
-                : isTeamPayrollReportIframe
-                  ? renderTeamPayrollReportIframePanel()
                 : isBrandProductsTertiary
                   ? renderPlaceholder(path, title, tabModule, { brandProductsSubnav: true })
                 : isBrandMenuTertiary
