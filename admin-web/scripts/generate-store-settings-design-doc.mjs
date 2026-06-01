@@ -29,16 +29,19 @@ const reasons = {
   "store-hours-operation":
     "营业时段、营业周期、打烊前提示与餐厅模式；418 与 582 同组配置，减少跨导航查找。",
   "brand-menu-presentation":
-    "本店品牌启用、品牌↔菜单绑定及多品牌展示模式（547/548 为数据，530 为展示）；对标连锁「Location 级品牌配置」。",
+    "本店品牌启用、品牌↔菜单绑定及多品牌展示模式（547 为数据，530 为展示；548 已并入 547）；对标连锁「Location 级品牌配置」。",
   "address-data-maintenance":
     "地址数据批量上传/删除等运维动作；终版 hub 为空项，暂归门店实施维护（若确认为外送地址库 SSOT 可迁至外卖/来取）。",
 };
 
 /** seq → groupKey（门店管理设置 catalog 11 条；421 已迁评价中心） */
+const MERGED_EXCLUDED_SEQS = new Set([548]);
+
+/** seq → groupKey（门店管理设置 catalog 10 条；421 已迁评价中心；548 并入 547） */
 const assignMap = {
   "store-profile": [173, 417],
   "store-hours-operation": [418, 77, 582, 170],
-  "brand-menu-presentation": [530, 547, 548],
+  "brand-menu-presentation": [530, 547],
   "address-data-maintenance": [419, 420],
 };
 
@@ -51,6 +54,7 @@ const SCENE_SUMMARY_OVERRIDE_BY_SEQ = new Map([
   [419, "批量上传地址数据（运维；若为外送顾客地址库则与外卖/来取边界待产品确认）"],
   [420, "批量删除地址数据（运维；同上）"],
   [530, "菜单是否按多品牌分类展示（先选品牌再点餐）；展示模式，非品牌主数据"],
+  [547, "配置一个门店有哪些品牌，并为每个品牌绑定营业时间与菜单（原 seq 548 并入）"],
   [582, "营业时间结束前 N 分钟提示（与 seq 418 营业时段联动；对客点单时展示）"],
 ]);
 
@@ -70,7 +74,7 @@ function sceneSummary(scene, seq) {
 }
 
 const md = fs.readFileSync(sourcePath, "utf8");
-const rows = parseConfigMd(md).filter((r) => getSettingsHub(r) === HUB);
+const rows = parseConfigMd(md).filter((r) => getSettingsHub(r) === HUB && !MERGED_EXCLUDED_SEQS.has(r.seq));
 const order = [
   "store-profile",
   "store-hours-operation",
@@ -98,7 +102,7 @@ push(
   "# 门店管理 · 设置二级导航重设计方案",
   "",
   "> 文档版本：v1.3（档案/营业拆分；418 自 417 迁出；营业与运营同组）  ",
-  "> 数据范围：门店设置 catalog **11** 条（终版本 hub + hub 覆盖；不含 seq 421）  ",
+  "> 数据范围：门店设置 catalog **10** 条（终版本 hub + hub 覆盖；不含 seq 421；seq 548 并入 547）  ",
   "> 竞品参考：Toast / Clover / Square / Peblla / Snackpass 商家后台结构文档",
   "",
   "---",
@@ -115,7 +119,7 @@ push(
   "",
   "### 1.2 设计目标",
   "",
-  "- 二级导航 **4 组**、**11 条**，符合「先档案 → 再营业 → 再品牌 → 再维护」链路",
+  "- 二级导航 **4 组**、**10 条**，符合「先档案 → 再营业 → 再品牌 → 再维护」链路",
   "- seq **421** 迁至 **评价中心**（见 `评价中心-设置二级导航重设计方案.md`）",
   "- 输出可写入 `docs/项目文档/配置归类-分组映射.csv` 的 `groupTitle` / `groupKey`",
   "- **不修改** `配置归类-终版.md` 原文",
@@ -172,7 +176,7 @@ push(
   "",
   "### 3.3 组内边界说明",
   "",
-  "- **530 vs 547/548**：547 配置本店启用品牌、548 配置品牌↔菜单；530 为 C 端「先选品牌再点餐」展示模式（与 `/brand` 品牌主数据分工）。",
+  "- **530 vs 547**：547 配置本店启用品牌并绑定菜单；530 为 C 端「先选品牌再点餐」展示模式（与 `/brand` 品牌主数据分工）。",
   "- **418 vs 582**：418 定义营业时段；582 定义结束前 N 分钟对客提示；**同组相邻排序**（418 → 77 → 582 → 170）。",
   "- **419/420**：终版 B 平台 hub 为空；暂归门店运维。若产品确认为外送顾客地址库，可迁至 **外卖/来取** hub。",
   "- **417 vs 419/420**：417 为本店档案地址；419/420 为外送顾客地址库批量运维，**不得**合并组。",
@@ -217,7 +221,7 @@ push(
   "|---------------|---------------------|",
   "| 门店档案 | 原「门店档案与营业信息」之 173、417（不含 418） |",
   "| 营业与运营 | 原 418 + 原「运营模式与营业提醒」之 77、170、582 |",
-  "| 品牌与菜单展示 | 品牌设置、品牌管理、菜单设置（不变） |",
+  "| 品牌与菜单展示 | 品牌设置、品牌管理（菜单设置并入品牌管理） |",
   "| 地址数据维护 | 数据管理（上传/删除地址；不含评价删除）（不变） |",
   "",
   "---",
@@ -252,6 +256,8 @@ push(
   "| 营业与运营 · **418** | 营业时间库（对话框新建 + 列表；含年月/星期/时间） | `module-settings-store-business-hours-ui.ts` |",
   "| 营业与运营 · **77、582** | 右侧开关 | `module-settings-toggle-ui.ts` → `STORE_HOURS_OPERATION_TOGGLE_SEQ` |",
   "| 营业与运营 · **170** | 餐厅模式单选（Dining / Fast Food） | `module-settings-store-operation-mode-ui.ts` |",
+  "| 品牌与菜单展示 · **547** | 本店品牌列表；新增/编辑（名称、图片、418 营业时间多选、品牌菜单多选） | `module-settings-store-brand-management-ui.ts` |",
+  "| 品牌与菜单展示 · **530** | 展示开关（先选品牌再点餐） | — |",
   "",
   "**组内排序**（`settings-intra-group-sort.mjs`）：档案 173→417；营业 418→77→582→170。",
   "",

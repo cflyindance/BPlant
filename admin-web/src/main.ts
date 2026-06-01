@@ -159,6 +159,11 @@ import {
   renderStoreBasicInfoFormHtml,
 } from "./config/module-settings-store-basic-info-ui";
 import {
+  bindStoreBrandManagementControls,
+  isStoreBrandManagementSeq,
+  renderStoreBrandManagementHtml,
+} from "./config/module-settings-store-brand-management-ui";
+import {
   bindStoreBusinessHoursControls,
   isStoreBusinessHoursSeq,
   renderStoreBusinessHoursHtml,
@@ -3419,6 +3424,104 @@ function renderModuleSettingPackingSlipOrderTypeRow(item: ModuleSettingCatalogIt
         </li>`;
 }
 
+const STORE_CLOSING_ALERT_PRODUCT_LINES = [
+  { fieldId: "582-c-line-kiosk", label: "Kiosk", defaultChecked: true },
+  { fieldId: "582-c-line-emenu", label: "eMenu", defaultChecked: true },
+  { fieldId: "582-c-line-sdi", label: "SDI", defaultChecked: true },
+] as const;
+const STORE_BRAND_SETTING_PRODUCT_LINES = [
+  { fieldId: "530-c-line-kiosk", label: "Kiosk", defaultChecked: true },
+  { fieldId: "530-c-line-emenu", label: "eMenu", defaultChecked: true },
+  { fieldId: "530-c-line-sdi", label: "SDI", defaultChecked: true },
+] as const;
+const STORE_CLOSING_ALERT_MINUTES_FIELD_ID = "582-alert-minutes";
+const STORE_CLOSING_ALERT_MINUTES_DEFAULT = 15;
+const STORE_CLOSING_ALERT_MINUTES_MIN = 1;
+const STORE_CLOSING_ALERT_MINUTES_MAX = 180;
+
+function renderStoreClosingAlertProductLinesSelector(seq: number, on: boolean): string {
+  const boxes = STORE_CLOSING_ALERT_PRODUCT_LINES.map((opt) => {
+    const checked = readModuleSettingCheckbox(opt.fieldId, opt.defaultChecked);
+    return `
+      <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-foreground">
+        <input type="checkbox" class="${MODULE_SETTING_CONTROL_CLASS} rounded-sm" ${checked ? "checked" : ""} data-module-setting-checkbox="${escapeHtml(opt.fieldId)}" />
+        <span>${escapeHtml(opt.label)}</span>
+      </label>`;
+  }).join("");
+  const minutes = readModuleSettingNumber(
+    STORE_CLOSING_ALERT_MINUTES_FIELD_ID,
+    STORE_CLOSING_ALERT_MINUTES_DEFAULT,
+  );
+  const safeMinutes = Math.min(
+    STORE_CLOSING_ALERT_MINUTES_MAX,
+    Math.max(STORE_CLOSING_ALERT_MINUTES_MIN, Math.round(minutes)),
+  );
+  const hidden = on ? "" : "hidden";
+  return `
+    <div class="mt-3 rounded-lg bg-muted/50 p-3 ${hidden}" data-store-closing-alert-panel="${seq}" ${on ? "" : 'aria-hidden="true"'}>
+      <div class="flex flex-wrap items-center gap-2">
+        <p class="m-0 text-xs text-muted-foreground">结束前</p>
+        <input
+          type="number"
+          inputmode="numeric"
+          class="h-8 w-20 rounded-md border border-input bg-background px-2 text-center text-sm tabular-nums text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          value="${escapeHtml(String(safeMinutes))}"
+          min="${STORE_CLOSING_ALERT_MINUTES_MIN}"
+          max="${STORE_CLOSING_ALERT_MINUTES_MAX}"
+          data-module-setting-number="${STORE_CLOSING_ALERT_MINUTES_FIELD_ID}"
+        />
+        <p class="m-0 text-xs text-muted-foreground">分钟进行提示</p>
+      </div>
+      <p class="m-0 text-xs text-muted-foreground">C端产品线（多选）</p>
+      <div class="mt-2 flex flex-wrap items-center gap-4">${boxes}</div>
+    </div>`;
+}
+
+function renderStoreBrandSettingProductLinesSelector(seq: number, on: boolean): string {
+  const boxes = STORE_BRAND_SETTING_PRODUCT_LINES.map((opt) => {
+    const checked = readModuleSettingCheckbox(opt.fieldId, opt.defaultChecked);
+    return `
+      <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-foreground">
+        <input type="checkbox" class="${MODULE_SETTING_CONTROL_CLASS} rounded-sm" ${checked ? "checked" : ""} data-module-setting-checkbox="${escapeHtml(opt.fieldId)}" />
+        <span>${escapeHtml(opt.label)}</span>
+      </label>`;
+  }).join("");
+  const hidden = on ? "" : "hidden";
+  return `
+    <div class="mt-3 rounded-lg bg-muted/50 p-3 ${hidden}" data-store-brand-setting-panel="${seq}" ${on ? "" : 'aria-hidden="true"'}>
+      <p class="m-0 text-xs text-muted-foreground">C端产品线（多选）</p>
+      <div class="mt-2 flex flex-wrap items-center gap-4">${boxes}</div>
+    </div>`;
+}
+
+function renderModuleSettingStoreBrandSettingRow(item: ModuleSettingCatalogItem): string {
+  const on = readModuleSettingToggleOn(item.seq);
+  return `
+        <li class="list-none">
+          <div class="border-b border-border px-4 py-3">
+            <div class="flex items-start justify-between gap-3">
+              ${renderModuleSettingTitleBlock(item)}
+              <div class="shrink-0 pt-0.5">${renderModuleSettingToggleSwitch(item)}</div>
+            </div>
+            ${renderStoreBrandSettingProductLinesSelector(item.seq, on)}
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingStoreClosingAlertRow(item: ModuleSettingCatalogItem): string {
+  const on = readModuleSettingToggleOn(item.seq);
+  return `
+        <li class="list-none">
+          <div class="border-b border-border px-4 py-3">
+            <div class="flex items-start justify-between gap-3">
+              ${renderModuleSettingTitleBlock(item)}
+              <div class="shrink-0 pt-0.5">${renderModuleSettingToggleSwitch(item)}</div>
+            </div>
+            ${renderStoreClosingAlertProductLinesSelector(item.seq, on)}
+          </div>
+        </li>`;
+}
+
 function renderModuleSettingStoreRestaurantModeRow(item: ModuleSettingCatalogItem): string {
   return `
         <li class="list-none">
@@ -3429,6 +3532,22 @@ function renderModuleSettingStoreRestaurantModeRow(item: ModuleSettingCatalogIte
             </div>
           </div>
         </li>`;
+}
+
+function setStoreBrandSettingPanelVisible(seq: number, visible: boolean): void {
+  document.querySelectorAll<HTMLElement>(`[data-store-brand-setting-panel="${seq}"]`).forEach((panel) => {
+    panel.classList.toggle("hidden", !visible);
+    if (visible) panel.removeAttribute("aria-hidden");
+    else panel.setAttribute("aria-hidden", "true");
+  });
+}
+
+function setStoreClosingAlertPanelVisible(seq: number, visible: boolean): void {
+  document.querySelectorAll<HTMLElement>(`[data-store-closing-alert-panel="${seq}"]`).forEach((panel) => {
+    panel.classList.toggle("hidden", !visible);
+    if (visible) panel.removeAttribute("aria-hidden");
+    else panel.setAttribute("aria-hidden", "true");
+  });
 }
 
 function renderModuleSettingStoreCountryRegionRow(item: ModuleSettingCatalogItem): string {
@@ -3449,6 +3568,16 @@ function renderModuleSettingStoreBasicInfoRow(item: ModuleSettingCatalogItem): s
           <div class="border-b border-border px-4 py-3">
             ${renderModuleSettingTitleBlock(item)}
             ${renderStoreBasicInfoFormHtml()}
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingStoreBrandManagementRow(item: ModuleSettingCatalogItem): string {
+  return `
+        <li class="list-none">
+          <div class="border-b border-border px-4 py-3">
+            ${renderModuleSettingTitleBlock(item)}
+            ${renderStoreBrandManagementHtml()}
           </div>
         </li>`;
 }
@@ -3501,6 +3630,12 @@ function renderModuleSettingRow(item: ModuleSettingCatalogItem): string {
   if (isPackingSlipOrderTypeMultiselectSeq(item.seq)) {
     return renderModuleSettingPackingSlipOrderTypeRow(item);
   }
+  if (item.seq === 530) {
+    return renderModuleSettingStoreBrandSettingRow(item);
+  }
+  if (item.seq === 582) {
+    return renderModuleSettingStoreClosingAlertRow(item);
+  }
   if (isStoreRestaurantModeRadioSeq(item.seq)) {
     return renderModuleSettingStoreRestaurantModeRow(item);
   }
@@ -3512,6 +3647,9 @@ function renderModuleSettingRow(item: ModuleSettingCatalogItem): string {
   }
   if (isStoreBusinessHoursSeq(item.seq)) {
     return renderModuleSettingStoreBusinessHoursRow(item);
+  }
+  if (isStoreBrandManagementSeq(item.seq)) {
+    return renderModuleSettingStoreBrandManagementRow(item);
   }
   if (isLineMergeMatrixHostSeq(item.seq)) {
     return renderModuleSettingLineMergeMatrixRow(item);
@@ -3575,6 +3713,12 @@ function bindModuleSettingsToggles(): void {
       writeModuleSettingToggleOn(seq, next);
       if (isModuleSettingNestedParentSeq(seq)) {
         setModuleSettingNestedPanelVisible(seq, next);
+      }
+      if (seq === 530) {
+        setStoreBrandSettingPanelVisible(seq, next);
+      }
+      if (seq === 582) {
+        setStoreClosingAlertPanelVisible(seq, next);
       }
     });
   });
@@ -3659,6 +3803,24 @@ function bindModuleSettingsFormControls(): void {
     if (!fieldId) return;
     input.addEventListener("input", () => writeModuleSettingColor(fieldId, input.value));
     input.addEventListener("change", () => writeModuleSettingColor(fieldId, input.value));
+  });
+
+  document.querySelectorAll<HTMLInputElement>("[data-module-setting-number]").forEach((input) => {
+    if (input.dataset.moduleSettingFormBound === "1") return;
+    input.dataset.moduleSettingFormBound = "1";
+    const fieldId = input.getAttribute("data-module-setting-number");
+    if (!fieldId) return;
+    const min = Number(input.getAttribute("min") ?? "-Infinity");
+    const max = Number(input.getAttribute("max") ?? "Infinity");
+    const persist = () => {
+      const n = Number(input.value);
+      if (!Number.isFinite(n)) return;
+      const clamped = Math.min(max, Math.max(min, Math.round(n)));
+      input.value = String(clamped);
+      writeModuleSettingNumber(fieldId, clamped);
+    };
+    input.addEventListener("change", persist);
+    input.addEventListener("blur", persist);
   });
 }
 
@@ -4871,6 +5033,7 @@ function mount(): void {
   bindGuestFacingLocaleControls();
   bindKitchenTicketMarginControls();
   bindStoreBusinessHoursControls();
+  bindStoreBrandManagementControls();
   bindModuleSettingsFormControls();
   scrollToModuleSettingsCategoryFromPath(mountPathForSheet);
 }

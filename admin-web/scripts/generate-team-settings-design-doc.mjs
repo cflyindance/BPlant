@@ -6,6 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseConfigMd } from "./lib/parse-bplant-config-md.mjs";
+import { filterRowsForSettingsHub } from "./lib/settings-hub-override.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..", "..");
@@ -14,33 +15,27 @@ const sourcePath = path.join(projectDocs, "配置归类-终版.md");
 const outPath = path.join(projectDocs, "团队管理-设置二级导航重设计方案.md");
 
 const titles = {
-  "staff-profile": "员工与出勤",
   scheduling: "排班",
   "time-attendance": "考勤与工时",
   "payroll-tips": "薪酬与小费",
-  integrations: "外部系统对接",
 };
 
 const reasons = {
-  "staff-profile":
-    "员工主档、角色与出勤记录入口；对标 Toast「员工管理」、Clover「员工列表/角色」。",
   scheduling:
     "排班表及打卡与排班联动；对标 Toast「Sling 排班 / 排班规则执行」、Snackpass「团队」排班能力。",
   "time-attendance":
-    "强制休息、最长工时、开收工、打卡小票、日结前校验等工时规则；对标 Toast「考勤管理 / 排班规则执行」宽限与 Clover 工时。",
+    "强制休息、最长工时、开收工、打卡小票等工时规则；对标 Toast「考勤管理 / 排班规则执行」宽限与 Clover 工时。",
   "payroll-tips":
     "小费分配基数、分摊比例、工资/小费计算标准；对标 Toast「小费池政策 / 薪酬」、Clover 小费与薪酬配置。",
-  integrations:
-    "云员工系统、第三方排班/考勤链接；对标 Toast 生态集成、Peblla 第三方排班对接。",
 };
 
-/** seq → groupKey（团队管理 20 条） */
+const EXCLUDED_TEAM_SETTING_SEQS = new Set([425, 427, 437]);
+
+/** seq → groupKey（团队管理设置 12 条；方案B 迁出 241、78-81） */
 const assignMap = {
-  "staff-profile": [425, 427],
-  scheduling: [74, 437],
-  "time-attendance": [66, 67, 70, 71, 72, 73, 241, 329],
+  scheduling: [74],
+  "time-attendance": [66, 67, 70, 71, 72, 73, 329],
   "payroll-tips": [186, 306, 309, 310],
-  integrations: [78, 79, 80, 81],
 };
 
 const assign = new Map();
@@ -62,8 +57,10 @@ function sceneSummary(scene) {
 }
 
 const md = fs.readFileSync(sourcePath, "utf8");
-const rows = parseConfigMd(md).filter((r) => r.hub === "团队管理");
-const order = ["staff-profile", "scheduling", "time-attendance", "payroll-tips", "integrations"];
+const rows = filterRowsForSettingsHub(parseConfigMd(md), "团队管理").filter(
+  (r) => !EXCLUDED_TEAM_SETTING_SEQS.has(r.seq),
+);
+const order = ["scheduling", "time-attendance", "payroll-tips"];
 
 const missing = rows.filter((r) => !assign.has(r.seq)).map((r) => r.seq);
 if (missing.length) throw new Error(`未归类 seq: ${missing.join(", ")}`);
@@ -82,8 +79,8 @@ const push = (...xs) => lines.push(...xs);
 push(
   "# 团队管理 · 设置二级导航重设计方案",
   "",
-  "> 文档版本：v1.0  ",
-  "> 数据范围：`docs/项目文档/配置归类-终版.md` 中 **B平台一级导航 = 团队管理** 共 **20** 条功能设置  ",
+  "> 文档版本：v1.2（方案B：迁出 425/427/437，241→支付，78-81→平台业务中心）  ",
+  "> 数据范围：团队管理设置 catalog **12** 条（排除 425/427/437；迁出 241、78-81）  ",
   "> 竞品参考：Toast / Clover / Square / Peblla / Snackpass 商家后台结构文档",
   "",
   "---",
@@ -94,14 +91,14 @@ push(
   "",
   "| 指标 | 现状 | 问题 |",
   "|------|------|------|",
-  "| 二级分组数 | **9 组** / 20 条 | 组名细碎（基本设置、高级设置、报表…） |",
+  "| 二级分组数 | **9 组** / 12 条 | 组名细碎（基本设置、高级设置、报表…） |",
   "| 命名来源 | 旧「功能模块」 | 「员工工时」7 条堆在一起，难区分考勤 vs 薪酬 |",
   "| 与导航重复 | 团队滑层已有小费管理、排班等 | 设置页应偏 **规则与集成**，非重复业务操作 |",
-  "| 跨 hub 项 | 分享小费、BATCH 检查等 | 需在组内标明与支付/财务的联动关系 |",
+  "| 跨 hub 项 | 分享小费、BATCH 检查、外部链接 | 需明确哪些在团队设置，哪些进支付/集成中心 |",
   "",
   "### 1.2 设计目标",
   "",
-  "- 二级导航 **5 组**，覆盖 20 条，符合「招人 → 排班 → 打卡 → 算薪 → 对接」心智",
+  "- 二级导航 **3 组**，覆盖 12 条，符合「排班 → 打卡 → 算薪」心智",
   "- 输出可写入 `docs/项目文档/配置归类-分组映射.csv` 的 `groupTitle` / `groupKey`",
   "- **不修改** `配置归类-终版.md` 原文",
   "",
@@ -114,23 +111,24 @@ push(
   "| **Toast** | 独立「员工」：档案、Sling 排班、打卡宽限、考勤、小费池、薪酬报表、POS 员工报表配置 | **排班 / 考勤 / 小费薪酬 / 集成** 分轨；档案与出勤独立 |",
   "| **Clover** | 设置→员工：角色、权限、PIN；薪酬在店铺运营 | 角色归「员工与出勤」；小费规则在团队设置（非支付战役） |",
   "| **Square** | 职员：团队、排班、时间追踪、工资单 | 与 Toast 类似五段式 |",
-  "| **Peblla** | 员工、排班、第三方对接 | **外部系统对接** 单独成组 |",
-  "| **Snackpass** | 设置→团队：员工权限 | 本 hub 20 条偏 **规则参数**，权限矩阵在权限管理中心 |",
+  "| **Peblla** | 员工、排班、第三方对接 | 对接能力可收敛到统一集成中心 |",
+  "| **Snackpass** | 设置→团队：员工权限 | 本 hub 12 条偏 **规则参数**，权限矩阵在权限管理中心 |",
   "",
-  "### 2.1 团队设置五维",
+  "### 2.1 团队设置三维",
   "",
   "```text",
-  "员工与出勤 → 排班 → 考勤与工时 → 薪酬与小费 → 外部系统对接",
+  "排班 → 考勤与工时 → 薪酬与小费",
   "```",
   "",
   "**边界**：",
-  "- **权限管理中心**：功能权限、RBAC 矩阵不在此 20 条重复配置。",
+  "- **权限管理中心**：功能权限、RBAC 矩阵不在此 12 条重复配置。",
   "- **团队滑层「小费管理」**：日常分配操作；本 hub「薪酬与小费」为 **计算规则/比例**。",
-  "- **支付中心 BATCH**：`BATCH 前检查下班卡` 为日结联动规则，组内保留并标注。",
+  "- **支付中心 BATCH**：`BATCH 前检查下班卡`（241）迁至支付中心设置。",
+  "- **平台业务中心**：`78/79/80/81` 云员工与第三方排班/打卡链接迁至集成中心。",
   "",
   "---",
   "",
-  "## 3. 推荐二级导航结构（5 组）",
+  "## 3. 推荐二级导航结构（3 组）",
   "",
   "| 序号 | groupTitle | groupKey | 条数 | 说明 |",
   "|------|------------|----------|------|------|",
@@ -165,11 +163,9 @@ push(
   "",
   "| 新 groupTitle | 吸收的旧分组 |",
   "|---------------|--------------|",
-  "| 员工与出勤 | 员工、员工管理 |",
   "| 排班 | 员工排班、员工工时（打卡依赖排班） |",
-  "| 考勤与工时 | 员工工时、报表（带薪休息）、支付相关（BATCH 检查） |",
+  "| 考勤与工时 | 员工工时、报表（带薪休息） |",
   "| 薪酬与小费 | 分享小费、基本设置（分摊/计算标准） |",
-  "| 外部系统对接 | 基本设置（云同步）、高级设置（第三方链接） |",
   "",
   "---",
   "",
@@ -197,9 +193,10 @@ push(
   "",
   "## 7. 边界说明",
   "",
-  "- 20 条全部保留；`seq` 与终版表行号一致。",
+  "- 方案B：`425/427/437` 迁出团队设置，作为员工/出勤/排班业务功能页管理。",
+  "- `241` 迁至支付中心（BATCH与日结）；`78/79/80/81` 迁至平台业务中心（集成）。",
   "- 小费 **收取/分配操作** 在团队模块业务页；**基数与比例** 在本设置 hub。",
-  "- 7Shifts / 云员工等链接类设置集中在「外部系统对接」。",
+  "- 团队设置只保留团队规则参数，不承载跨系统链接配置。",
   "",
 );
 

@@ -194,7 +194,7 @@ function formatDayRange(fromDay: StoreBusinessHourDay, toDay: StoreBusinessHourD
   return `${dayLabel(fromDay)}至${dayLabel(toDay)}`;
 }
 
-function formatScheduleSummary(schedule: StoreBusinessHourSchedule): string {
+export function formatScheduleSummary(schedule: StoreBusinessHourSchedule): string {
   return `${formatMonthRange(schedule.fromMonth, schedule.toMonth)} · ${formatDayRange(schedule.fromDay, schedule.toDay)} · ${schedule.openTime}–${schedule.closeTime}`;
 }
 

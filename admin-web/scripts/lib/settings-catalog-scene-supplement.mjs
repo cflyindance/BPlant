@@ -15,6 +15,7 @@ export const SETTINGS_CATALOG_SCENE_OVERRIDE_BY_SEQ = new Map([
     "批量删除地址数据（门店运维；若为外送顾客地址库则归属外卖/来取，待产品确认）",
   ],
   [421, "批量删除菜品评价数据（评价/UGC 治理，配置入口在评价中心设置）"],
+  [547, "配置一个门店有哪些品牌，并为每个品牌绑定营业时间与菜单（原 seq 548 并入）"],
 ]);
 
 export const SETTINGS_CATALOG_SCENE_SUPPLEMENT_BY_SEQ = new Map([

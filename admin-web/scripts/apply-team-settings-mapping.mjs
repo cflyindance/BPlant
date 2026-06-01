@@ -1,5 +1,5 @@
 /**
- * 将团队管理 5 组分类写入 docs/项目文档/配置归类-分组映射.csv
+ * 将团队管理（方案B）3 组分类写入 docs/项目文档/配置归类-分组映射.csv
  * 运行：node scripts/apply-team-settings-mapping.mjs
  */
 import fs from "node:fs";
@@ -15,19 +15,15 @@ const mappingPath = [projectDocs, repoDocs]
   .find((p) => fs.existsSync(p));
 
 const titles = {
-  "staff-profile": "员工与出勤",
   scheduling: "排班",
   "time-attendance": "考勤与工时",
   "payroll-tips": "薪酬与小费",
-  integrations: "外部系统对接",
 };
 
 const assignMap = {
-  "staff-profile": [425, 427],
-  scheduling: [74, 437],
-  "time-attendance": [66, 67, 70, 71, 72, 73, 241, 329],
+  scheduling: [74],
+  "time-attendance": [66, 67, 70, 71, 72, 73, 329],
   "payroll-tips": [186, 306, 309, 310],
-  integrations: [78, 79, 80, 81],
 };
 
 const teamAssign = new Map();
