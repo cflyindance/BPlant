@@ -17,16 +17,18 @@ const mappingPath = [projectDocs, repoDocs]
 const titles = {
   "send-routing": "送厨触发与路由",
   "ticket-grouping": "厨房单·分组与拆单",
+  "line-merge-rules": "行级合并规则",
   "ticket-fields": "厨房单·票面信息",
   "ticket-format": "厨房单·版式格式",
   "packing-slip": "打包单",
 };
 
 const assignMap = {
-  "send-routing": [35, 36, 37, 62, 304],
-  "ticket-grouping": [32, 33, 40, 47, 52, 53, 54, 61],
-  "ticket-fields": [38, 41, 42, 45, 46, 48, 49, 50, 51, 55, 56, 57, 58],
-  "ticket-format": [43, 44, 59, 60],
+  "send-routing": [36, 37, 62, 32, 304],
+  "ticket-grouping": [40, 47, 54, 51, 61],
+  "line-merge-rules": [52, 53, 287, 288, 301, 302],
+  "ticket-fields": [35, 42, 45, 46, 48, 49, 50, 55, 56, 57, 58],
+  "ticket-format": [43, 44, 38, 41, 33, 59, 60],
   "packing-slip": [39, 298, 299, 300],
 };
 

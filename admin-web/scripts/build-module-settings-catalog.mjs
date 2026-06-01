@@ -6,6 +6,19 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseConfigMd, slugify } from "./lib/parse-bplant-config-md.mjs";
+import { isSettingsCatalogExcluded } from "./lib/settings-catalog-exclusions.mjs";
+import { buildCatalogSceneDesc } from "./lib/settings-catalog-scene-supplement.mjs";
+import { getSettingsHub } from "./lib/settings-hub-override.mjs";
+import {
+  FOH_SETTINGS_GROUP_ORDER,
+  INTRA_GROUP_SORT_BY_SEQ,
+  KITCHEN_SETTINGS_GROUP_ORDER,
+} from "./lib/settings-intra-group-sort.mjs";
+
+const SETTINGS_GROUP_ORDER_BY_PATH = {
+  "/operations/queue-call/settings": FOH_SETTINGS_GROUP_ORDER,
+  "/operations/kitchen-kds/settings": KITCHEN_SETTINGS_GROUP_ORDER,
+};
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
@@ -104,7 +117,11 @@ function buildCatalog(rows, mapping) {
   const missing = [];
 
   for (const row of rows) {
-    const settingsPath = resolveSettingsPath(row.hub);
+    if (isSettingsCatalogExcluded(row.seq)) {
+      continue;
+    }
+
+    const settingsPath = resolveSettingsPath(getSettingsHub(row));
     if (!settingsPath) {
       console.warn(`[build] 未映射一级导航，已跳过: ${row.hub} (seq ${row.seq})`);
       continue;
@@ -120,7 +137,7 @@ function buildCatalog(rows, mapping) {
       seq: row.seq,
       title: row.title,
       feature: row.feature,
-      sceneDesc: row.sceneDesc && row.sceneDesc !== "（未填写）" ? row.sceneDesc : "",
+      sceneDesc: buildCatalogSceneDesc(row.seq, row.sceneDesc),
       moduleName: row.moduleName,
       groupTitle: group.groupTitle,
       groupKey: group.groupKey,
@@ -158,6 +175,8 @@ function buildCatalog(rows, mapping) {
   ts += `export interface ModuleSettingCatalogHub {\n`;
   ts += `  hubTitle: string;\n`;
   ts += `  settingsPath: string;\n`;
+  ts += `  /** 二级导航分组展示顺序（可选） */\n`;
+  ts += `  groupOrder?: string[];\n`;
   ts += `  items: ModuleSettingCatalogItem[];\n`;
   ts += `}\n\n`;
   ts += `export interface ModuleSettingCatalogGroup {\n`;
@@ -177,9 +196,13 @@ function buildCatalog(rows, mapping) {
     bucket.items.sort((a, b) => a.seq - b.seq);
     itemCount += bucket.items.length;
 
+    const groupOrder = SETTINGS_GROUP_ORDER_BY_PATH[settingsPath];
     ts += `  ${JSON.stringify(settingsPath)}: {\n`;
     ts += `    hubTitle: ${JSON.stringify(hubTitle)},\n`;
     ts += `    settingsPath: ${JSON.stringify(settingsPath)},\n`;
+    if (groupOrder) {
+      ts += `    groupOrder: ${JSON.stringify(groupOrder)},\n`;
+    }
     ts += `    items: [\n`;
     for (const it of bucket.items) {
       const id = `s${it.seq}-${it.groupKey}-${slugify(it.title)}`.slice(0, 80);
@@ -202,18 +225,44 @@ function buildCatalog(rows, mapping) {
   ts += `  return base ? MODULE_SETTINGS_BY_PATH[base] : undefined;\n`;
   ts += `}\n\n`;
 
-  ts += `export function groupCatalogItemsByCategory(items: ModuleSettingCatalogItem[]): ModuleSettingCatalogGroup[] {\n`;
-  ts += `  const order: string[] = [];\n`;
+  ts += `/** 组内自定义排序（由 scripts/lib/settings-intra-group-sort.mjs 生成） */\n`;
+  ts += `const MODULE_SETTINGS_INTRA_SORT: Record<number, number> = {\n`;
+  for (const [seq, sortInGroup] of [...INTRA_GROUP_SORT_BY_SEQ.entries()].sort((a, b) => a[0] - b[0])) {
+    ts += `  ${seq}: ${sortInGroup},\n`;
+  }
+  ts += `};\n\n`;
+  ts += `function compareItemsInSameGroup(a: ModuleSettingCatalogItem, b: ModuleSettingCatalogItem): number {\n`;
+  ts += `  if (a.groupKey !== b.groupKey) return 0;\n`;
+  ts += `  const oa = MODULE_SETTINGS_INTRA_SORT[a.seq];\n`;
+  ts += `  const ob = MODULE_SETTINGS_INTRA_SORT[b.seq];\n`;
+  ts += `  const hasA = oa !== undefined;\n`;
+  ts += `  const hasB = ob !== undefined;\n`;
+  ts += `  if (hasA && hasB && oa !== ob) return oa - ob;\n`;
+  ts += `  if (hasA !== hasB) return hasA ? -1 : 1;\n`;
+  ts += `  return a.seq - b.seq;\n`;
+  ts += `}\n\n`;
+  ts += `export function groupCatalogItemsByCategory(\n`;
+  ts += `  items: ModuleSettingCatalogItem[],\n`;
+  ts += `  groupOrder?: string[],\n`;
+  ts += `): ModuleSettingCatalogGroup[] {\n`;
+  ts += `  const discovered: string[] = [];\n`;
   ts += `  const map = new Map<string, ModuleSettingCatalogItem[]>();\n`;
   ts += `  for (const item of items) {\n`;
   ts += `    if (!map.has(item.groupKey)) {\n`;
   ts += `      map.set(item.groupKey, []);\n`;
-  ts += `      order.push(item.groupKey);\n`;
+  ts += `      discovered.push(item.groupKey);\n`;
   ts += `    }\n`;
   ts += `    map.get(item.groupKey)!.push(item);\n`;
   ts += `  }\n`;
+  ts += `  const order =\n`;
+  ts += `    groupOrder && groupOrder.length > 0\n`;
+  ts += `      ? [\n`;
+  ts += `          ...groupOrder.filter((k) => map.has(k)),\n`;
+  ts += `          ...discovered.filter((k) => !groupOrder.includes(k)),\n`;
+  ts += `        ]\n`;
+  ts += `      : discovered;\n`;
   ts += `  return order.map((groupKey) => {\n`;
-  ts += `    const groupItems = map.get(groupKey)!;\n`;
+  ts += `    const groupItems = map.get(groupKey)!.slice().sort(compareItemsInSameGroup);\n`;
   ts += `    return { groupKey, groupTitle: groupItems[0]?.groupTitle ?? groupKey, items: groupItems };\n`;
   ts += `  });\n`;
   ts += `}\n`;

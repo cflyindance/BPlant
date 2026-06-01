@@ -343,6 +343,12 @@ export const NAV_MODULES: NavModule[] = [
         titleEn: "Front of house management center",
         path: "/operations/queue-call",
       },
+      {
+        id: "qc-floor-plan",
+        title: "餐位平面图",
+        titleEn: "Table layout",
+        path: "/operations/queue-call/floor-plan",
+      },
       { id: "qc-settings", title: "设置", titleEn: "Settings", path: "/operations/queue-call/settings" },
     ],
   },

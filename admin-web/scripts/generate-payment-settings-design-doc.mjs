@@ -6,6 +6,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseConfigMd } from "./lib/parse-bplant-config-md.mjs";
+import { filterRowsForSettingsHub } from "./lib/settings-hub-override.mjs";
+import { INTRA_GROUP_SORT_BY_SEQ } from "./lib/settings-intra-group-sort.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..", "..");
@@ -35,19 +37,19 @@ const reasons = {
   "card-fees":
     "刷卡门槛、签名门槛、手续费、现金折扣、双重定价、整单附加费；对标 Peblla「现金折扣 / 双重定价」、Snackpass 支付费率。",
   "guest-checkout-ux":
-    "客显屏/扫码端小费·签名·收据流程；对标 Toast「支付选项-预授权/小费/小票」、前厅客显屏策略 SSOT 在支付中心。",
+    "客显屏/扫码端小费·签名·小票流程（含自前厅迁入 463、465）；结账交互 SSOT，对标 Toast「支付选项-预授权/小费/小票」。",
   "paypad-checkout":
     "Paypad 终端结账页小费/签名/小票；与食客端分轨，便于按 **终端类型** 配置。",
 };
 
-/** seq → groupKey（支付中心 49 条） */
+/** seq → groupKey（支付中心 catalog，含 hub override 迁入项） */
 const assignMap = {
   "payment-methods": [29, 229, 233, 234, 448, 511],
   "tax-rules": [142, 143, 144, 160, 445],
   "tip-policy": [231, 232, 237, 244, 253, 293, 294, 295, 296],
   "batch-settlement": [230, 235, 236, 238, 239, 240],
   "card-fees": [242, 243, 307, 452, 454, 512, 543],
-  "guest-checkout-ux": [8, 9, 464, 492, 493, 494, 495, 496, 497, 501],
+  "guest-checkout-ux": [8, 9, 463, 464, 465, 492, 493, 494, 495, 496, 497, 501],
   "paypad-checkout": [662, 663, 664, 665, 666, 667],
 };
 
@@ -75,8 +77,20 @@ function sceneSummary(scene) {
   return s.length > 80 ? `${s.slice(0, 77)}...` : s;
 }
 
+function sortItemsInGroup(items) {
+  return [...items].sort((a, b) => {
+    const oa = INTRA_GROUP_SORT_BY_SEQ.get(a.seq);
+    const ob = INTRA_GROUP_SORT_BY_SEQ.get(b.seq);
+    const hasA = oa !== undefined;
+    const hasB = ob !== undefined;
+    if (hasA && hasB && oa !== ob) return oa - ob;
+    if (hasA !== hasB) return hasA ? -1 : 1;
+    return a.seq - b.seq;
+  });
+}
+
 const md = fs.readFileSync(sourcePath, "utf8");
-const rows = parseConfigMd(md).filter((r) => r.hub === "支付中心");
+const rows = filterRowsForSettingsHub(parseConfigMd(md), "支付中心");
 const order = [
   "payment-methods",
   "tax-rules",
@@ -104,8 +118,8 @@ const push = (...xs) => lines.push(...xs);
 push(
   "# 支付中心 · 设置二级导航重设计方案",
   "",
-  "> 文档版本：v1.0  ",
-  "> 数据范围：`docs/项目文档/配置归类-终版.md` 中 **B平台一级导航 = 支付中心** 共 **49** 条功能设置  ",
+  "> 文档版本：v1.1  ",
+  "> 数据范围：支付设置 catalog **51** 条（终版归属支付 49 条 + v1.2 自前厅迁入 seq **463、465**，见 §3.1）  ",
   "> 竞品参考：Toast / Clover / Square / Peblla / Snackpass 商家后台结构文档",
   "",
   "---",
@@ -147,7 +161,7 @@ push(
   "",
   "**边界**：",
   "- **团队管理**：小费 **分配比例/工资计算** 不在此 hub。",
-  "- **前厅管理中心**：POS 按钮上的「小费」显隐在 POS 操作组；**小费页流程与比例 SSOT** 在支付中心。",
+  "- **前厅管理中心**：客显屏 `cds`（461/462/466）；**C 端界面语言**（652/653）见 `guest-facing-locale`；**客显小费页、小票**（463、465）与本 hub 结账交互同组。",
   "- **订单中心**：BATCH 前检查下班卡 (241) 在订单 hub。",
   "",
   "---",
@@ -165,14 +179,31 @@ for (let i = 0; i < order.length; i++) {
   total += n;
   push(`| ${i + 1} | **${titles[k]}** | \`${k}\` | ${n} | ${reasons[k]} |`);
 }
-push(`| | **合计** | | **${total}** | |`, "", "---", "", "## 4. 分类结果明细", "");
+push(
+  `| | **合计** | | **${total}** | |`,
+  "",
+  "### 3.1 v1.1 变更（客显屏边界收紧）",
+  "",
+  "| seq | 功能设置 | groupKey | 说明 |",
+  "|-----|----------|----------|------|",
+  "| 463 | 小费（客显屏展示小费页） | `guest-checkout-ux` | 与 8/9/464 等同轨客显结账交互 |",
+  "| 465 | 小票（客显屏自主选择打印） | `guest-checkout-ux` | 收据/小票行为，非前厅展示组 |",
+  "",
+  "---",
+  "",
+  "## 4. 分类结果明细",
+  "",
+);
 
 for (let i = 0; i < order.length; i++) {
   const k = order[i];
   push(`### 4.${i + 1} ${titles[k]}（\`${k}\`）`, "", `**归类理由**：${reasons[k]}`, "");
   push("| seq | 场景 | 原导航 | 功能模块 | 功能设置 | 功能场景描述（摘要） |");
   push("|-----|------|--------|----------|----------|----------------------|");
-  for (const r of [...by.get(k)].sort((a, b) => a.seq - b.seq)) {
+  if (k === "guest-checkout-ux") {
+    push("", "**组内展示顺序**：客显签字/小费流程（8、9、463–465）→ 扫码端小费/收据（492–501）。", "");
+  }
+  for (const r of sortItemsInGroup(by.get(k))) {
     push(
       `| ${r.seq} | ${r.area} | ${r.nav} | ${r.moduleName} | ${r.title} | ${sceneSummary(r.sceneDesc)} |`,
     );
@@ -192,7 +223,7 @@ push(
   "| 小费政策与计算 | 基本设置（小费算法/比例）、小费设置、付款收据、信用卡（隐藏现金小费） |",
   "| BATCH与日结 | 基本设置（结算/batch/自动结账） |",
   "| 卡交易与附加费用 | 信用卡、报表手续费、现金折扣、双重定价、附加费、服务设置支付门槛 |",
-  "| 食客端·结账交互 | 客显屏、服务（签名）、服务设置小费/收据/支付（食客端） |",
+  "| 食客端·结账交互 | 客显屏（含 463 小费页、465 小票）、服务（签名）、服务设置小费/收据（食客端） |",
   "| Paypad·结账交互 | Paypad设置（全部） |",
   "",
   "---",

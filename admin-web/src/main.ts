@@ -78,7 +78,92 @@ import {
   getModuleSettingsCatalog,
   groupCatalogItemsByCategory,
   type ModuleSettingCatalogHub,
+  type ModuleSettingCatalogItem,
 } from "./config/module-settings-catalog";
+import {
+  getModuleSettingFormRow,
+  isModuleSettingGenericFormRowSeq,
+  readModuleSettingCheckbox,
+  readModuleSettingColor,
+  readModuleSettingNumber,
+  readModuleSettingRadio,
+  writeModuleSettingCheckbox,
+  writeModuleSettingColor,
+  writeModuleSettingNumber,
+  writeModuleSettingRadio,
+  type ModuleSettingFormRowConfig,
+  type ModuleSettingRadioOption,
+} from "./config/module-settings-form-ui";
+import {
+  getModuleSettingNestedGroup,
+  isModuleSettingNestedParentSeq,
+  readModuleSettingFieldNumber,
+  readModuleSettingRadio as readModuleSettingNestedRadio,
+  readModuleSettingText,
+  writeModuleSettingFieldNumber,
+  writeModuleSettingRadio as writeModuleSettingNestedRadio,
+  writeModuleSettingText,
+  type ModuleSettingNestedCopyFormField,
+  type ModuleSettingNestedConditionalDishTagsField,
+  type ModuleSettingNestedDishComboField,
+  type ModuleSettingNestedDishMutexField,
+  type ModuleSettingNestedDishTagsField,
+  type ModuleSettingNestedField,
+  type ModuleSettingNestedFieldPart,
+  type ModuleSettingNestedHintField,
+  type ModuleSettingNestedTextInputField,
+} from "./config/module-settings-nested-ui";
+import {
+  bindModuleSettingsDishRules,
+  renderDishComboRulesHtml,
+  renderDishMutexRulesHtml,
+  renderStandaloneDishPickerHtml,
+} from "./config/module-settings-dish-rules-ui";
+import {
+  GUEST_FACING_LOCALES,
+  bindGuestFacingLocaleControls,
+  isModuleSettingLocaleDefaultSeq,
+  isModuleSettingLocaleSelectSeq,
+  localeCheckboxFieldId,
+  renderLocaleDefaultRadiosHtml,
+} from "./config/module-settings-locale-ui";
+import {
+  bindModuleSettingMenuGroupPickers,
+  isModuleSettingMenuGroupSelectSeq,
+  menuGroupStorageFieldId,
+  renderMenuGroupPickerHtml,
+} from "./config/module-settings-menu-group-ui";
+import {
+  bindPosOrderToolbarGroups,
+  isPosOrderToolbarGridHostSeq,
+  renderPosOrderToolbarGroupsGridHtml,
+  shouldSkipPosOrderToolbarCatalogRow,
+} from "./config/module-settings-pos-order-toolbar-ui";
+import {
+  bindKitchenTicketMarginControls,
+  isKitchenTicketMarginHostSeq,
+  renderKitchenTicketMarginRowHtml,
+  shouldSkipKitchenTicketMarginRangeRow,
+} from "./config/module-settings-kitchen-ticket-margin-ui";
+import {
+  isKitchenOrderTypeMultiselectSeq,
+  renderKitchenOrderTypeMultiselectHtml,
+} from "./config/module-settings-kitchen-order-type-ui";
+import {
+  isLineMergeMatrixHostSeq,
+  renderLineMergeMatrixHtml,
+  shouldSkipLineMergeMatrixMemberRow,
+} from "./config/module-settings-line-merge-matrix-ui";
+import {
+  isPackingSlipOrderTypeMultiselectSeq,
+  renderPackingSlipOrderTypeMultiselectHtml,
+} from "./config/module-settings-packing-slip-order-type-ui";
+import {
+  getDefaultModuleSettingToggleOn,
+  isModuleSettingToggleSeq,
+  moduleSettingToggleStorageKey,
+} from "./config/module-settings-toggle-ui";
+import { bindFloorPlanEditor, isFloorPlanPath, renderFloorPlanPage } from "./config/floor-plan-ui";
 import {
   applyUiLocaleToDocument,
   formatNavModuleKicker,
@@ -1838,9 +1923,9 @@ function normalizeTabModuleHashes(): void {
     location.replace("#/dashboard/overview");
     return;
   }
-  /* 原侧栏一级「桌台平面图」已移除；门店信息侧栏已移除 — 旧链接统一到门店管理 */
+  /* 原侧栏一级「桌台平面图」→ 前厅 · 餐位平面图 */
   if (raw === "/operations/floor-plan" || raw.startsWith("/operations/floor-plan/")) {
-    location.replace("#/stores/overview");
+    location.replace("#/operations/queue-call/floor-plan");
     return;
   }
   /* AI 助手非侧栏一级，仅顶栏入口；#/ai-assistant 规范到对话页 */
@@ -2737,7 +2822,7 @@ function scrollToModuleSettingsCategory(groupKey: string): void {
 function scrollToModuleSettingsCategoryFromPath(path: string): void {
   const catalog = getModuleSettingsCatalog(path);
   if (!catalog) return;
-  const groups = groupCatalogItemsByCategory(catalog.items);
+  const groups = groupCatalogItemsByCategory(catalog.items, catalog.groupOrder);
   const active = getModuleSettingsActiveGroup(path, catalog.settingsPath, groups);
   if (!active) return;
   scrollToModuleSettingsCategory(active.groupKey);
@@ -2769,7 +2854,7 @@ function bindModuleSettingsCategoryNav(): void {
       if (scrollHost) {
         rememberModuleSettingsScroll(catalog.settingsPath, scrollHost.scrollTop);
       }
-      const groups = groupCatalogItemsByCategory(catalog.items);
+      const groups = groupCatalogItemsByCategory(catalog.items, catalog.groupOrder);
       const active = getModuleSettingsActiveGroup(href, catalog.settingsPath, groups);
       if (!active) return;
       window.setTimeout(() => scrollToModuleSettingsCategory(active.groupKey), 0);
@@ -2780,7 +2865,7 @@ function bindModuleSettingsCategoryNav(): void {
 function renderModuleHubSettingsCategorySidebar(path: string, pageTitle: string): string {
   const catalog = getModuleSettingsCatalog(path);
   if (!catalog || catalog.items.length === 0) return "";
-  const groups = groupCatalogItemsByCategory(catalog.items);
+  const groups = groupCatalogItemsByCategory(catalog.items, catalog.groupOrder);
   const activeGroup = getModuleSettingsActiveGroup(path, catalog.settingsPath, groups);
   return `
     <nav class="module-settings-subnav w-56 shrink-0 border-r border-border pr-4 ${TERTIARY_SUBNAV_SCROLL_CLASSES}" aria-label="${escapeHtml(pageTitle)}">
@@ -2809,6 +2894,701 @@ function renderModuleHubSettingsCategorySidebar(path: string, pageTitle: string)
   `;
 }
 
+function readModuleSettingToggleOn(seq: number): boolean {
+  try {
+    const raw = localStorage.getItem(moduleSettingToggleStorageKey(seq));
+    if (raw === null) return getDefaultModuleSettingToggleOn(seq);
+    return raw === "1";
+  } catch {
+    return getDefaultModuleSettingToggleOn(seq);
+  }
+}
+
+function writeModuleSettingToggleOn(seq: number, on: boolean): void {
+  try {
+    localStorage.setItem(moduleSettingToggleStorageKey(seq), on ? "1" : "0");
+  } catch {
+    /* ignore quota */
+  }
+}
+
+/** 设置滑层开关：关闭态轨道需与背景区分（避免 bg-input 过浅） */
+const MODULE_SETTING_TOGGLE_TRACK_ON =
+  "bg-primary border-primary shadow-sm";
+const MODULE_SETTING_TOGGLE_TRACK_OFF =
+  "bg-neutral-300 border-neutral-400/80 shadow-inner dark:bg-neutral-600 dark:border-neutral-500";
+const MODULE_SETTING_TOGGLE_KNOB =
+  "bg-white shadow-md ring-1 ring-black/10 dark:bg-neutral-100 dark:ring-white/15";
+
+function moduleSettingToggleOffLabelClass(on: boolean): string {
+  return on ? "text-xs text-muted-foreground" : "text-xs font-medium text-foreground";
+}
+
+function moduleSettingToggleOnLabelClass(on: boolean): string {
+  return on ? "text-xs font-medium text-foreground" : "text-xs text-muted-foreground";
+}
+
+function renderModuleSettingToggleSwitch(item: ModuleSettingCatalogItem): string {
+  const on = readModuleSettingToggleOn(item.seq);
+  const ariaLabel = tf("moduleSettings.toggleAria", { name: item.title });
+  const stateHint = on ? t("moduleSettings.toggleOn") : t("moduleSettings.toggleOff");
+  const trackClass = on ? MODULE_SETTING_TOGGLE_TRACK_ON : MODULE_SETTING_TOGGLE_TRACK_OFF;
+  const knobClass = on ? "translate-x-5" : "translate-x-0.5";
+  return `
+    <div class="flex shrink-0 items-center gap-2" data-module-setting-toggle-group>
+      <span data-toggle-off-label class="${moduleSettingToggleOffLabelClass(on)}">${escapeHtml(t("moduleSettings.toggleOffLabel"))}</span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked="${on ? "true" : "false"}"
+        aria-label="${escapeHtml(ariaLabel)}"
+        title="${escapeHtml(stateHint)}"
+        data-module-setting-toggle="${item.seq}"
+        class="module-setting-toggle relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${trackClass}"
+      >
+        <span
+          class="pointer-events-none block size-5 ${knobClass} ${MODULE_SETTING_TOGGLE_KNOB} rounded-full transition-transform duration-200"
+          aria-hidden="true"
+        ></span>
+      </button>
+      <span data-toggle-on-label class="${moduleSettingToggleOnLabelClass(on)}">${escapeHtml(t("moduleSettings.toggleOnLabel"))}</span>
+    </div>`;
+}
+
+function renderModuleSettingSceneDescHtml(item: ModuleSettingCatalogItem): string {
+  const sceneLine = item.sceneDesc.trim();
+  if (!sceneLine) return "";
+  return `<p class="m-0 text-xs leading-relaxed text-muted-foreground">${escapeHtml(sceneLine)}</p>`;
+}
+
+function renderModuleSettingTitleBlock(item: ModuleSettingCatalogItem): string {
+  const descHtml = renderModuleSettingSceneDescHtml(item);
+  return `
+    <div class="min-w-0 flex flex-col gap-1">
+      <span class="text-sm font-medium text-card-foreground">${escapeHtml(item.title)}</span>
+      ${descHtml}
+    </div>`;
+}
+
+const MODULE_SETTING_CONTROL_CLASS =
+  "size-4 shrink-0 rounded border-input text-primary accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
+function renderModuleSettingNestedFieldPart(part: ModuleSettingNestedFieldPart): string {
+  if (part.type === "text") {
+    return `<span class="text-sm text-foreground">${escapeHtml(part.value)}</span>`;
+  }
+  const value = readModuleSettingFieldNumber(part.fieldId, part.defaultValue);
+  const width = part.widthClass ?? "w-16";
+  const minAttr = part.min !== undefined ? ` min="${part.min}"` : "";
+  const maxAttr = part.max !== undefined ? ` max="${part.max}"` : "";
+  return `<input
+    type="number"
+    inputmode="numeric"
+    class="${width} h-8 shrink-0 rounded-md border border-input bg-background px-2 text-center text-sm tabular-nums text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    value="${escapeHtml(String(value))}"
+    data-module-setting-field="${escapeHtml(part.fieldId)}"
+    data-default-value="${part.defaultValue}"${minAttr}${maxAttr}
+  />`;
+}
+
+function moduleSettingTextCounter(len: number, max: number): string {
+  return `${len} / ${max}`;
+}
+
+function renderModuleSettingNestedCopyFormField(field: ModuleSettingNestedCopyFormField): string {
+  const titleLabel = field.titleLabel ?? "标题";
+  const contentLabel = field.contentLabel ?? "内容";
+  const titleVal = readModuleSettingText(field.titleFieldId, "");
+  const contentVal = readModuleSettingText(field.contentFieldId, "");
+  const titleLen = titleVal.length;
+  const contentLen = contentVal.length;
+  const inputClass =
+    "w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
+  return `
+    <div class="space-y-4" data-copy-form-field="${escapeHtml(field.fieldKey)}">
+      <div class="space-y-1.5">
+        <label class="text-sm font-medium text-foreground">${escapeHtml(titleLabel)}</label>
+        <div class="relative">
+          <input
+            type="text"
+            class="${inputClass} pr-14"
+            maxlength="${field.titleMaxLength}"
+            value="${escapeHtml(titleVal)}"
+            placeholder=""
+            data-module-setting-text="${escapeHtml(field.titleFieldId)}"
+            data-max-length="${field.titleMaxLength}"
+          />
+          <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs tabular-nums text-muted-foreground" data-text-counter="title">${escapeHtml(moduleSettingTextCounter(titleLen, field.titleMaxLength))}</span>
+        </div>
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-sm font-medium text-foreground">${escapeHtml(contentLabel)}</label>
+        <textarea
+          rows="4"
+          class="${inputClass} min-h-[5rem] resize-y"
+          maxlength="${field.contentMaxLength}"
+          placeholder=""
+          data-module-setting-text="${escapeHtml(field.contentFieldId)}"
+          data-max-length="${field.contentMaxLength}"
+        >${escapeHtml(contentVal)}</textarea>
+        <div class="flex justify-end">
+          <span class="text-xs tabular-nums text-muted-foreground" data-text-counter="content">${escapeHtml(moduleSettingTextCounter(contentLen, field.contentMaxLength))}</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderModuleSettingNestedRadioField(
+  parentSeq: number,
+  field: Extract<ModuleSettingNestedField, { kind: "radio" }>,
+): string {
+  const groupName = `module-setting-nested-radio-${parentSeq}-${field.fieldKey}`;
+  const current = readModuleSettingNestedRadio(field.radioFieldId, field.radioDefault);
+  const options = field.options
+    .map((opt) => {
+      const checked = current === opt.value;
+      return `
+      <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-foreground">
+        <input type="radio" name="${escapeHtml(groupName)}" value="${escapeHtml(opt.value)}" class="${MODULE_SETTING_CONTROL_CLASS}" ${checked ? "checked" : ""} data-module-setting-radio="${escapeHtml(field.radioFieldId)}" />
+        <span>${escapeHtml(opt.label)}</span>
+      </label>`;
+    })
+    .join("");
+  return `<div class="flex flex-wrap items-center gap-4">${options}</div>`;
+}
+
+function renderModuleSettingNestedDishMutexField(
+  parentSeq: number,
+  field: ModuleSettingNestedDishMutexField,
+): string {
+  return renderDishMutexRulesHtml(parentSeq, field.storageFieldId);
+}
+
+function renderModuleSettingNestedDishComboField(
+  parentSeq: number,
+  field: ModuleSettingNestedDishComboField,
+): string {
+  return renderDishComboRulesHtml(parentSeq, field.storageFieldId);
+}
+
+function renderModuleSettingNestedHintField(field: ModuleSettingNestedHintField): string {
+  return `<p class="m-0 text-xs leading-relaxed text-muted-foreground">${escapeHtml(field.text)}</p>`;
+}
+
+function renderModuleSettingNestedDishTagsField(
+  parentSeq: number,
+  field: ModuleSettingNestedDishTagsField,
+): string {
+  return `
+    <div class="space-y-1.5">
+      <p class="m-0 text-xs text-muted-foreground">${escapeHtml(field.label)}</p>
+      ${renderStandaloneDishPickerHtml(parentSeq, field.fieldKey, field.storageFieldId)}
+    </div>`;
+}
+
+function renderModuleSettingNestedConditionalDishTagsField(
+  parentSeq: number,
+  field: ModuleSettingNestedConditionalDishTagsField,
+): string {
+  const current = readModuleSettingNestedRadio(field.whenRadioFieldId, field.whenRadioDefault);
+  const hidden = current !== field.whenRadioValue ? "hidden" : "";
+  return `
+    <div
+      class="space-y-1.5 ${hidden}"
+      data-conditional-panel
+      data-when-radio-field="${escapeHtml(field.whenRadioFieldId)}"
+      data-when-radio-value="${escapeHtml(field.whenRadioValue)}"
+    >
+      <p class="m-0 text-xs text-muted-foreground">${escapeHtml(field.label)}</p>
+      ${renderStandaloneDishPickerHtml(parentSeq, field.fieldKey, field.storageFieldId)}
+    </div>`;
+}
+
+function renderModuleSettingNestedTextInputField(field: ModuleSettingNestedTextInputField): string {
+  const label = field.label ?? "";
+  const value = readModuleSettingText(field.textFieldId, "");
+  const max = field.maxLength ?? 0;
+  const maxAttr = max > 0 ? ` maxlength="${max}"` : "";
+  const placeholder = field.placeholder ?? "";
+  return `
+    <div class="space-y-1.5" data-nested-text-input="${escapeHtml(field.fieldKey)}">
+      ${label ? `<label class="text-sm font-medium text-foreground">${escapeHtml(label)}</label>` : ""}
+      <input
+        type="text"
+        class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        value="${escapeHtml(value)}"
+        placeholder="${escapeHtml(placeholder)}"${maxAttr}
+        data-module-setting-text="${escapeHtml(field.textFieldId)}"
+      />
+    </div>`;
+}
+
+function syncModuleSettingConditionalPanels(radioFieldId?: string): void {
+  document.querySelectorAll<HTMLElement>("[data-conditional-panel]").forEach((panel) => {
+    const whenField = panel.getAttribute("data-when-radio-field");
+    if (radioFieldId && whenField !== radioFieldId) return;
+    const want = panel.getAttribute("data-when-radio-value") ?? "";
+    const checked = whenField
+      ? document.querySelector<HTMLInputElement>(
+          `[data-module-setting-radio="${whenField}"]:checked`,
+        )
+      : null;
+    const current = checked?.value ?? "";
+    panel.classList.toggle("hidden", current !== want);
+    if (current !== want) panel.setAttribute("aria-hidden", "true");
+    else panel.removeAttribute("aria-hidden");
+  });
+}
+
+function renderModuleSettingNestedField(parentSeq: number, field: ModuleSettingNestedField): string {
+  if (field.kind === "copy-form") {
+    return renderModuleSettingNestedCopyFormField(field);
+  }
+  if (field.kind === "hint") {
+    return renderModuleSettingNestedHintField(field);
+  }
+  if (field.kind === "dish-tags") {
+    return renderModuleSettingNestedDishTagsField(parentSeq, field);
+  }
+  if (field.kind === "conditional-dish-tags") {
+    return renderModuleSettingNestedConditionalDishTagsField(parentSeq, field);
+  }
+  if (field.kind === "text-input") {
+    return renderModuleSettingNestedTextInputField(field);
+  }
+  if (field.kind === "dish-mutex-rules") {
+    return renderModuleSettingNestedDishMutexField(parentSeq, field);
+  }
+  if (field.kind === "dish-combo-rules") {
+    return renderModuleSettingNestedDishComboField(parentSeq, field);
+  }
+  if (field.kind === "radio") {
+    return renderModuleSettingNestedRadioField(parentSeq, field);
+  }
+  return `
+      <div class="flex flex-wrap items-center gap-x-2 gap-y-1 leading-relaxed">
+        ${field.parts.map((part) => renderModuleSettingNestedFieldPart(part)).join("")}
+      </div>`;
+}
+
+function renderModuleSettingNestedParentRow(item: ModuleSettingCatalogItem): string {
+  const nested = getModuleSettingNestedGroup(item.seq);
+  if (!nested) return renderModuleSettingRow(item);
+
+  const on = readModuleSettingToggleOn(item.seq);
+  const panelHidden = on ? "" : "hidden";
+  const fieldsHtml = nested.fields.map((field) => renderModuleSettingNestedField(item.seq, field)).join("");
+
+  return `
+        <li class="list-none">
+          <div class="border-b border-border px-4 py-3 last:border-b-0">
+            <div class="flex items-start justify-between gap-3">
+              ${renderModuleSettingTitleBlock(item)}
+              <div class="shrink-0 pt-0.5">${renderModuleSettingToggleSwitch(item)}</div>
+            </div>
+            <div
+              data-nested-panel="${item.seq}"
+              class="module-setting-nested-panel mt-3 space-y-3 rounded-lg bg-muted/50 p-3 ${panelHidden}"
+              ${on ? "" : 'aria-hidden="true"'}
+            >
+              ${fieldsHtml}
+            </div>
+          </div>
+        </li>`;
+}
+
+function setModuleSettingNestedPanelVisible(parentSeq: number, visible: boolean): void {
+  document.querySelectorAll<HTMLElement>(`[data-nested-panel="${parentSeq}"]`).forEach((panel) => {
+    panel.classList.toggle("hidden", !visible);
+    if (visible) panel.removeAttribute("aria-hidden");
+    else panel.setAttribute("aria-hidden", "true");
+  });
+}
+
+function renderModuleSettingRadioOption(
+  config: ModuleSettingFormRowConfig,
+  opt: ModuleSettingRadioOption,
+  groupName: string,
+): string {
+  const fieldId = config.radioFieldId!;
+  const current = readModuleSettingRadio(fieldId, config.radioDefault ?? "system");
+  const checked = current === opt.value;
+  if ("label" in opt) {
+    return `
+      <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-foreground">
+        <input type="radio" name="${escapeHtml(groupName)}" value="${escapeHtml(opt.value)}" class="${MODULE_SETTING_CONTROL_CLASS}" ${checked ? "checked" : ""} data-module-setting-radio="${escapeHtml(fieldId)}" />
+        <span>${escapeHtml(opt.label)}</span>
+      </label>`;
+  }
+  const mult = readModuleSettingNumber(opt.numberFieldId, opt.numberDefault);
+  const numDisabled = current !== opt.value ? "disabled" : "";
+  return `
+      <label class="inline-flex cursor-pointer flex-wrap items-center gap-2 text-sm text-foreground">
+        <input type="radio" name="${escapeHtml(groupName)}" value="${escapeHtml(opt.value)}" class="${MODULE_SETTING_CONTROL_CLASS}" ${checked ? "checked" : ""} data-module-setting-radio="${escapeHtml(fieldId)}" />
+        <span>${escapeHtml(opt.labelBefore)}</span>
+        <input type="number" step="0.1" class="w-14 h-8 rounded-md border border-input bg-background px-2 text-center text-sm tabular-nums shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50" value="${escapeHtml(String(mult))}" data-module-setting-field="${escapeHtml(opt.numberFieldId)}" data-default-value="${opt.numberDefault}" min="${opt.numberMin ?? 0}" max="${opt.numberMax ?? 99}" ${numDisabled} />
+        <span>${escapeHtml(opt.labelAfter)}</span>
+      </label>`;
+}
+
+function renderModuleSettingFormRow(item: ModuleSettingCatalogItem): string {
+  const config = getModuleSettingFormRow(item.seq);
+  if (!config) return renderModuleSettingRow(item);
+
+  const groupName = `module-setting-radio-${item.seq}`;
+
+  if (config.kind === "checkbox-group" && config.checkboxes) {
+    const boxes = config.checkboxes
+      .map((cb) => {
+        const checked = readModuleSettingCheckbox(cb.fieldId, cb.defaultChecked);
+        return `
+        <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-foreground">
+          <input type="checkbox" class="${MODULE_SETTING_CONTROL_CLASS} rounded-sm" ${checked ? "checked" : ""} data-module-setting-checkbox="${escapeHtml(cb.fieldId)}" />
+          <span>${escapeHtml(cb.label)}</span>
+        </label>`;
+      })
+      .join("");
+    return `
+        <li class="list-none">
+          <div class="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+            ${renderModuleSettingTitleBlock(item)}
+            <div class="flex flex-wrap items-center gap-4 sm:pt-0.5">${boxes}</div>
+          </div>
+        </li>`;
+  }
+
+  if (config.kind === "radio-group" && config.radios) {
+    const radios = config.radios.map((opt) => renderModuleSettingRadioOption(config, opt, groupName)).join("");
+    return `
+        <li class="list-none">
+          <div class="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+            ${renderModuleSettingTitleBlock(item)}
+            <div class="flex flex-wrap items-center gap-4 sm:pt-0.5">${radios}</div>
+          </div>
+        </li>`;
+  }
+
+  if (config.kind === "radio-color" && config.radios) {
+    const fieldId = config.radioFieldId!;
+    const current = readModuleSettingRadio(fieldId, config.radioDefault ?? "system");
+    const colorVal = readModuleSettingColor(config.colorFieldId!, config.colorDefault ?? "#ffffff");
+    const customVal = config.customColorValue ?? "custom";
+    const radios = config.radios
+      .map((opt) => {
+        const checked = current === opt.value;
+        const isCustom = opt.value === customVal;
+        const colorInput = isCustom
+          ? `<input type="color" class="size-9 shrink-0 cursor-pointer rounded border border-input bg-background p-0.5 disabled:opacity-50" value="${escapeHtml(colorVal)}" data-module-setting-color="${escapeHtml(config.colorFieldId!)}" ${checked ? "" : "disabled"} />`
+          : "";
+        return `
+        <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-foreground">
+          <input type="radio" name="${escapeHtml(groupName)}" value="${escapeHtml(opt.value)}" class="${MODULE_SETTING_CONTROL_CLASS}" ${checked ? "checked" : ""} data-module-setting-radio="${escapeHtml(fieldId)}" />
+          <span>${escapeHtml("label" in opt ? opt.label : opt.value)}</span>
+          ${colorInput}
+        </label>`;
+      })
+      .join("");
+    return `
+        <li class="list-none">
+          <div class="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+            ${renderModuleSettingTitleBlock(item)}
+            <div class="flex flex-wrap items-center gap-4 sm:pt-0.5">${radios}</div>
+          </div>
+        </li>`;
+  }
+
+  return `
+        <li class="px-3 py-2.5">
+          ${renderModuleSettingTitleBlock(item)}
+        </li>`;
+}
+
+function syncModuleSettingRadioGroupDisabled(groupName: string, selectedValue: string): void {
+  document.querySelectorAll<HTMLInputElement>(`input[name="${groupName}"]`).forEach((radio) => {
+    const row = radio.closest("label");
+    if (!row) return;
+    const num = row.querySelector<HTMLInputElement>("[data-module-setting-field]");
+    if (num) num.disabled = radio.value !== selectedValue;
+    const color = row.querySelector<HTMLInputElement>("[data-module-setting-color]");
+    if (color) color.disabled = radio.value !== selectedValue;
+  });
+}
+
+function renderModuleSettingLocaleSelectRow(item: ModuleSettingCatalogItem): string {
+  const boxes = GUEST_FACING_LOCALES.map((locale) => {
+    const fieldId = localeCheckboxFieldId(locale.code);
+    const checked = readModuleSettingCheckbox(
+      fieldId,
+      locale.code === "en" || locale.code === "zh-Hans",
+    );
+    return `
+        <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-foreground">
+          <input
+            type="checkbox"
+            class="${MODULE_SETTING_CONTROL_CLASS} rounded-sm"
+            ${checked ? "checked" : ""}
+            data-locale-select-checkbox
+            data-locale-code="${escapeHtml(locale.code)}"
+            data-module-setting-checkbox="${escapeHtml(fieldId)}"
+          />
+          <span>${escapeHtml(locale.label)}</span>
+        </label>`;
+  }).join("");
+  return `
+        <li class="list-none">
+          <div class="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+            ${renderModuleSettingTitleBlock(item)}
+            <div class="flex max-w-2xl flex-wrap items-center gap-x-4 gap-y-2 sm:pt-0.5">${boxes}</div>
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingLocaleDefaultRow(item: ModuleSettingCatalogItem): string {
+  const radios = renderLocaleDefaultRadiosHtml();
+  return `
+        <li class="list-none">
+          <div class="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+            ${renderModuleSettingTitleBlock(item)}
+            <div class="flex flex-wrap items-center gap-4 sm:pt-0.5" data-locale-default-radios>${radios}</div>
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingMenuGroupSelectRow(item: ModuleSettingCatalogItem): string {
+  const storageId = menuGroupStorageFieldId(item.seq);
+  return `
+        <li class="list-none">
+          <div class="border-b border-border px-4 py-3">
+            ${renderModuleSettingTitleBlock(item)}
+            <div class="mt-3">
+              ${renderMenuGroupPickerHtml(item.seq, storageId)}
+            </div>
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingKitchenOrderTypeRow(item: ModuleSettingCatalogItem): string {
+  return `
+        <li class="list-none">
+          <div class="border-b border-border px-4 py-3">
+            ${renderModuleSettingTitleBlock(item)}
+            <div class="mt-3">
+              ${renderKitchenOrderTypeMultiselectHtml(item.seq)}
+            </div>
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingKitchenTicketMarginRow(item: ModuleSettingCatalogItem): string {
+  return `
+        <li class="list-none">
+          <div class="border-b border-border px-4 py-3">
+            ${renderModuleSettingTitleBlock(item)}
+            ${renderKitchenTicketMarginRowHtml(item)}
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingPackingSlipOrderTypeRow(item: ModuleSettingCatalogItem): string {
+  return `
+        <li class="list-none">
+          <div class="border-b border-border px-4 py-3">
+            ${renderModuleSettingTitleBlock(item)}
+            <div class="mt-3">
+              ${renderPackingSlipOrderTypeMultiselectHtml(item.seq)}
+            </div>
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingLineMergeMatrixRow(_item: ModuleSettingCatalogItem): string {
+  return `
+        <li class="list-none">
+          <div class="border-b border-border px-4 py-3">
+            <div class="min-w-0">
+              <p class="m-0 text-sm font-medium text-foreground">行级合并规则</p>
+              <p class="m-0 mt-1 text-xs leading-relaxed text-muted-foreground">按票据类型分别配置是否将相同主菜/子菜合并为一行并汇总数量。厨房单、打包单、食客收据可独立开关。</p>
+            </div>
+            ${renderLineMergeMatrixHtml(readModuleSettingToggleOn)}
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingRow(item: ModuleSettingCatalogItem): string {
+  if (shouldSkipPosOrderToolbarCatalogRow(item.seq)) {
+    return "";
+  }
+  if (shouldSkipKitchenTicketMarginRangeRow(item.seq)) {
+    return "";
+  }
+  if (shouldSkipLineMergeMatrixMemberRow(item.seq)) {
+    return "";
+  }
+  if (isPosOrderToolbarGridHostSeq(item.seq)) {
+    return renderPosOrderToolbarGroupsGridHtml();
+  }
+  if (isModuleSettingMenuGroupSelectSeq(item.seq)) {
+    return renderModuleSettingMenuGroupSelectRow(item);
+  }
+  if (isKitchenOrderTypeMultiselectSeq(item.seq)) {
+    return renderModuleSettingKitchenOrderTypeRow(item);
+  }
+  if (isKitchenTicketMarginHostSeq(item.seq)) {
+    return renderModuleSettingKitchenTicketMarginRow(item);
+  }
+  if (isPackingSlipOrderTypeMultiselectSeq(item.seq)) {
+    return renderModuleSettingPackingSlipOrderTypeRow(item);
+  }
+  if (isLineMergeMatrixHostSeq(item.seq)) {
+    return renderModuleSettingLineMergeMatrixRow(item);
+  }
+  if (isModuleSettingLocaleSelectSeq(item.seq)) {
+    return renderModuleSettingLocaleSelectRow(item);
+  }
+  if (isModuleSettingLocaleDefaultSeq(item.seq)) {
+    return renderModuleSettingLocaleDefaultRow(item);
+  }
+  if (isModuleSettingGenericFormRowSeq(item.seq)) {
+    return renderModuleSettingFormRow(item);
+  }
+  if (isModuleSettingNestedParentSeq(item.seq)) {
+    return renderModuleSettingNestedParentRow(item);
+  }
+  const toggleHtml = isModuleSettingToggleSeq(item.seq)
+    ? renderModuleSettingToggleSwitch(item)
+    : "";
+  return `
+        <li class="px-3 py-2.5">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0 flex-1">${renderModuleSettingTitleBlock(item)}</div>
+            ${toggleHtml}
+          </div>
+        </li>`;
+}
+
+function syncModuleSettingToggleButton(btn: HTMLButtonElement): void {
+  const on = btn.getAttribute("aria-checked") === "true";
+  const knob = btn.querySelector("span");
+  if (knob) {
+    knob.classList.toggle("translate-x-5", on);
+    knob.classList.toggle("translate-x-0.5", !on);
+  }
+  for (const cls of MODULE_SETTING_TOGGLE_TRACK_ON.split(/\s+/)) {
+    btn.classList.toggle(cls, on);
+  }
+  for (const cls of MODULE_SETTING_TOGGLE_TRACK_OFF.split(/\s+/)) {
+    btn.classList.toggle(cls, !on);
+  }
+  const group = btn.closest("[data-module-setting-toggle-group]");
+  const offLabel = group?.querySelector("[data-toggle-off-label]");
+  const onLabel = group?.querySelector("[data-toggle-on-label]");
+  if (offLabel) offLabel.className = moduleSettingToggleOffLabelClass(on);
+  if (onLabel) onLabel.className = moduleSettingToggleOnLabelClass(on);
+}
+
+function bindModuleSettingsToggles(): void {
+  document.querySelectorAll<HTMLButtonElement>("[data-module-setting-toggle]").forEach((btn) => {
+    syncModuleSettingToggleButton(btn);
+    if (btn.dataset.moduleSettingToggleBound === "1") return;
+    btn.dataset.moduleSettingToggleBound = "1";
+    btn.addEventListener("click", () => {
+      const seq = Number(btn.getAttribute("data-module-setting-toggle"));
+      if (!seq) return;
+      const next = btn.getAttribute("aria-checked") !== "true";
+      btn.setAttribute("aria-checked", next ? "true" : "false");
+      btn.title = next ? t("moduleSettings.toggleOn") : t("moduleSettings.toggleOff");
+      syncModuleSettingToggleButton(btn);
+      writeModuleSettingToggleOn(seq, next);
+      if (isModuleSettingNestedParentSeq(seq)) {
+        setModuleSettingNestedPanelVisible(seq, next);
+      }
+    });
+  });
+}
+
+function syncModuleSettingTextCounter(el: HTMLInputElement | HTMLTextAreaElement): void {
+  const max = Number(el.getAttribute("data-max-length") ?? "0");
+  if (!max) return;
+  const slot = el.tagName === "TEXTAREA" ? "content" : "title";
+  const wrap = el.closest("[data-copy-form-field]");
+  const counter = wrap?.querySelector(`[data-text-counter="${slot}"]`);
+  if (counter) counter.textContent = moduleSettingTextCounter(el.value.length, max);
+}
+
+function bindModuleSettingsNestedFields(): void {
+  document.querySelectorAll<HTMLInputElement>("[data-module-setting-field]").forEach((input) => {
+    if (input.dataset.moduleSettingFieldBound === "1") return;
+    input.dataset.moduleSettingFieldBound = "1";
+    const fieldId = input.getAttribute("data-module-setting-field");
+    if (!fieldId) return;
+    const persist = () => {
+      const n = Number(input.value);
+      if (Number.isFinite(n)) writeModuleSettingFieldNumber(fieldId, n);
+    };
+    input.addEventListener("change", persist);
+    input.addEventListener("blur", persist);
+  });
+
+  document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("[data-module-setting-text]").forEach((el) => {
+    if (el.dataset.moduleSettingTextBound === "1") return;
+    el.dataset.moduleSettingTextBound = "1";
+    const fieldId = el.getAttribute("data-module-setting-text");
+    if (!fieldId) return;
+    syncModuleSettingTextCounter(el);
+    const persist = () => {
+      const max = Number(el.getAttribute("maxlength") ?? "0");
+      const value = max > 0 ? el.value.slice(0, max) : el.value;
+      if (el.value !== value) el.value = value;
+      writeModuleSettingText(fieldId, value);
+      syncModuleSettingTextCounter(el);
+    };
+    el.addEventListener("input", persist);
+    el.addEventListener("blur", persist);
+  });
+}
+
+function bindModuleSettingsFormControls(): void {
+  document.querySelectorAll<HTMLInputElement>("[data-module-setting-checkbox]").forEach((input) => {
+    if (input.dataset.moduleSettingFormBound === "1") return;
+    input.dataset.moduleSettingFormBound = "1";
+    const fieldId = input.getAttribute("data-module-setting-checkbox");
+    if (!fieldId) return;
+    input.addEventListener("change", () => {
+      writeModuleSettingCheckbox(fieldId, input.checked);
+    });
+  });
+
+  document.querySelectorAll<HTMLInputElement>("[data-module-setting-radio]").forEach((input) => {
+    if (input.dataset.moduleSettingFormBound === "1") return;
+    input.dataset.moduleSettingFormBound = "1";
+    const fieldId = input.getAttribute("data-module-setting-radio");
+    const groupName = input.name;
+    if (!fieldId || !groupName) return;
+    const onChange = () => {
+      if (!input.checked) return;
+      writeModuleSettingRadio(fieldId, input.value);
+      syncModuleSettingRadioGroupDisabled(groupName, input.value);
+      syncModuleSettingConditionalPanels(fieldId);
+    };
+    input.addEventListener("change", onChange);
+    if (input.checked) {
+      syncModuleSettingRadioGroupDisabled(groupName, input.value);
+      syncModuleSettingConditionalPanels(fieldId);
+    }
+  });
+  syncModuleSettingConditionalPanels();
+
+  document.querySelectorAll<HTMLInputElement>("[data-module-setting-color]").forEach((input) => {
+    if (input.dataset.moduleSettingFormBound === "1") return;
+    input.dataset.moduleSettingFormBound = "1";
+    const fieldId = input.getAttribute("data-module-setting-color");
+    if (!fieldId) return;
+    input.addEventListener("input", () => writeModuleSettingColor(fieldId, input.value));
+    input.addEventListener("change", () => writeModuleSettingColor(fieldId, input.value));
+  });
+}
+
 function renderModuleHubSettingsPage(path: string, pageTitle: string): string {
   const catalog: ModuleSettingCatalogHub | undefined = getModuleSettingsCatalog(path);
   const items = catalog?.items ?? [];
@@ -2821,25 +3601,15 @@ function renderModuleHubSettingsPage(path: string, pageTitle: string): string {
     </div>`;
   }
 
-  const groups = groupCatalogItemsByCategory(items);
+  const catalogForGroups = getModuleSettingsCatalog(path);
+  const groups = groupCatalogItemsByCategory(items, catalogForGroups?.groupOrder);
   const countLabel = tf("moduleSettings.count", { count: String(items.length) });
   const sections = groups
     .map((group) => {
       const sectionId = moduleSettingsCategoryDomId(group.groupKey);
       const rows = group.items
-        .map((item) => {
-          const sceneLine = item.sceneDesc.trim();
-          const descHtml = sceneLine
-            ? `<p class="m-0 text-xs leading-relaxed text-muted-foreground">${escapeHtml(sceneLine)}</p>`
-            : "";
-          return `
-        <li class="px-3 py-2.5">
-          <div class="flex min-w-0 flex-col gap-1">
-            <span class="text-sm font-medium text-card-foreground">${escapeHtml(item.title)}</span>
-            ${descHtml}
-          </div>
-        </li>`;
-        })
+        .map((item) => renderModuleSettingRow(item))
+        .filter((html) => html.trim() !== "")
         .join("");
       return `
       <section
@@ -3348,6 +4118,8 @@ function renderMain(): string {
                     ${renderTipsManagementSidebar(path)}
                     <div class="${tertiaryMainClass}">${renderPlaceholder(path, title, tabModule, { tipsManagementSubnav: true })}</div>
                   </div>`
+                    : isFloorPlanPath(path)
+                      ? renderFloorPlanPage()
                     : path === "/settings/overview"
                       ? renderSettingsOverview()
                       : isModuleHubSettingsCatalogPath(path)
@@ -4016,7 +4788,16 @@ function mount(): void {
   bindGlobalUiLocaleControl();
   ensureInventorySheetEscapeListener();
   restoreModuleSettingsScroll(mountPathForSheet);
+  bindFloorPlanEditor(mount);
   bindModuleSettingsCategoryNav();
+  bindModuleSettingsToggles();
+  bindModuleSettingsNestedFields();
+  bindModuleSettingsDishRules();
+  bindModuleSettingMenuGroupPickers();
+  bindPosOrderToolbarGroups();
+  bindGuestFacingLocaleControls();
+  bindKitchenTicketMarginControls();
+  bindModuleSettingsFormControls();
   scrollToModuleSettingsCategoryFromPath(mountPathForSheet);
 }
 

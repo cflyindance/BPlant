@@ -24,7 +24,7 @@ const titles = {
 
 const assignMap = {
   "item-menu-base": [112, 438, 439, 440, 441, 444, 456, 476],
-  "pricing-tools": [145, 146, 147, 446, 447],
+  "pricing-tools": [145, 146, 147, 148, 446, 447],
   "combo-scenario-pricing": [139, 443, 575, 593],
   "tags-attributes": [542, 552, 628],
   "menu-scenarios": [655, 656, 657, 658, 659, 660, 661],

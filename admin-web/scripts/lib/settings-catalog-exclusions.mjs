@@ -1,0 +1,20 @@
+/**
+ * 不进入各 hub 设置 catalog 的 seq（终版保留，映射表可不维护）。
+ * 用于历史重复项、已合并 SSOT 的配置。
+ */
+export const SETTINGS_CATALOG_EXCLUDED_BY_SEQ = new Map([
+  [428, "餐位平面图为独立功能页 /operations/queue-call/floor-plan（非设置滑层）"],
+  [609, "与 seq 522「产品备注」重复（全局展示设置 vs 服务设置）"],
+  [610, "与 seq 521「订单备注」重复（全局展示设置 vs 服务设置）"],
+  [603, "与 seq 524「瀑布流模式」重复（全局展示设置 vs 服务设置）"],
+  [605, "与 seq 516「显示组名称」重复（全局展示设置 vs 服务设置）"],
+  [613, "与 seq 528「菜价为0展示价格」重复（全局展示设置 vs 服务设置）"],
+  [614, "与 seq 515「展示菜单序号」重复（全局展示设置 vs 服务设置）"],
+  [467, "与 seq 652/653「对客界面语言」重复（客显屏 vs 全店 C 端 SSOT）"],
+  [513, "与 seq 652「选择语言」重复（服务设置 vs 全局多语言）"],
+  [514, "与 seq 653「默认语言」重复（服务设置 vs 全局多语言）"],
+]);
+
+export function isSettingsCatalogExcluded(seq) {
+  return SETTINGS_CATALOG_EXCLUDED_BY_SEQ.has(Number(seq));
+}

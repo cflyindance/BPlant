@@ -6,6 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseConfigMd } from "./lib/parse-bplant-config-md.mjs";
+import { getSettingsHub } from "./lib/settings-hub-override.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..", "..");
@@ -16,6 +17,7 @@ const outPath = path.join(projectDocs, "后厨管理中心-设置二级导航重
 const titles = {
   "send-routing": "送厨触发与路由",
   "ticket-grouping": "厨房单·分组与拆单",
+  "line-merge-rules": "行级合并规则",
   "ticket-fields": "厨房单·票面信息",
   "ticket-format": "厨房单·版式格式",
   "packing-slip": "打包单",
@@ -23,23 +25,34 @@ const titles = {
 
 const reasons = {
   "send-routing":
-    "控制何时送厨、哪些订单类型送厨、未付是否送厨及跨打印机路由；对标 Toast「后厨-出菜节奏/推单」与 Peblla 打印触发策略。",
+    "何时送厨、订单类型/未付规则、跨打印机路由，及价格为 0 的菜品是否单独出一张厨房小票（分票）、首次送厨是否打整单；对标 Toast 推单与打印触发（不含票面字段展示）。",
   "ticket-grouping":
-    "厨房单上菜品如何分组、合并、按座位/菜序/子菜拆分展示；对标 Toast「后厨-单据-按顾客与备餐站分解」及 KDS 分行展示。",
+    "单张厨房单内按座位/菜序分区、多语言分行、子菜/调味拆分与 KDS 多行展示（行级合并见「行级合并规则」矩阵）；对标 Toast 按顾客与备餐站分解。",
+  "line-merge-rules":
+    "合并相同主菜/子菜行是否在三类票据上生效：厨房单、打包单、食客收据（seq 52/53/301/302/288/287）；后厨为配置 SSOT 展示入口。",
   "ticket-fields":
-    "厨房单上打印哪些业务字段（备注强调、价格、数量、顾客信息、语言等）；对标 Toast「后厨与票据设置-票据信息」。",
+    "厨房单上是否打印业务字段（送厨次数、价格、数量、顾客姓名/电话/地址、订单时间与合计等）；对标 Toast「票据信息」字段开关（不含样式强调）。",
   "ticket-format":
-    "边距、数量格式、分段序号等版式参数；对标 Clover/Square 小票版式细项，与「票面内容」分离便于查找。",
+    "边距、备注/价格强调样式、菜品间分割线、数量格式、切纸分段序号等版式与呈现参数；与「印什么字段」「行级分组」分离便于查找。",
   "packing-slip":
-    "打包单（非厨房单）的触发类型与重打/拆分规则；对标 Toast 外带打包与独立打包票据。",
+    "打包单（非厨房单）的触发类型、重打/拆分规则及票面字段（如 298 是否显示 0 元调味）；与厨房单 seq 36 的订单类型规则对称、独立配置。",
 };
 
-/** seq → groupKey（仅后厨管理中心 34 条） */
+/** 设计文档场景摘要覆盖（不改终版原文） */
+const SCENE_SUMMARY_OVERRIDE_BY_SEQ = new Map([
+  [
+    39,
+    "控制哪些订单类型的订单需要打印打包单（与「不需要厨房单的单类」seq 36 独立，仅作用于打包条）",
+  ],
+]);
+
+/** seq → groupKey（后厨设置 catalog，含 hub 覆盖挂载的打印中心项） */
 const assignMap = {
-  "send-routing": [35, 36, 37, 62, 304],
-  "ticket-grouping": [32, 33, 40, 47, 52, 53, 54, 61],
-  "ticket-fields": [38, 41, 42, 45, 46, 48, 49, 50, 51, 55, 56, 57, 58],
-  "ticket-format": [43, 44, 59, 60],
+  "send-routing": [36, 37, 62, 32, 304],
+  "ticket-grouping": [40, 47, 54, 51, 61],
+  "line-merge-rules": [52, 53, 287, 288, 301, 302],
+  "ticket-fields": [35, 42, 45, 46, 48, 49, 50, 55, 56, 57, 58],
+  "ticket-format": [43, 44, 38, 41, 33, 59, 60],
   "packing-slip": [39, 298, 299, 300],
 };
 
@@ -49,20 +62,28 @@ for (const [key, seqs] of Object.entries(assignMap)) {
 }
 
 function inferTerminal(nav, mod) {
-  if (nav.includes("厨房") || mod.includes("厨房")) return "厨房单/打印机";
   if (mod.includes("打包")) return "打包单";
+  if (nav.includes("厨房") || mod.includes("厨房")) return "厨房单/打印机";
   if (mod.includes("上菜")) return "送厨流程";
   return "后厨";
 }
 
-function sceneSummary(scene) {
-  const s = scene && scene !== "（未填写）" ? scene : "—";
+function sceneSummary(scene, seq) {
+  const override = SCENE_SUMMARY_OVERRIDE_BY_SEQ.get(seq);
+  const s = override ?? (scene && scene !== "（未填写）" ? scene : "—");
   return s.length > 80 ? `${s.slice(0, 77)}...` : s;
 }
 
 const md = fs.readFileSync(sourcePath, "utf8");
-const rows = parseConfigMd(md).filter((r) => r.hub === "后厨管理中心");
-const order = ["send-routing", "ticket-grouping", "ticket-fields", "ticket-format", "packing-slip"];
+const rows = parseConfigMd(md).filter((r) => getSettingsHub(r) === "后厨管理中心");
+const order = [
+  "send-routing",
+  "ticket-grouping",
+  "line-merge-rules",
+  "ticket-fields",
+  "ticket-format",
+  "packing-slip",
+];
 
 const missing = rows.filter((r) => !assign.has(r.seq)).map((r) => r.seq);
 if (missing.length) throw new Error(`未归类 seq: ${missing.join(", ")}`);
@@ -83,8 +104,8 @@ const push = (...xs) => lines.push(...xs);
 push(
   "# 后厨管理中心 · 设置二级导航重设计方案",
   "",
-  "> 文档版本：v1.0  ",
-  "> 数据范围：`docs/项目文档/配置归类-终版.md` 中 **B平台一级导航 = 后厨管理中心** 共 **34** 条功能设置  ",
+  "> 文档版本：v1.4（行级合并规则：三列矩阵 SSOT，含 287/288/301/302 hub 覆盖）  ",
+  "> 数据范围：后厨设置 catalog（终版本 hub + hub 覆盖 **38** 条）  ",
   "> 竞品参考：Toast / Clover / Square / Peblla / Snackpass 商家后台结构文档",
   "",
   "---",
@@ -102,7 +123,7 @@ push(
   "",
   "### 1.2 设计目标",
   "",
-  "- 二级导航收敛为 **5 个** 餐饮后厨场景组（本 hub 仅 34 条，不宜拆得过碎）",
+  "- 二级导航收敛为 **6 个** 餐饮后厨场景组（含跨票种「行级合并规则」矩阵）",
   "- 按 **先「何时送」→「怎么排」→「印什么」→「版式」→「打包单」** 的认知顺序排列",
   "- 为 `docs/项目文档/配置归类-分组映射.csv` 提供 `groupTitle` / `groupKey`",
   "- **不修改** `配置归类-终版.md` 原文",
@@ -142,7 +163,53 @@ for (let i = 0; i < order.length; i++) {
   total += n;
   push(`| ${i + 1} | **${titles[k]}** | \`${k}\` | ${n} | ${reasons[k]} |`);
 }
-push(`| | **合计** | | **${total}** | |`, "", "---", "", "## 4. 分类结果明细", "");
+push(
+  `| | **合计** | | **${total}** | |`,
+  "",
+  "### 3.1 v1.1 微调说明",
+  "",
+  "| 调整 | seq | 原组 | 新组 | 理由 |",
+  "|------|-----|------|------|------|",
+  "| 分票规则 | 32 | 厨房单·分组与拆单 | 送厨触发与路由 | 0 元菜单独出一张厨房小票，属打印/分票触发 |",
+  "| 行分隔 | 33 | 厨房单·分组与拆单 | 厨房单·版式格式 | 菜品间分割线为版式视觉，非行级分组逻辑 |",
+  "",
+  "### 3.2 v1.2 微调说明（已确认）",
+  "",
+  "| 调整 | seq | 原组 | 新组 | 理由 |",
+  "|------|-----|------|------|------|",
+  "| 送厨次数展示 | 35 | 送厨触发与路由 | 厨房单·票面信息 | 控制厨房单**是否展示**送厨次数，属票面字段而非何时送/路由 |",
+  "",
+  "**送厨触发与路由** 边界：仅保留「要不要送、何时送、打哪台机、出几张票、首次送厨范围」；票面展示类归入 **厨房单·票面信息**。",
+  "",
+  "### 3.3 v1.3 微调说明（已确认）",
+  "",
+  "| 调整 | seq | 原组 | 新组 | 理由 |",
+  "|------|-----|------|------|------|",
+  "| 备注强调样式 | 38 | 厨房单·票面信息 | 厨房单·版式格式 | 黑底白字为备注**呈现方式**，非「是否印备注」字段开关 |",
+  "| 非零价标记 | 41 | 厨房单·票面信息 | 厨房单·版式格式 | 对行的**高亮/标记**属版式强调，非新增票面字段 |",
+  "| 多语言分行 | 51 | 厨房单·票面信息 | 厨房单·分组与拆单 | 不同语言**分开显示**属行/块排布，与合并、菜序同类 |",
+  "",
+  "**厨房单·票面信息** 边界：仅保留「印不印」类开关（价、人、时、合计、送厨次数等）；样式强调与行结构归入版式/分组组。",
+  "",
+  "### 3.4 打包单组边界说明（已确认）",
+  "",
+  "- **39** 选择需打印**打包单**的订单类型（To Go / Pick Up / Delivery **多选**），与 **36**（多选、含 Dine In）独立。",
+  "- **298** 属打包条**票面字段**（0 元调味是否展示），与触发/重打/拆分同组是为避免 4 条再拆子导航。",
+  "- **299 / 300** 分别为重打范围、按座位/分割线分张。",
+  "",
+  "### 3.5 行级合并规则（v1.4，已确认）",
+  "",
+  "- 后厨设置新增 **「行级合并规则」** 组，以 **3×2 矩阵** 配置：行 = 合并相同菜 / 合并相同子菜；列 = 厨房单、打包单、食客收据。",
+  "- seq **287、288、301、302** 终版归属打印中心，经 `settings-hub-override.mjs` 挂载至后厨 catalog，与 **52、53** 同组展示；UI 仅 **seq 52** 为矩阵宿主行。",
+  "- 打印中心设置中上述 4 条不再重复出现（配置入口统一在后厨）。",
+  "",
+  "组内展示顺序见 `admin-web/scripts/lib/settings-intra-group-sort.mjs`。",
+  "",
+  "---",
+  "",
+  "## 4. 分类结果明细",
+  "",
+);
 
 for (let i = 0; i < order.length; i++) {
   const k = order[i];
@@ -151,7 +218,7 @@ for (let i = 0; i < order.length; i++) {
   push("|-----|-----------|--------|----------|----------|----------------------|");
   for (const r of [...by.get(k)].sort((a, b) => a.seq - b.seq)) {
     push(
-      `| ${r.seq} | ${r.terminal} | ${r.nav} | ${r.moduleName} | ${r.title} | ${sceneSummary(r.sceneDesc)} |`,
+      `| ${r.seq} | ${r.terminal} | ${r.nav} | ${r.moduleName} | ${r.title} | ${sceneSummary(r.sceneDesc, r.seq)} |`,
     );
   }
   push("");
@@ -164,10 +231,10 @@ push(
   "",
   "| 新 groupTitle | 吸收的旧分组 |",
   "|---------------|--------------|",
-  "| 送厨触发与路由 | 打印设置（触发类）、上菜单设置、其他 |",
-  "| 厨房单·分组与拆单 | 厨房单排版（合并/座位/菜序/KDS/子菜类） |",
-  "| 厨房单·票面信息 | 厨房单排版（字段/价格/顾客信息类） |",
-  "| 厨房单·版式格式 | 厨房单排版（边距、数量格式、分段序号） |",
+  "| 送厨触发与路由 | 打印设置（触发与路由、0 元菜分票）、上菜单设置、其他（未付送厨） |",
+  "| 厨房单·分组与拆单 | 厨房单排版（合并/座位/菜序/多语言分行/KDS/子菜，含 seq 51） |",
+  "| 厨房单·票面信息 | 厨房单排版（字段开关）+ 打印设置（送厨次数 seq 35）；不含样式强调 |",
+  "| 厨房单·版式格式 | 厨房单排版（边距、分割线、数量格式、分段序号）+ 打印/排版强调（38、41） |",
   "| 打包单 | 打包单设置、收据打印下打包单相关项 |",
   "",
   "---",
@@ -177,6 +244,20 @@ push(
   "1. 按本文更新 `docs/项目文档/配置归类-分组映射.csv` 中后厨相关 `seq`",
   "2. `cd admin-web && npm run build:settings-catalog`",
   "3. 在后厨管理中心 → 设置 验证二级导航",
+  "",
+  "### 6.2 设置滑层控件（原型）",
+  "",
+  "| 组 / seq | 控件 | 实现 |",
+  "|----------|------|------|",
+  "| 送厨触发与路由 · **36** | 订单类型多选（Dine In / To Go / Pick Up / Delivery） | `module-settings-kitchen-order-type-ui.ts` |",
+  "| 送厨触发与路由 · **32、37、62、304** | 右侧开关 | `module-settings-toggle-ui.ts` → `KITCHEN_SEND_ROUTING_TOGGLE_SEQ` |",
+  "| 厨房单·分组与拆单 · **40、47、51、54、61** | 右侧开关 | `module-settings-toggle-ui.ts` → `KITCHEN_TICKET_GROUPING_TOGGLE_SEQ` |",
+  "| 行级合并规则 · **52（矩阵）** | 厨房单 / 打包单 / 食客收据 三列开关矩阵 | `module-settings-line-merge-matrix-ui.ts`（53/287/288/301/302 合并展示） |",
+  "| 厨房单·票面信息 · **35、42、45、46、48、49、50、55、56、57、58** | 右侧开关 | `module-settings-toggle-ui.ts` → `KITCHEN_TICKET_FIELDS_TOGGLE_SEQ` |",
+  "| 厨房单·版式格式 · **43+44** | 边距数值输入 + 边距范围下拉（合并一行） | `module-settings-kitchen-ticket-margin-ui.ts` |",
+  "| 厨房单·版式格式 · **38、41、33、59、60** | 右侧开关 | `module-settings-toggle-ui.ts` → `KITCHEN_TICKET_FORMAT_TOGGLE_SEQ` |",
+  "| 打包单 · **39** | 订单类型多选（To Go / Pick Up / Delivery） | `module-settings-packing-slip-order-type-ui.ts` |",
+  "| 打包单 · **298、299、300** | 右侧开关 | `module-settings-toggle-ui.ts` → `KITCHEN_PACKING_SLIP_TOGGLE_SEQ` |",
   "",
   "### 6.1 映射表（可直接写入 CSV）",
   "",

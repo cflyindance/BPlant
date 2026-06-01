@@ -6,6 +6,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseConfigMd } from "./lib/parse-bplant-config-md.mjs";
+import { isSettingsCatalogExcluded } from "./lib/settings-catalog-exclusions.mjs";
+import { filterRowsForSettingsHub } from "./lib/settings-hub-override.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..", "..");
@@ -25,7 +27,7 @@ const titles = {
 
 const reasons = {
   "language-localization":
-    "统一系统语言与多语言默认项；对标 Square/Clover 的语言与区域偏好设置。",
+    "店员端（POS）系统默认界面语言（109）；C 端界面语言（652/653）归前厅 `guest-facing-locale`。",
   "ui-operation-preferences":
     "默认界面、时间制式、菜单模式等日常操作体验偏好；对标 Clover 的通用偏好设置。",
   "map-address-services":
@@ -36,9 +38,9 @@ const reasons = {
     "测试模式、操作记录、公开接口、云等位与心跳上报等高级开关；对标系统级高级配置项。",
 };
 
-/** seq → groupKey（系统设置 19 条） */
+/** seq → groupKey（系统设置 catalog 条） */
 const assignMap = {
-  "language-localization": [109, 513, 514, 652, 653],
+  "language-localization": [109],
   "ui-operation-preferences": [165, 168, 174],
   "map-address-services": [182, 183],
   "data-maintenance-backup": [422, 423],
@@ -66,7 +68,9 @@ function sceneSummary(scene) {
 }
 
 const md = fs.readFileSync(sourcePath, "utf8");
-const rows = parseConfigMd(md).filter((r) => r.hub === HUB);
+const rows = filterRowsForSettingsHub(parseConfigMd(md), HUB).filter(
+  (r) => !isSettingsCatalogExcluded(r.seq),
+);
 const order = [
   "language-localization",
   "ui-operation-preferences",
@@ -92,8 +96,8 @@ const push = (...xs) => lines.push(...xs);
 push(
   "# 系统设置 · 设置二级导航重设计方案",
   "",
-  "> 文档版本：v1.0  ",
-  "> 数据范围：`docs/项目文档/配置归类-终版.md` 中 **B平台一级导航 = 系统设置** 共 **19** 条功能设置  ",
+  "> 文档版本：v1.1（已确认）  ",
+  "> 数据范围：系统设置 catalog **15** 条（终版归属系统 19 条；652/653 跨 hub 至前厅、513/514 去重见前厅 §3.10）  ",
   "> 竞品参考：Toast / Clover / Square / Peblla / Snackpass 商家后台结构文档",
   "",
   "---",
@@ -110,7 +114,7 @@ push(
   "",
   "### 1.2 设计目标",
   "",
-  "- 二级导航收敛为 **5 组**，覆盖 19 条，符合餐饮门店系统配置心智",
+  "- 二级导航收敛为 **5 组**；catalog **15** 条（C 端语言 652/653 展示于前厅，见前厅 §3.10）",
   "- 输出可写入 `docs/项目文档/配置归类-分组映射.csv` 的 `groupTitle` / `groupKey`",
   "- **不修改** `配置归类-终版.md` 原文",
   "",
@@ -147,7 +151,23 @@ for (let i = 0; i < order.length; i++) {
   total += n;
   push(`| ${i + 1} | **${titles[k]}** | \`${k}\` | ${n} | ${reasons[k]} |`);
 }
-push(`| | **合计** | | **${total}** | |`, "", "---", "", "## 4. 分类结果明细", "");
+push(
+  `| | **合计** | | **${total}** | |`,
+  "",
+  "### 3.1 v1.1 语言项迁出（已确认）",
+  "",
+  "| seq | 处理 | 说明 |",
+  "|-----|------|------|",
+  "| 652、653 | 前厅 · `guest-facing-locale` | C 端（eMenu/Kiosk/客显）界面语言 SSOT；`settings-hub-override.mjs` |",
+  "| 513、514 | catalog 不展示 | 与 652/653 重复 |",
+  "",
+  "本 hub **语言与本地化** 仅保留 **109**（店员 POS 系统默认语言）。",
+  "",
+  "---",
+  "",
+  "## 4. 分类结果明细",
+  "",
+);
 
 for (let i = 0; i < order.length; i++) {
   const k = order[i];
@@ -167,7 +187,7 @@ push(
   "",
   "| 新 groupTitle | 吸收的旧分组 |",
   "|---------------|--------------|",
-  "| 语言与本地化 | 语言、多语言、基础设置中的系统默认语言 |",
+  "| 语言与本地化 | 系统默认语言（109）；652/653 见前厅食客端·界面语言 |",
   "| 界面与操作偏好 | 基本设置（默认主界面、24小时制、菜单模式） |",
   "| 地址与地图服务 | 地图 |",
   "| 数据维护与备份 | 数据管理（清除交易、备份数据） |",

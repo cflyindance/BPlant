@@ -23,7 +23,7 @@ const titles = {
 };
 
 const assignMap = {
-  "language-localization": [109, 513, 514, 652, 653],
+  "language-localization": [109],
   "ui-operation-preferences": [165, 168, 174],
   "map-address-services": [182, 183],
   "data-maintenance-backup": [422, 423],

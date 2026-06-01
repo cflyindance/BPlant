@@ -110,6 +110,11 @@ const messages = {
     "moduleSettings.empty":
       "当前模块在归类表中尚无「功能设置」条目；可在 <code class=\"font-mono text-xs\">docs/分析.md</code> 补充后重新运行 <code class=\"font-mono text-xs\">node scripts/build-module-settings-catalog.mjs</code> 生成目录。",
     "moduleSettings.categoryAria": "{category} 设置项",
+    "moduleSettings.toggleAria": "{name}：是否展示",
+    "moduleSettings.toggleOn": "已开启展示",
+    "moduleSettings.toggleOff": "已关闭展示",
+    "moduleSettings.toggleOffLabel": "关闭",
+    "moduleSettings.toggleOnLabel": "开启",
     "sheet.marketingMgmt": "营销管理",
     "placeholder.bullet.deviceHw":
       "<strong class=\"text-card-foreground\">硬件管理中心 · 硬件</strong>：在左侧主导航点击「硬件管理中心」打开<strong class=\"text-card-foreground\">右滑二级导航</strong>后选择 <strong class=\"text-card-foreground\">硬件</strong>；本区域左侧为硬件细项（支付、钱箱、路由器、POS、POS GO、KDS、叫号屏、打印机、电子秤、Kiosk、eMenu），交互同本后台其它三级侧栏。",
@@ -245,6 +250,11 @@ const messages = {
     "moduleSettings.empty":
       "No classified settings for this module yet. Add rows in <code class=\"font-mono text-xs\">docs/分析.md</code>, then run <code class=\"font-mono text-xs\">node scripts/build-module-settings-catalog.mjs</code>.",
     "moduleSettings.categoryAria": "Settings in {category}",
+    "moduleSettings.toggleAria": "{name}: show on screen",
+    "moduleSettings.toggleOn": "Shown",
+    "moduleSettings.toggleOff": "Hidden",
+    "moduleSettings.toggleOffLabel": "Off",
+    "moduleSettings.toggleOnLabel": "On",
     "sheet.marketingMgmt": "Marketing management",
     "placeholder.bullet.deviceHw":
       "<strong class=\"text-card-foreground\">Hardware · Devices</strong>: open <strong class=\"text-card-foreground\">Hardware management</strong> from the sidebar, then the <strong class=\"text-card-foreground\">slide-in sheet</strong> and choose <strong class=\"text-card-foreground\">Devices</strong>. The left column lists terminals (payments, cash drawer, router, POS, POS GO, KDS, queue display, printers, scales, Kiosk, eMenu)—same tertiary pattern as elsewhere.",

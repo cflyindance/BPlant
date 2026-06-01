@@ -6,6 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseConfigMd } from "./lib/parse-bplant-config-md.mjs";
+import { filterRowsForSettingsHub } from "./lib/settings-hub-override.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..", "..");
@@ -40,7 +41,7 @@ const reasons = {
     "折扣/加收原因、线上服务费、删单厨打、退菜作废；对标 Toast「折扣原因 / 作废」、Clover「记录移除原因」。",
 };
 
-/** seq → groupKey（订单中心 61 条） */
+/** seq → groupKey（订单中心 catalog 62 条，含 v1.2 自前厅迁入 164） */
 const assignMap = {
   "order-init-scenario": [
     107, 108, 110, 111, 126, 533, 619, 625, 643, 644, 592, 571, 572, 574,
@@ -50,7 +51,7 @@ const assignMap = {
   "order-ui": [132, 133, 134, 135, 136, 137, 178],
   "split-merge-edit": [115, 116, 117, 119, 121, 122, 124, 140, 141, 149, 150],
   "find-checkout": [151, 152, 153, 154, 221, 248, 251],
-  "discount-void": [155, 156, 157, 158, 159, 161, 162, 163],
+  "discount-void": [155, 156, 157, 158, 159, 161, 162, 163, 164],
 };
 
 const assign = new Map();
@@ -84,7 +85,7 @@ function sceneSummary(scene) {
 }
 
 const md = fs.readFileSync(sourcePath, "utf8");
-const rows = parseConfigMd(md).filter((r) => r.hub === "订单中心");
+const rows = filterRowsForSettingsHub(parseConfigMd(md), "订单中心");
 const order = [
   "order-init-scenario",
   "order-numbering",
@@ -112,8 +113,8 @@ const push = (...xs) => lines.push(...xs);
 push(
   "# 订单中心 · 设置二级导航重设计方案",
   "",
-  "> 文档版本：v1.0  ",
-  "> 数据范围：`docs/项目文档/配置归类-终版.md` 中 **B平台一级导航 = 订单中心** 共 **61** 条功能设置  ",
+  "> 文档版本：v1.1  ",
+  "> 数据范围：订单设置 catalog **62** 条（终版归属订单 61 条 + v1.2 自前厅迁入 seq **164**，见 §3.1）  ",
   "> 竞品参考：Toast / Clover / Square / Peblla / Snackpass 商家后台结构文档",
   "",
   "---",
@@ -131,7 +132,7 @@ push(
   "",
   "### 1.2 设计目标",
   "",
-  "- 二级导航收敛为 **7 组**，覆盖 61 条，符合「开单 → 编号 → 点单/送厨 → 结账 → 调价作废」流程",
+  "- 二级导航收敛为 **7 组**，覆盖 catalog 条目，符合「开单 → 编号 → 点单/送厨 → 结账 → 调价作废」流程",
   "- 输出可写入 `docs/项目文档/配置归类-分组映射.csv` 的 `groupTitle` / `groupKey`",
   "- **不修改** `配置归类-终版.md` 原文",
   "",
@@ -154,7 +155,7 @@ push(
   "```",
   "",
   "**边界**：",
-  "- **前厅管理中心**：POS 按钮显隐、食客端下单展示不在此 hub。",
+  "- **前厅管理中心**：POS 按钮显隐（含「将打折隐藏到更多」）、食客端下单展示不在此 hub；**自定义折扣原因（164）** 与 162/163 同归本 hub。",
   "- **后厨管理中心**：厨单票面/排版在厨房设置。",
   "- **支付中心**：支付方式、BATCH、税率在支付 hub。",
   "- **商品中心**：菜价、套餐计价在商品 hub。",
@@ -174,7 +175,20 @@ for (let i = 0; i < order.length; i++) {
   total += n;
   push(`| ${i + 1} | **${titles[k]}** | \`${k}\` | ${n} | ${reasons[k]} |`);
 }
-push(`| | **合计** | | **${total}** | |`, "", "---", "", "## 4. 分类结果明细", "");
+push(
+  `| | **合计** | | **${total}** | |`,
+  "",
+  "### 3.1 v1.1 变更（v1.2 前厅收紧按钮显隐时迁入）",
+  "",
+  "| seq | 功能设置 | groupKey | 说明 |",
+  "|-----|----------|----------|------|",
+  "| 164 | 自定义折扣原因 | `discount-void` | 与 162/163 组成折扣原因策略；终版 B 平台仍标前厅，catalog 经 hub override 挂载本 hub。 |",
+  "",
+  "---",
+  "",
+  "## 4. 分类结果明细",
+  "",
+);
 
 for (let i = 0; i < order.length; i++) {
   const k = order[i];

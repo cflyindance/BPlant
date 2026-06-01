@@ -6,6 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseConfigMd } from "./lib/parse-bplant-config-md.mjs";
+import { filterRowsForSettingsHub } from "./lib/settings-hub-override.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..", "..");
@@ -25,7 +26,7 @@ const reasons = {
   "item-menu-base":
     "菜品主数据、规格、调味、成分、菜谱与多语言；对标 Toast「菜单管理 / 品项库」、Square「商品库 + 加料」、Peblla「商品 / 加料」。",
   "pricing-tools":
-    "全局调价、四舍五入、预设折扣/加收、套餐子菜价展示；对标 Toast「价格编辑器 / 价位等级」、Clover 定价与折扣工具。",
+    "全局调价、四舍五入、比价模式、预设折扣/加收、套餐子菜价展示；对标 Toast「价格编辑器 / 价位等级」、Clover 定价与折扣工具。",
   "combo-scenario-pricing":
     "套餐自动点完、按时计价、火锅/人数等场景计价；对标 Toast 套餐与特殊品项、Peblla 套餐与分层菜单场景规则。",
   "tags-attributes":
@@ -34,10 +35,10 @@ const reasons = {
     "自助餐品类、分类菜单、营业时间、特殊菜单并行展示；对标 Toast「特殊菜单」、Peblla「分层菜单 / 分类」。",
 };
 
-/** seq → groupKey（商品中心 27 条） */
+/** seq → groupKey（商品中心 catalog 28 条，含 v1.2 自前厅迁入 148） */
 const assignMap = {
   "item-menu-base": [112, 438, 439, 440, 441, 444, 456, 476],
-  "pricing-tools": [145, 146, 147, 446, 447],
+  "pricing-tools": [145, 146, 147, 148, 446, 447],
   "combo-scenario-pricing": [139, 443, 575, 593],
   "tags-attributes": [542, 552, 628],
   "menu-scenarios": [655, 656, 657, 658, 659, 660, 661],
@@ -74,7 +75,7 @@ function sceneSummary(scene) {
 }
 
 const md = fs.readFileSync(sourcePath, "utf8");
-const rows = parseConfigMd(md).filter((r) => r.hub === "商品中心");
+const rows = filterRowsForSettingsHub(parseConfigMd(md), "商品中心");
 const order = [
   "item-menu-base",
   "pricing-tools",
@@ -103,8 +104,8 @@ const push = (...xs) => lines.push(...xs);
 push(
   "# 商品中心 · 设置二级导航重设计方案",
   "",
-  "> 文档版本：v1.0  ",
-  "> 数据范围：`docs/项目文档/配置归类-终版.md` 中 **B平台一级导航 = 商品中心** 共 **27** 条功能设置  ",
+  "> 文档版本：v1.1  ",
+  "> 数据范围：商品设置 catalog **28** 条（终版归属商品 27 条 + v1.2 自前厅迁入 seq **148**，见 §3.1）  ",
   "> 竞品参考：Toast / Clover / Square / Peblla / Snackpass 商家后台结构文档",
   "",
   "---",
@@ -122,7 +123,7 @@ push(
   "",
   "### 1.2 设计目标",
   "",
-  "- 二级导航收敛为 **5 组**，覆盖 27 条，符合餐饮商品/菜单 SSOT 心智",
+  "- 二级导航收敛为 **5 组**，覆盖 catalog 条目，符合餐饮商品/菜单 SSOT 心智",
   "- 输出可写入 `docs/项目文档/配置归类-分组映射.csv` 的 `groupTitle` / `groupKey`",
   "- **不修改** `配置归类-终版.md` 原文",
   "",
@@ -145,7 +146,7 @@ push(
   "```",
   "",
   "**边界**：",
-  "- **前厅管理中心**：POS/eMenu 菜单 **展示布局**（按钮、首页）不在此 hub。",
+  "- **前厅管理中心**：POS/eMenu 菜单 **展示布局**（按钮、首页）不在此 hub；**比价功能模式（148）** 归本 hub 价格工具。",
   "- **支付中心**：税率、支付方式在支付/税务 hub。",
   "- **库存中心**：进销存、成本核算不在此 27 条（菜谱管理 476 为配方/耗材，留菜品基础组）。",
   "",
@@ -164,7 +165,20 @@ for (let i = 0; i < order.length; i++) {
   total += n;
   push(`| ${i + 1} | **${titles[k]}** | \`${k}\` | ${n} | ${reasons[k]} |`);
 }
-push(`| | **合计** | | **${total}** | |`, "", "---", "", "## 4. 分类结果明细", "");
+push(
+  `| | **合计** | | **${total}** | |`,
+  "",
+  "### 3.1 v1.1 变更（v1.2 前厅收紧按钮显隐时迁入）",
+  "",
+  "| seq | 功能设置 | groupKey | 说明 |",
+  "|-----|----------|----------|------|",
+  "| 148 | 比价功能模式 | `pricing-tools` | 点单端比价策略，与全局调价/四舍五入同轨；终版 B 平台仍标前厅，catalog 经 hub override 挂载本 hub。 |",
+  "",
+  "---",
+  "",
+  "## 4. 分类结果明细",
+  "",
+);
 
 for (let i = 0; i < order.length; i++) {
   const k = order[i];
