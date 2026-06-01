@@ -108,6 +108,23 @@ assignSort(KITCHEN_TICKET_FIELDS_SEQ_ORDER);
 assignSort(KITCHEN_TICKET_FORMAT_SEQ_ORDER);
 assignSort(KITCHEN_PACKING_SLIP_SEQ_ORDER);
 
+/** 门店管理中心设置页二级导航展示顺序 */
+export const STORE_SETTINGS_GROUP_ORDER = [
+  "store-profile",
+  "store-hours-operation",
+  "brand-menu-presentation",
+  "address-data-maintenance",
+];
+
+/** 门店档案：国家/地区 → 基本信息 */
+const STORE_PROFILE_SEQ_ORDER = [173, 417];
+
+/** 营业与运营：时段 → 周期 → 打烊提示 → 餐厅模式 */
+const STORE_HOURS_OPERATION_SEQ_ORDER = [418, 77, 582, 170];
+
+assignSort(STORE_PROFILE_SEQ_ORDER);
+assignSort(STORE_HOURS_OPERATION_SEQ_ORDER);
+
 /** 前厅管理中心设置页二级导航展示顺序 */
 export const FOH_SETTINGS_GROUP_ORDER = [
   "tables-floor",

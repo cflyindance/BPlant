@@ -155,6 +155,23 @@ import {
   shouldSkipLineMergeMatrixMemberRow,
 } from "./config/module-settings-line-merge-matrix-ui";
 import {
+  isStoreBasicInfoHostSeq,
+  renderStoreBasicInfoFormHtml,
+} from "./config/module-settings-store-basic-info-ui";
+import {
+  bindStoreBusinessHoursControls,
+  isStoreBusinessHoursSeq,
+  renderStoreBusinessHoursHtml,
+} from "./config/module-settings-store-business-hours-ui";
+import {
+  isStoreCountryRegionRadioSeq,
+  renderStoreCountryRegionRadioHtml,
+} from "./config/module-settings-store-profile-ui";
+import {
+  isStoreRestaurantModeRadioSeq,
+  renderStoreRestaurantModeRadioHtml,
+} from "./config/module-settings-store-operation-mode-ui";
+import {
   isPackingSlipOrderTypeMultiselectSeq,
   renderPackingSlipOrderTypeMultiselectHtml,
 } from "./config/module-settings-packing-slip-order-type-ui";
@@ -3402,6 +3419,50 @@ function renderModuleSettingPackingSlipOrderTypeRow(item: ModuleSettingCatalogIt
         </li>`;
 }
 
+function renderModuleSettingStoreRestaurantModeRow(item: ModuleSettingCatalogItem): string {
+  return `
+        <li class="list-none">
+          <div class="border-b border-border px-4 py-3">
+            ${renderModuleSettingTitleBlock(item)}
+            <div class="mt-3">
+              ${renderStoreRestaurantModeRadioHtml(item.seq)}
+            </div>
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingStoreCountryRegionRow(item: ModuleSettingCatalogItem): string {
+  return `
+        <li class="list-none">
+          <div class="border-b border-border px-4 py-3">
+            ${renderModuleSettingTitleBlock(item)}
+            <div class="mt-3">
+              ${renderStoreCountryRegionRadioHtml(item.seq)}
+            </div>
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingStoreBasicInfoRow(item: ModuleSettingCatalogItem): string {
+  return `
+        <li class="list-none">
+          <div class="border-b border-border px-4 py-3">
+            ${renderModuleSettingTitleBlock(item)}
+            ${renderStoreBasicInfoFormHtml()}
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingStoreBusinessHoursRow(item: ModuleSettingCatalogItem): string {
+  return `
+        <li class="list-none">
+          <div class="border-b border-border px-4 py-3">
+            ${renderModuleSettingTitleBlock(item)}
+            ${renderStoreBusinessHoursHtml()}
+          </div>
+        </li>`;
+}
+
 function renderModuleSettingLineMergeMatrixRow(_item: ModuleSettingCatalogItem): string {
   return `
         <li class="list-none">
@@ -3439,6 +3500,18 @@ function renderModuleSettingRow(item: ModuleSettingCatalogItem): string {
   }
   if (isPackingSlipOrderTypeMultiselectSeq(item.seq)) {
     return renderModuleSettingPackingSlipOrderTypeRow(item);
+  }
+  if (isStoreRestaurantModeRadioSeq(item.seq)) {
+    return renderModuleSettingStoreRestaurantModeRow(item);
+  }
+  if (isStoreCountryRegionRadioSeq(item.seq)) {
+    return renderModuleSettingStoreCountryRegionRow(item);
+  }
+  if (isStoreBasicInfoHostSeq(item.seq)) {
+    return renderModuleSettingStoreBasicInfoRow(item);
+  }
+  if (isStoreBusinessHoursSeq(item.seq)) {
+    return renderModuleSettingStoreBusinessHoursRow(item);
   }
   if (isLineMergeMatrixHostSeq(item.seq)) {
     return renderModuleSettingLineMergeMatrixRow(item);
@@ -4797,6 +4870,7 @@ function mount(): void {
   bindPosOrderToolbarGroups();
   bindGuestFacingLocaleControls();
   bindKitchenTicketMarginControls();
+  bindStoreBusinessHoursControls();
   bindModuleSettingsFormControls();
   scrollToModuleSettingsCategoryFromPath(mountPathForSheet);
 }

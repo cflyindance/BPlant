@@ -1,6 +1,6 @@
 /**
- * 将门店管理 4 组分类写入 docs/项目文档/配置归类-分组映射.csv
- * 运行：node scripts/apply-store-settings-mapping.mjs
+ * 将评价中心设置分类写入 docs/项目文档/配置归类-分组映射.csv
+ * 运行：node scripts/apply-reviews-settings-mapping.mjs
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -15,23 +15,17 @@ const mappingPath = [projectDocs, repoDocs]
   .find((p) => fs.existsSync(p));
 
 const titles = {
-  "store-profile": "门店档案",
-  "store-hours-operation": "营业与运营",
-  "brand-menu-presentation": "品牌与菜单展示",
-  "address-data-maintenance": "地址数据维护",
+  "review-content-moderation": "评价内容治理",
 };
 
 const assignMap = {
-  "store-profile": [173, 417],
-  "store-hours-operation": [418, 77, 582, 170],
-  "brand-menu-presentation": [530, 547, 548],
-  "address-data-maintenance": [419, 420],
+  "review-content-moderation": [421],
 };
 
-const storeAssign = new Map();
+const reviewsAssign = new Map();
 for (const [key, seqs] of Object.entries(assignMap)) {
   for (const seq of seqs) {
-    storeAssign.set(seq, { groupTitle: titles[key], groupKey: key });
+    reviewsAssign.set(seq, { groupTitle: titles[key], groupKey: key });
   }
 }
 
@@ -85,7 +79,7 @@ for (const line of lines) {
     out.push(line);
     continue;
   }
-  const next = storeAssign.get(seq);
+  const next = reviewsAssign.get(seq);
   if (next) {
     out.push(`${seq},${escapeCsvCell(next.groupTitle)},${escapeCsvCell(next.groupKey)}`);
     updated++;
@@ -94,8 +88,8 @@ for (const line of lines) {
   }
 }
 
-if (updated !== storeAssign.size) {
-  throw new Error(`预期更新 ${storeAssign.size} 条，实际 ${updated} 条`);
+if (updated !== reviewsAssign.size) {
+  throw new Error(`预期更新 ${reviewsAssign.size} 条评价映射，实际 ${updated} 条`);
 }
 
 fs.writeFileSync(mappingPath, `${out.join("\n")}\n`, "utf8");

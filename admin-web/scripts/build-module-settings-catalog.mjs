@@ -13,11 +13,14 @@ import {
   FOH_SETTINGS_GROUP_ORDER,
   INTRA_GROUP_SORT_BY_SEQ,
   KITCHEN_SETTINGS_GROUP_ORDER,
+  STORE_SETTINGS_GROUP_ORDER,
 } from "./lib/settings-intra-group-sort.mjs";
 
 const SETTINGS_GROUP_ORDER_BY_PATH = {
   "/operations/queue-call/settings": FOH_SETTINGS_GROUP_ORDER,
   "/operations/kitchen-kds/settings": KITCHEN_SETTINGS_GROUP_ORDER,
+  "/reviews/settings": ["review-content-moderation"],
+  "/stores/settings": STORE_SETTINGS_GROUP_ORDER,
 };
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

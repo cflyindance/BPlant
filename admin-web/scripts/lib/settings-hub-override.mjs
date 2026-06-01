@@ -14,6 +14,8 @@ export const SETTINGS_HUB_OVERRIDE_BY_SEQ = {
   288: "后厨管理中心",
   301: "后厨管理中心",
   302: "后厨管理中心",
+  /** 评价治理：终版 hub 为空，挂载评价中心设置 */
+  421: "评价中心",
 };
 
 /** @param {{ seq: number; hub: string }} row */

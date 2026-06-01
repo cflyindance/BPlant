@@ -31,6 +31,12 @@ export const KITCHEN_TICKET_FORMAT_TOGGLE_SEQ: readonly number[] = [38, 41, 33, 
 /** 后厨 · 打包单（seq 39 为订单类型多选，见 module-settings-packing-slip-order-type-ui） */
 export const KITCHEN_PACKING_SLIP_TOGGLE_SEQ: readonly number[] = [298, 299, 300];
 
+/** 门店 · 营业与运营（seq 170 单选、418 营业时段见各自 UI 模块） */
+export const STORE_HOURS_OPERATION_TOGGLE_SEQ: readonly number[] = [77, 582];
+
+/** @deprecated 使用 STORE_HOURS_OPERATION_TOGGLE_SEQ */
+export const STORE_OPERATION_MODE_ALERTS_TOGGLE_SEQ = STORE_HOURS_OPERATION_TOGGLE_SEQ;
+
 export const MODULE_SETTING_TOGGLE_SEQ = new Set([
   ...KITCHEN_SEND_ROUTING_TOGGLE_SEQ,
   ...KITCHEN_TICKET_GROUPING_TOGGLE_SEQ,
@@ -38,6 +44,7 @@ export const MODULE_SETTING_TOGGLE_SEQ = new Set([
   ...KITCHEN_TICKET_FIELDS_TOGGLE_SEQ,
   ...KITCHEN_TICKET_FORMAT_TOGGLE_SEQ,
   ...KITCHEN_PACKING_SLIP_TOGGLE_SEQ,
+  ...STORE_OPERATION_MODE_ALERTS_TOGGLE_SEQ,
   461, 462, 466, 521, 522, 523, 535, 536, 544, 545, 569, 570, 573, 577, 578, 579, 580, 597, 598,
   616, 617, 618,
   118, 176, 177, 216, 219, 220, 348, 350,
