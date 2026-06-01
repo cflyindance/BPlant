@@ -155,6 +155,46 @@ import {
   shouldSkipLineMergeMatrixMemberRow,
 } from "./config/module-settings-line-merge-matrix-ui";
 import {
+  bindOrderSameDishDisplayRadios,
+  isOrderSameDishDisplayHostSeq,
+  renderOrderSameDishDisplayRowHtml,
+  shouldSkipOrderSameDishDisplayMemberRow,
+} from "./config/module-settings-order-same-dish-display-ui";
+import {
+  bindDiscountSurchargePresetEditors,
+  isDiscountSurchargePresetSeq,
+  renderDiscountSurchargePresetEditorHtml,
+} from "./config/module-settings-discount-surcharge-presets-ui";
+import {
+  isOrderDiscountReasonSeq,
+  renderOrderDiscountReasonValuePanel,
+  setOrderDiscountReasonPanelVisible,
+} from "./config/module-settings-order-discount-reason-ui";
+import {
+  bindOrderNumberingClassificationControls,
+  bindOrderNumberingSelects,
+  isOrderNumberingClassificationSeq,
+  isOrderNumberingModeSeq,
+  isOrderNumberingNumberInputSeq,
+  isOrderNumberingResetSeq,
+  renderOrderNumberingClassificationSettingHtml,
+  renderOrderNumberingModeSelectHtml,
+  renderOrderNumberingNumberControl,
+  renderOrderNumberingResetSelectHtml,
+} from "./config/module-settings-order-numbering-ui";
+import {
+  isDefaultNewOrderTypeSeq,
+  renderDefaultNewOrderTypeSelectHtml,
+} from "./config/module-settings-default-order-type-ui";
+import {
+  isOrderTotalRoundingSeq,
+  renderOrderTotalRoundingSelectHtml,
+} from "./config/module-settings-order-total-rounding-ui";
+import {
+  isOrderVoidInvalidationReasonSeq,
+  renderOrderVoidInvalidationReasonMultiselectHtml,
+} from "./config/module-settings-order-void-ui";
+import {
   isStoreBasicInfoHostSeq,
   renderStoreBasicInfoFormHtml,
 } from "./config/module-settings-store-basic-info-ui";
@@ -3402,6 +3442,93 @@ function renderModuleSettingKitchenOrderTypeRow(item: ModuleSettingCatalogItem):
         </li>`;
 }
 
+function renderModuleSettingOrderVoidInvalidationReasonRow(item: ModuleSettingCatalogItem): string {
+  return `
+        <li class="list-none">
+          <div class="border-b border-border px-4 py-3">
+            ${renderModuleSettingTitleBlock(item)}
+            <div class="mt-3 max-w-3xl">
+              ${renderOrderVoidInvalidationReasonMultiselectHtml(item.seq)}
+            </div>
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingDiscountSurchargePresetRow(item: ModuleSettingCatalogItem): string {
+  return `
+        <li class="list-none">
+          <div class="border-b border-border px-4 py-3">
+            ${renderModuleSettingTitleBlock(item)}
+            <div class="mt-3 max-w-3xl">
+              ${renderDiscountSurchargePresetEditorHtml(item.seq)}
+            </div>
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingOrderTotalRoundingRow(item: ModuleSettingCatalogItem): string {
+  return `
+        <li class="list-none">
+          <div class="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+            <div class="min-w-0 flex-1">${renderModuleSettingTitleBlock(item)}</div>
+            <div class="w-full shrink-0 sm:max-w-xl sm:pt-0.5">
+              ${renderOrderTotalRoundingSelectHtml()}
+            </div>
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingDefaultNewOrderTypeRow(item: ModuleSettingCatalogItem): string {
+  return `
+        <li class="list-none">
+          <div class="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+            <div class="min-w-0 flex-1">${renderModuleSettingTitleBlock(item)}</div>
+            <div class="w-full shrink-0 sm:max-w-xs sm:pt-0.5">
+              ${renderDefaultNewOrderTypeSelectHtml()}
+            </div>
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingOrderNumberingInputRow(item: ModuleSettingCatalogItem): string {
+  const control = renderOrderNumberingNumberControl(item.seq);
+  if (!control) return renderModuleSettingRow(item);
+  return `
+        <li class="list-none">
+          <div class="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+            ${renderModuleSettingTitleBlock(item)}
+            <div class="shrink-0 sm:pt-0.5">${control}</div>
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingOrderNumberingSelectRow(
+  item: ModuleSettingCatalogItem,
+  selectHtml: string,
+): string {
+  return `
+        <li class="list-none">
+          <div class="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+            <div class="min-w-0 flex-1">${renderModuleSettingTitleBlock(item)}</div>
+            <div class="w-full shrink-0 sm:max-w-md sm:pt-0.5">${selectHtml}</div>
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingOrderDiscountReasonRow(item: ModuleSettingCatalogItem): string {
+  const on = readModuleSettingToggleOn(item.seq);
+  return `
+        <li class="list-none">
+          <div class="border-b border-border px-4 py-3">
+            <div class="flex items-start justify-between gap-3">
+              ${renderModuleSettingTitleBlock(item)}
+              <div class="shrink-0 pt-0.5">${renderModuleSettingToggleSwitch(item)}</div>
+            </div>
+            ${renderOrderDiscountReasonValuePanel(item.seq, on)}
+          </div>
+        </li>`;
+}
+
 function renderModuleSettingKitchenTicketMarginRow(item: ModuleSettingCatalogItem): string {
   return `
         <li class="list-none">
@@ -3419,6 +3546,80 @@ function renderModuleSettingPackingSlipOrderTypeRow(item: ModuleSettingCatalogIt
             ${renderModuleSettingTitleBlock(item)}
             <div class="mt-3">
               ${renderPackingSlipOrderTypeMultiselectHtml(item.seq)}
+            </div>
+          </div>
+        </li>`;
+}
+
+const TEAM_TIME_INPUT_ROWS: Record<
+  number,
+  { fieldId: string; defaultValue: number; min: number; max: number; unit: "分钟" | "小时" | "%" }
+> = {
+  66: { fieldId: "66-mandatory-break-minutes", defaultValue: 30, min: 1, max: 240, unit: "分钟" },
+  67: { fieldId: "67-continuous-work-hour-limit", defaultValue: 8, min: 1, max: 24, unit: "小时" },
+  71: { fieldId: "71-max-work-hours", defaultValue: 12, min: 1, max: 24, unit: "小时" },
+  329: { fieldId: "329-paid-break-minutes", defaultValue: 10, min: 0, max: 240, unit: "分钟" },
+  306: { fieldId: "306-tip-share-ratio", defaultValue: 0, min: 0, max: 100, unit: "%" },
+};
+const TEAM_TIME_HHMM_ROWS: Record<number, { fieldId: string; defaultValue: string }> = {
+  72: { fieldId: "72-reset-start-work-hhmm", defaultValue: "09:00" },
+};
+
+function isTeamTimeInputSeq(seq: number): boolean {
+  return TEAM_TIME_INPUT_ROWS[seq] !== undefined;
+}
+
+function isTeamTimeHhmmSeq(seq: number): boolean {
+  return TEAM_TIME_HHMM_ROWS[seq] !== undefined;
+}
+
+function normalizeHhmm(value: string, fallback: string): string {
+  return /^\d{2}:\d{2}$/.test(value) ? value : fallback;
+}
+
+function renderModuleSettingTeamTimeInputRow(item: ModuleSettingCatalogItem): string {
+  const config = TEAM_TIME_INPUT_ROWS[item.seq];
+  if (!config) return renderModuleSettingRow(item);
+  const stored = readModuleSettingNumber(config.fieldId, config.defaultValue);
+  const value = Math.min(config.max, Math.max(config.min, Math.round(stored)));
+  return `
+        <li class="list-none">
+          <div class="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+            ${renderModuleSettingTitleBlock(item)}
+            <div class="inline-flex items-center gap-2 sm:pt-0.5">
+              <input
+                type="number"
+                inputmode="numeric"
+                class="h-8 w-20 rounded-md border border-input bg-background px-2 text-center text-sm tabular-nums text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                value="${escapeHtml(String(value))}"
+                min="${config.min}"
+                max="${config.max}"
+                data-module-setting-number="${escapeHtml(config.fieldId)}"
+              />
+              <span class="text-sm text-muted-foreground">${config.unit}</span>
+            </div>
+          </div>
+        </li>`;
+}
+
+function renderModuleSettingTeamTimeHhmmRow(item: ModuleSettingCatalogItem): string {
+  const config = TEAM_TIME_HHMM_ROWS[item.seq];
+  if (!config) return renderModuleSettingRow(item);
+  const stored = readModuleSettingText(config.fieldId, config.defaultValue);
+  const value = normalizeHhmm(stored, config.defaultValue);
+  return `
+        <li class="list-none">
+          <div class="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+            ${renderModuleSettingTitleBlock(item)}
+            <div class="inline-flex items-center gap-2 sm:pt-0.5">
+              <input
+                type="time"
+                step="60"
+                class="h-8 w-28 rounded-md border border-input bg-background px-2 text-center text-sm tabular-nums text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                value="${escapeHtml(value)}"
+                data-module-setting-text="${escapeHtml(config.fieldId)}"
+              />
+              <span class="text-sm text-muted-foreground">时:分</span>
             </div>
           </div>
         </li>`;
@@ -3615,6 +3816,12 @@ function renderModuleSettingRow(item: ModuleSettingCatalogItem): string {
   if (shouldSkipLineMergeMatrixMemberRow(item.seq)) {
     return "";
   }
+  if (shouldSkipOrderSameDishDisplayMemberRow(item.seq)) {
+    return "";
+  }
+  if (isOrderSameDishDisplayHostSeq(item.seq)) {
+    return renderOrderSameDishDisplayRowHtml(MODULE_SETTING_CONTROL_CLASS, item.sceneDesc);
+  }
   if (isPosOrderToolbarGridHostSeq(item.seq)) {
     return renderPosOrderToolbarGroupsGridHtml();
   }
@@ -3624,11 +3831,50 @@ function renderModuleSettingRow(item: ModuleSettingCatalogItem): string {
   if (isKitchenOrderTypeMultiselectSeq(item.seq)) {
     return renderModuleSettingKitchenOrderTypeRow(item);
   }
+  if (isOrderVoidInvalidationReasonSeq(item.seq)) {
+    return renderModuleSettingOrderVoidInvalidationReasonRow(item);
+  }
+  if (isDiscountSurchargePresetSeq(item.seq)) {
+    return renderModuleSettingDiscountSurchargePresetRow(item);
+  }
+  if (isDefaultNewOrderTypeSeq(item.seq)) {
+    return renderModuleSettingDefaultNewOrderTypeRow(item);
+  }
+  if (isOrderNumberingNumberInputSeq(item.seq)) {
+    return renderModuleSettingOrderNumberingInputRow(item);
+  }
+  if (isOrderNumberingModeSeq(item.seq)) {
+    return renderModuleSettingOrderNumberingSelectRow(
+      item,
+      renderOrderNumberingModeSelectHtml(),
+    );
+  }
+  if (isOrderNumberingClassificationSeq(item.seq)) {
+    return renderOrderNumberingClassificationSettingHtml(item.title, item.sceneDesc);
+  }
+  if (isOrderNumberingResetSeq(item.seq)) {
+    return renderModuleSettingOrderNumberingSelectRow(
+      item,
+      renderOrderNumberingResetSelectHtml(),
+    );
+  }
+  if (isOrderTotalRoundingSeq(item.seq)) {
+    return renderModuleSettingOrderTotalRoundingRow(item);
+  }
+  if (isOrderDiscountReasonSeq(item.seq)) {
+    return renderModuleSettingOrderDiscountReasonRow(item);
+  }
   if (isKitchenTicketMarginHostSeq(item.seq)) {
     return renderModuleSettingKitchenTicketMarginRow(item);
   }
   if (isPackingSlipOrderTypeMultiselectSeq(item.seq)) {
     return renderModuleSettingPackingSlipOrderTypeRow(item);
+  }
+  if (isTeamTimeHhmmSeq(item.seq)) {
+    return renderModuleSettingTeamTimeHhmmRow(item);
+  }
+  if (isTeamTimeInputSeq(item.seq)) {
+    return renderModuleSettingTeamTimeInputRow(item);
   }
   if (item.seq === 530) {
     return renderModuleSettingStoreBrandSettingRow(item);
@@ -3719,6 +3965,9 @@ function bindModuleSettingsToggles(): void {
       }
       if (seq === 582) {
         setStoreClosingAlertPanelVisible(seq, next);
+      }
+      if (isOrderDiscountReasonSeq(seq)) {
+        setOrderDiscountReasonPanelVisible(seq, next);
       }
     });
   });
@@ -5035,6 +5284,10 @@ function mount(): void {
   bindStoreBusinessHoursControls();
   bindStoreBrandManagementControls();
   bindModuleSettingsFormControls();
+  bindOrderSameDishDisplayRadios();
+  bindDiscountSurchargePresetEditors();
+  bindOrderNumberingSelects();
+  bindOrderNumberingClassificationControls();
   scrollToModuleSettingsCategoryFromPath(mountPathForSheet);
 }
 

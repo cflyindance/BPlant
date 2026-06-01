@@ -2,6 +2,7 @@
  * 设置滑层：每轮菜品互斥 / 组合规则（原型，localStorage JSON）。
  */
 
+import { renderModuleSettingCheckboxChoiceHtml } from "./module-settings-choice-ui";
 import {
   readModuleSettingJson,
   writeModuleSettingJson,
@@ -99,13 +100,6 @@ export function writeDishComboRules(rules: DishComboRule[], storageFieldId = COM
   writeModuleSettingJson(storageFieldId, rules);
 }
 
-function dishSelectOptions(selectedIds: Set<string>): string {
-  const opts = MODULE_SETTING_MOCK_DISHES.filter((d) => !selectedIds.has(d.id))
-    .map((d) => `<option value="${escapeHtml(d.id)}">${escapeHtml(d.name)}</option>`)
-    .join("");
-  return `<option value="">选择菜品</option>${opts}`;
-}
-
 function renderDishTag(tag: DishTag): string {
   return `
     <span
@@ -140,21 +134,30 @@ function renderDishPicker(
   dishes: DishTag[],
 ): string {
   const selectedIds = new Set(dishes.map((d) => d.id));
-  const tags = dishes.map(renderDishTag).join("");
+  const tags =
+    dishes.length > 0
+      ? `<div class="flex flex-wrap gap-1.5" data-dish-tags>${dishes.map(renderDishTag).join("")}</div>`
+      : "";
+  const choices = renderModuleSettingCheckboxChoiceHtml({
+    options: MODULE_SETTING_MOCK_DISHES.map((d) => ({ value: d.id, label: d.name })),
+    selectedValues: selectedIds,
+    checkboxDataAttr: "data-dish-choice",
+    getItemAttrs: (value, label) => ({
+      "data-dish-id": value,
+      "data-dish-name": label,
+    }),
+    layout: "wrap",
+  });
   return `
     <div
-      class="module-setting-dish-picker flex min-h-9 min-w-0 flex-1 flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-2 py-1.5"
+      class="module-setting-dish-picker min-w-0 flex-1 space-y-2 rounded-md border border-input bg-background px-2 py-2"
       data-dish-picker
       data-picker-role="${escapeHtml(role)}"
       data-parent-seq="${parentSeq}"
       data-rule-id="${escapeHtml(ruleId)}"
     >
       ${tags}
-      <select
-        class="min-w-[6.5rem] flex-1 border-0 bg-transparent py-0.5 text-sm text-foreground focus:outline-none focus:ring-0"
-        data-dish-picker-add
-        aria-label="添加菜品"
-      >${dishSelectOptions(selectedIds)}</select>
+      ${choices}
     </div>`;
 }
 
@@ -228,28 +231,64 @@ export function renderDishComboRulesHtml(parentSeq: number, storageFieldId: stri
     </div>`;
 }
 
+function collectTagsFromCheckboxes(picker: HTMLElement): DishTag[] {
+  return [...picker.querySelectorAll<HTMLInputElement>("[data-dish-choice]:checked")].map(
+    (input) => ({
+      id: input.getAttribute("data-dish-id") ?? input.value,
+      name: input.getAttribute("data-dish-name") ?? "",
+    }),
+  );
+}
+
+function syncDishTagsFromCheckboxes(picker: HTMLElement): void {
+  const tags = collectTagsFromCheckboxes(picker);
+  let tagsWrap = picker.querySelector<HTMLElement>("[data-dish-tags]");
+  if (tags.length === 0) {
+    tagsWrap?.remove();
+    return;
+  }
+  if (!tagsWrap) {
+    picker.insertAdjacentHTML(
+      "afterbegin",
+      `<div class="flex flex-wrap gap-1.5" data-dish-tags></div>`,
+    );
+    tagsWrap = picker.querySelector<HTMLElement>("[data-dish-tags]");
+  }
+  if (tagsWrap) tagsWrap.innerHTML = tags.map(renderDishTag).join("");
+}
+
 function collectTagsFromPicker(picker: Element): DishTag[] {
-  return [...picker.querySelectorAll("[data-dish-tag]")].map((el) => ({
-    id: el.getAttribute("data-dish-id") ?? "",
-    name: el.getAttribute("data-dish-name") ?? "",
+  const el = picker as HTMLElement;
+  if (el.querySelector("[data-dish-choice]")) return collectTagsFromCheckboxes(el);
+  return [...picker.querySelectorAll("[data-dish-tag]")].map((tag) => ({
+    id: tag.getAttribute("data-dish-id") ?? "",
+    name: tag.getAttribute("data-dish-name") ?? "",
   }));
 }
 
-function refreshPickerSelect(picker: HTMLElement): void {
-  const selectedIds = new Set(collectTagsFromPicker(picker).map((t) => t.id));
-  const select = picker.querySelector<HTMLSelectElement>("[data-dish-picker-add]");
-  if (!select) return;
-  const current = select.value;
-  select.innerHTML = dishSelectOptions(selectedIds);
-  if (current && !selectedIds.has(current)) select.value = current;
-  else select.value = "";
+function onDishPickerCheckboxChange(picker: HTMLElement): void {
+  syncDishTagsFromCheckboxes(picker);
+  const standalone = picker.closest<HTMLElement>("[data-standalone-dish-picker]");
+  if (standalone) {
+    persistStandaloneDishPicker(picker);
+    return;
+  }
+  const mutex = picker.closest<HTMLElement>("[data-mutex-rules-editor]");
+  if (mutex) {
+    persistMutexEditor(mutex);
+    return;
+  }
+  const combo = picker.closest<HTMLElement>("[data-combo-rules-editor]");
+  if (combo) persistComboEditor(combo);
 }
 
-function appendDishTag(picker: HTMLElement, dish: DishTag): void {
-  const select = picker.querySelector<HTMLSelectElement>("[data-dish-picker-add]");
-  if (!select || collectTagsFromPicker(picker).some((t) => t.id === dish.id)) return;
-  select.insertAdjacentHTML("beforebegin", renderDishTag(dish));
-  refreshPickerSelect(picker);
+function onDishTagRemove(picker: HTMLElement, dishId: string): void {
+  const cb = picker.querySelector<HTMLInputElement>(`[data-dish-choice][data-dish-id="${dishId}"]`);
+  if (cb) cb.checked = false;
+  picker.querySelector(`[data-dish-tag][data-dish-id="${dishId}"]`)?.remove();
+  const tagsWrap = picker.querySelector("[data-dish-tags]");
+  if (tagsWrap && !tagsWrap.querySelector("[data-dish-tag]")) tagsWrap.remove();
+  onDishPickerCheckboxChange(picker);
 }
 
 function persistMutexEditor(editor: HTMLElement): void {
@@ -341,21 +380,14 @@ function bindStandaloneDishPickers(): void {
       if (!removeBtn) return;
       const tag = removeBtn.closest("[data-dish-tag]");
       const picker = tag?.closest<HTMLElement>("[data-dish-picker]");
-      tag?.remove();
-      if (picker) {
-        refreshPickerSelect(picker);
-        persistStandaloneDishPicker(picker);
-      }
+      const dishId = tag?.getAttribute("data-dish-id");
+      if (picker && dishId) onDishTagRemove(picker, dishId);
     });
     wrap.addEventListener("change", (e) => {
-      const select = (e.target as HTMLElement).closest<HTMLSelectElement>("[data-dish-picker-add]");
-      if (!select) return;
-      const dish = MODULE_SETTING_MOCK_DISHES.find((d) => d.id === select.value);
-      const picker = select.closest<HTMLElement>("[data-dish-picker]");
-      if (!dish || !picker) return;
-      appendDishTag(picker, dish);
-      select.value = "";
-      persistStandaloneDishPicker(picker);
+      const cb = (e.target as HTMLElement).closest<HTMLInputElement>("[data-dish-choice]");
+      if (!cb) return;
+      const picker = cb.closest<HTMLElement>("[data-dish-picker]");
+      if (picker) onDishPickerCheckboxChange(picker);
     });
   });
 }
@@ -375,20 +407,15 @@ export function bindModuleSettingsDishRules(): void {
       if (removeBtn) {
         const tag = removeBtn.closest("[data-dish-tag]");
         const picker = tag?.closest<HTMLElement>("[data-dish-picker]");
-        tag?.remove();
-        if (picker) refreshPickerSelect(picker);
-        persistMutexEditor(editor);
+        const dishId = tag?.getAttribute("data-dish-id");
+        if (picker && dishId) onDishTagRemove(picker, dishId);
       }
     });
     editor.addEventListener("change", (e) => {
-      const select = (e.target as HTMLElement).closest<HTMLSelectElement>("[data-dish-picker-add]");
-      if (!select) return;
-      const dish = MODULE_SETTING_MOCK_DISHES.find((d) => d.id === select.value);
-      const picker = select.closest<HTMLElement>("[data-dish-picker]");
-      if (!dish || !picker) return;
-      appendDishTag(picker, dish);
-      select.value = "";
-      persistMutexEditor(editor);
+      const cb = (e.target as HTMLElement).closest<HTMLInputElement>("[data-dish-choice]");
+      if (!cb) return;
+      const picker = cb.closest<HTMLElement>("[data-dish-picker]");
+      if (picker) onDishPickerCheckboxChange(picker);
     });
   });
 
@@ -405,20 +432,15 @@ export function bindModuleSettingsDishRules(): void {
       if (removeBtn) {
         const tag = removeBtn.closest("[data-dish-tag]");
         const picker = tag?.closest<HTMLElement>("[data-dish-picker]");
-        tag?.remove();
-        if (picker) refreshPickerSelect(picker);
-        persistComboEditor(editor);
+        const dishId = tag?.getAttribute("data-dish-id");
+        if (picker && dishId) onDishTagRemove(picker, dishId);
       }
     });
     editor.addEventListener("change", (e) => {
-      const select = (e.target as HTMLElement).closest<HTMLSelectElement>("[data-dish-picker-add]");
-      if (select) {
-        const dish = MODULE_SETTING_MOCK_DISHES.find((d) => d.id === select.value);
-        const picker = select.closest<HTMLElement>("[data-dish-picker]");
-        if (!dish || !picker) return;
-        appendDishTag(picker, dish);
-        select.value = "";
-        persistComboEditor(editor);
+      const cb = (e.target as HTMLElement).closest<HTMLInputElement>("[data-dish-choice]");
+      if (cb) {
+        const picker = cb.closest<HTMLElement>("[data-dish-picker]");
+        if (picker) onDishPickerCheckboxChange(picker);
         return;
       }
       const qty = (e.target as HTMLElement).closest<HTMLInputElement>("[data-combo-qty]");

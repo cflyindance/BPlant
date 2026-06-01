@@ -68,6 +68,12 @@ export interface NavModule {
 /** 商品中心下辖全部业务路径，供标题解析与 flattenNavPaths */
 export const PRODUCT_CENTER_DEEP_NAV: NavItem[] = [
   { id: "bp-products", title: "商品", titleEn: "Products", path: "/brand-products/products" },
+  {
+    id: "bp-product-multi-language",
+    title: "商品多语言",
+    titleEn: "Product multi-language",
+    path: "/brand-products/product-multi-language",
+  },
   { id: "bp-product-categories", title: "商品分类", titleEn: "Product categories", path: "/brand-products/product-categories" },
   { id: "bp-spec-groups", title: "规格组", titleEn: "Spec groups", path: "/brand-products/spec-groups" },
   { id: "bp-flavor-groups", title: "口味组", titleEn: "Flavor groups", path: "/brand-products/flavor-groups" },
@@ -925,6 +931,12 @@ function expandProductCenterSidebarPrefixes(item: ProductCenterSidebarSubItem): 
 /** 品牌商品管理 · 左侧三级导航 */
 export const BRAND_PRODUCTS_SUBNAV: ProductCenterSidebarSubItem[] = [
   { id: "bp-products", title: "商品", titleEn: "Products", path: "/brand-products/products" },
+  {
+    id: "bp-product-multi-language",
+    title: "商品多语言",
+    titleEn: "Product multi-language",
+    path: "/brand-products/product-multi-language",
+  },
   { id: "bp-product-categories", title: "分类", titleEn: "Categories", path: "/brand-products/product-categories" },
   { id: "bp-spec-groups", title: "规格组", titleEn: "Spec groups", path: "/brand-products/spec-groups" },
   { id: "bp-flavor-groups", title: "口味组", titleEn: "Flavor groups", path: "/brand-products/flavor-groups" },

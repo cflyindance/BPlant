@@ -20,7 +20,7 @@ const titles = {
 };
 
 const assignMap = {
-  "promo-strategy": [442, 549, 647],
+  "promo-strategy": [442, 549, 647, 150],
   "promo-channel": [541],
 };
 

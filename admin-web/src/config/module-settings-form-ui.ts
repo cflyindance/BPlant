@@ -128,10 +128,67 @@ const POS_MENU_UI_FORM_ROWS: ModuleSettingFormRowConfig[] = [
   },
 ];
 
+/** 团队管理 · 下班打卡打印确认小票（70）：三选一 */
+const TEAM_TIME_ATTENDANCE_FORM_ROWS: ModuleSettingFormRowConfig[] = [
+  {
+    seq: 70,
+    kind: "radio-group",
+    radioFieldId: "70-clockout-slip-mode",
+    radioDefault: "none",
+    radios: [
+      { value: "work-hours-only", label: "Print work hours only" },
+      { value: "work-hours-and-tips", label: "Print work hours&Tips" },
+      { value: "none", label: "None" },
+    ],
+  },
+];
+
+/** 团队管理 · 薪酬与小费相关单选 */
+const TEAM_PAYROLL_TIP_FORM_ROWS: ModuleSettingFormRowConfig[] = [
+  {
+    seq: 186,
+    kind: "radio-group",
+    radioFieldId: "186-tip-base-mode",
+    radioDefault: "net-sales",
+    radios: [
+      { value: "net-sales", label: "Net Sales" },
+      { value: "grand-total", label: "Grand Total" },
+      { value: "account-receivable", label: "Account Receivable" },
+      { value: "only-gratuity", label: "Only Gratuity" },
+    ],
+  },
+  {
+    seq: 309,
+    kind: "radio-group",
+    radioFieldId: "309-tip-calculation-standard",
+    radioDefault: "default",
+    radios: [
+      { value: "default", label: "DEFAULT" },
+      { value: "working-hours", label: "WORKING HOURS" },
+    ],
+  },
+  {
+    seq: 310,
+    kind: "radio-group",
+    radioFieldId: "310-wage-calculation-standard",
+    radioDefault: "default",
+    radios: [
+      { value: "default", label: "Default" },
+      { value: "california-rule", label: "California Rule" },
+      { value: "40-hours-per-week", label: "40 Hours Per Week Rule" },
+      { value: "44-hours-per-week", label: "44 Hours Per Week Rule" },
+      { value: "46-hours-per-week", label: "46 Hours Per Week Rule" },
+      { value: "48-hours-per-week", label: "48 Hours Per Week Rule" },
+    ],
+  },
+];
+
 const MODULE_SETTING_FORM_ROWS: ModuleSettingFormRowConfig[] = [
   ...WAIT_TIME_FORM_ROWS,
   ...GUEST_MENU_STRUCTURE_FORM_ROWS,
   ...POS_MENU_UI_FORM_ROWS,
+  ...TEAM_TIME_ATTENDANCE_FORM_ROWS,
+  ...TEAM_PAYROLL_TIP_FORM_ROWS,
 ];
 
 const FORM_ROW_BY_SEQ = new Map(MODULE_SETTING_FORM_ROWS.map((r) => [r.seq, r]));

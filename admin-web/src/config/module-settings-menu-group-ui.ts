@@ -2,6 +2,7 @@
  * 设置滑层：菜单组多选（599 全店默认 / 560 设备级，原型 localStorage JSON）。
  */
 
+import { renderModuleSettingCheckboxChoiceHtml } from "./module-settings-choice-ui";
 import { readModuleSettingJson, writeModuleSettingJson } from "./module-settings-form-ui";
 
 export type MenuGroupTag = { id: string; name: string };
@@ -43,13 +44,6 @@ export function writeMenuGroupTags(storageFieldId: string, tags: MenuGroupTag[])
   writeModuleSettingJson(storageFieldId, tags);
 }
 
-function groupSelectOptions(selectedIds: Set<string>): string {
-  const opts = MODULE_SETTING_MOCK_MENU_GROUPS.filter((g) => !selectedIds.has(g.id))
-    .map((g) => `<option value="${escapeHtml(g.id)}">${escapeHtml(g.name)}</option>`)
-    .join("");
-  return `<option value="">选择菜单组</option>${opts}`;
-}
-
 function renderMenuGroupTag(tag: MenuGroupTag): string {
   return `
     <span
@@ -75,38 +69,56 @@ function collectTagsFromPicker(picker: Element): MenuGroupTag[] {
   }));
 }
 
-function refreshPickerSelect(picker: HTMLElement): void {
-  const selectedIds = new Set(collectTagsFromPicker(picker).map((t) => t.id));
-  const select = picker.querySelector<HTMLSelectElement>("[data-menu-group-picker-add]");
-  if (!select) return;
-  const current = select.value;
-  select.innerHTML = groupSelectOptions(selectedIds);
-  if (current && !selectedIds.has(current)) select.value = current;
-  else select.value = "";
+function collectTagsFromCheckboxes(picker: HTMLElement): MenuGroupTag[] {
+  return [...picker.querySelectorAll<HTMLInputElement>("[data-menu-group-choice]:checked")].map(
+    (input) => ({
+      id: input.getAttribute("data-group-id") ?? input.value,
+      name: input.getAttribute("data-group-name") ?? "",
+    }),
+  );
 }
 
-function appendGroupTag(picker: HTMLElement, group: MenuGroupTag): void {
-  const select = picker.querySelector<HTMLSelectElement>("[data-menu-group-picker-add]");
-  if (!select || collectTagsFromPicker(picker).some((t) => t.id === group.id)) return;
-  select.insertAdjacentHTML("beforebegin", renderMenuGroupTag(group));
-  refreshPickerSelect(picker);
+function syncMenuGroupTagsFromCheckboxes(picker: HTMLElement): void {
+  const tags = collectTagsFromCheckboxes(picker);
+  let tagsWrap = picker.querySelector<HTMLElement>("[data-menu-group-tags]");
+  if (tags.length === 0) {
+    tagsWrap?.remove();
+    return;
+  }
+  if (!tagsWrap) {
+    picker.insertAdjacentHTML(
+      "afterbegin",
+      `<div class="flex flex-wrap gap-1.5" data-menu-group-tags></div>`,
+    );
+    tagsWrap = picker.querySelector<HTMLElement>("[data-menu-group-tags]");
+  }
+  if (tagsWrap) tagsWrap.innerHTML = tags.map(renderMenuGroupTag).join("");
 }
 
 function renderMenuGroupPickerInner(seq: number, groups: MenuGroupTag[]): string {
   const selectedIds = new Set(groups.map((g) => g.id));
-  const tags = groups.map(renderMenuGroupTag).join("");
+  const tags =
+    groups.length > 0
+      ? `<div class="flex flex-wrap gap-1.5" data-menu-group-tags>${groups.map(renderMenuGroupTag).join("")}</div>`
+      : "";
+  const choices = renderModuleSettingCheckboxChoiceHtml({
+    options: MODULE_SETTING_MOCK_MENU_GROUPS.map((g) => ({ value: g.id, label: g.name })),
+    selectedValues: selectedIds,
+    checkboxDataAttr: "data-menu-group-choice",
+    getItemAttrs: (value, label) => ({
+      "data-group-id": value,
+      "data-group-name": label,
+    }),
+    layout: "wrap",
+  });
   return `
     <div
-      class="module-setting-menu-group-picker flex min-h-9 min-w-0 flex-1 flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-2 py-1.5"
+      class="module-setting-menu-group-picker w-full min-w-0 space-y-2 rounded-md border border-input bg-background px-3 py-2.5"
       data-menu-group-picker
       data-setting-seq="${seq}"
     >
       ${tags}
-      <select
-        class="min-w-[6.5rem] flex-1 border-0 bg-transparent py-0.5 text-sm text-foreground focus:outline-none focus:ring-0"
-        data-menu-group-picker-add
-        aria-label="添加菜单组"
-      >${groupSelectOptions(selectedIds)}</select>
+      ${choices}
     </div>`;
 }
 
@@ -127,7 +139,7 @@ function persistStandaloneMenuGroupPicker(picker: HTMLElement): void {
   const wrap = picker.closest<HTMLElement>("[data-standalone-menu-group-picker]");
   const storageId = wrap?.getAttribute("data-storage-id");
   if (!storageId) return;
-  writeMenuGroupTags(storageId, collectTagsFromPicker(picker));
+  writeMenuGroupTags(storageId, collectTagsFromCheckboxes(picker));
 }
 
 export function bindModuleSettingMenuGroupPickers(): void {
@@ -139,20 +151,24 @@ export function bindModuleSettingMenuGroupPickers(): void {
       if (!removeBtn) return;
       const tag = removeBtn.closest("[data-menu-group-tag]");
       const picker = tag?.closest<HTMLElement>("[data-menu-group-picker]");
-      tag?.remove();
-      if (picker) {
-        refreshPickerSelect(picker);
+      const groupId = tag?.getAttribute("data-group-id");
+      if (groupId && picker) {
+        const cb = picker.querySelector<HTMLInputElement>(
+          `[data-menu-group-choice][data-group-id="${groupId}"]`,
+        );
+        if (cb) cb.checked = false;
+        tag.remove();
+        const tagsWrap = picker.querySelector("[data-menu-group-tags]");
+        if (tagsWrap && !tagsWrap.querySelector("[data-menu-group-tag]")) tagsWrap.remove();
         persistStandaloneMenuGroupPicker(picker);
       }
     });
     wrap.addEventListener("change", (e) => {
-      const select = (e.target as HTMLElement).closest<HTMLSelectElement>("[data-menu-group-picker-add]");
-      if (!select) return;
-      const group = MODULE_SETTING_MOCK_MENU_GROUPS.find((g) => g.id === select.value);
-      const picker = select.closest<HTMLElement>("[data-menu-group-picker]");
-      if (!group || !picker) return;
-      appendGroupTag(picker, group);
-      select.value = "";
+      const cb = (e.target as HTMLElement).closest<HTMLInputElement>("[data-menu-group-choice]");
+      if (!cb) return;
+      const picker = cb.closest<HTMLElement>("[data-menu-group-picker]");
+      if (!picker) return;
+      syncMenuGroupTagsFromCheckboxes(picker);
       persistStandaloneMenuGroupPicker(picker);
     });
   });

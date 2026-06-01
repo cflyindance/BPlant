@@ -1,5 +1,5 @@
 /**
- * 将商品中心 5 组分类写入 docs/项目文档/配置归类-分组映射.csv
+ * 将商品中心设置分类写入 docs/项目文档/配置归类-分组映射.csv
  * 运行：node scripts/apply-product-settings-mapping.mjs
  */
 import fs from "node:fs";
@@ -15,19 +15,11 @@ const mappingPath = [projectDocs, repoDocs]
   .find((p) => fs.existsSync(p));
 
 const titles = {
-  "item-menu-base": "菜品与菜单基础",
-  "pricing-tools": "价格与折扣工具",
-  "combo-scenario-pricing": "套餐与场景计价",
-  "tags-attributes": "标签与分类属性",
-  "menu-scenarios": "品类与场景菜单",
+  "combo-ordering": "套餐点单与展示",
 };
 
 const assignMap = {
-  "item-menu-base": [112, 438, 439, 440, 441, 444, 456, 476],
-  "pricing-tools": [145, 146, 147, 148, 446, 447],
-  "combo-scenario-pricing": [139, 443, 575, 593],
-  "tags-attributes": [542, 552, 628],
-  "menu-scenarios": [655, 656, 657, 658, 659, 660, 661],
+  "combo-ordering": [139, 145],
 };
 
 const productAssign = new Map();

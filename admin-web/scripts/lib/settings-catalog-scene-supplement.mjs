@@ -6,6 +6,7 @@ export const SETTINGS_CATALOG_SCENE_OVERRIDE_BY_SEQ = new Map([
     39,
     "控制哪些订单类型的订单需要打印打包单（与「不需要厨房单的单类」独立，仅作用于打包条）",
   ],
+  [186, "设置分享小费金额计算基数（Net Sales / Grand Total / Account Receivable / Only Gratuity）"],
   [
     419,
     "批量上传地址数据（门店运维；若为外送顾客地址库则归属外卖/来取，待产品确认）",
@@ -23,6 +24,12 @@ export const SETTINGS_CATALOG_SCENE_SUPPLEMENT_BY_SEQ = new Map([
   [462, "维护请至素材中心。"],
 ]);
 
+export const SETTINGS_CATALOG_TITLE_OVERRIDE_BY_SEQ = new Map([
+  [446, "折扣设置"],
+  [447, "加收设置"],
+  [448, "自定义支付方式"],
+]);
+
 /** @param {number} seq @param {string} baseDesc */
 export function buildCatalogSceneDesc(seq, baseDesc) {
   const n = Number(seq);
@@ -34,4 +41,12 @@ export function buildCatalogSceneDesc(seq, baseDesc) {
   if (!supplement) return base;
   if (!base) return supplement;
   return `${base} ${supplement}`;
+}
+
+/** @param {number} seq @param {string} baseTitle */
+export function buildCatalogTitle(seq, baseTitle) {
+  const n = Number(seq);
+  const override = SETTINGS_CATALOG_TITLE_OVERRIDE_BY_SEQ.get(n);
+  if (override) return override;
+  return (baseTitle || "").trim();
 }

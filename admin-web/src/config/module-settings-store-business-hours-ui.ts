@@ -3,6 +3,7 @@
  * seq 418；生效范围含年月段、星期段与时间段；数据原型 localStorage JSON。
  */
 
+import { renderModuleSettingInlineSingleChoiceHtml } from "./module-settings-choice-ui";
 import {
   readModuleSettingJson,
   readModuleSettingText,
@@ -43,9 +44,6 @@ export const STORE_BUSINESS_HOUR_DAYS: { day: StoreBusinessHourDay; label: strin
 
 const INPUT_CLASS =
   "h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-
-const SELECT_CLASS =
-  "h-9 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 const BTN_PRIMARY =
   "inline-flex h-9 shrink-0 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -198,11 +196,18 @@ export function formatScheduleSummary(schedule: StoreBusinessHourSchedule): stri
   return `${formatMonthRange(schedule.fromMonth, schedule.toMonth)} · ${formatDayRange(schedule.fromDay, schedule.toDay)} · ${schedule.openTime}–${schedule.closeTime}`;
 }
 
-function daySelectOptions(selected: StoreBusinessHourDay): string {
-  return STORE_BUSINESS_HOUR_DAYS.map(
-    (d) =>
-      `<option value="${d.day}" ${selected === d.day ? "selected" : ""}>${escapeHtml(d.label)}</option>`,
-  ).join("");
+function renderDayChoice(
+  selected: StoreBusinessHourDay,
+  groupName: string,
+  radioDataAttr: string,
+): string {
+  return renderModuleSettingInlineSingleChoiceHtml({
+    options: STORE_BUSINESS_HOUR_DAYS.map((d) => ({ value: d.day, label: d.label })),
+    groupName,
+    currentValue: selected,
+    radioDataAttr,
+    layout: "wrap",
+  });
 }
 
 function renderScheduleRow(schedule: StoreBusinessHourSchedule): string {
@@ -308,24 +313,14 @@ function renderCreateDialog(): string {
             </div>
             <div class="space-y-3 border-t border-border pt-3">
               <p class="${SUBSECTION_CLASS}">星期</p>
-              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div class="space-y-1.5">
-                  <label class="${LABEL_CLASS}" for="business-hour-create-from-day">从周几</label>
-                  <select
-                    id="business-hour-create-from-day"
-                    class="${SELECT_CLASS}"
-                    data-business-hour-create-from-day
-                    aria-label="从周几"
-                  >${daySelectOptions("mon")}</select>
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div class="space-y-2">
+                  <span class="${LABEL_CLASS}">从周几</span>
+                  ${renderDayChoice("mon", "business-hour-create-from-day", "data-business-hour-create-from-day")}
                 </div>
-                <div class="space-y-1.5">
-                  <label class="${LABEL_CLASS}" for="business-hour-create-to-day">到周几</label>
-                  <select
-                    id="business-hour-create-to-day"
-                    class="${SELECT_CLASS}"
-                    data-business-hour-create-to-day
-                    aria-label="到周几"
-                  >${daySelectOptions("fri")}</select>
+                <div class="space-y-2">
+                  <span class="${LABEL_CLASS}">到周几</span>
+                  ${renderDayChoice("fri", "business-hour-create-to-day", "data-business-hour-create-to-day")}
                 </div>
               </div>
             </div>
@@ -385,15 +380,19 @@ function resetCreateDialog(panel: HTMLElement): void {
   const close = panel.querySelector<HTMLInputElement>("[data-business-hour-create-close]");
   const fromMonth = panel.querySelector<HTMLInputElement>("[data-business-hour-create-from-month]");
   const toMonth = panel.querySelector<HTMLInputElement>("[data-business-hour-create-to-month]");
-  const fromDay = panel.querySelector<HTMLSelectElement>("[data-business-hour-create-from-day]");
-  const toDay = panel.querySelector<HTMLSelectElement>("[data-business-hour-create-to-day]");
   if (name) name.value = "";
   if (open) open.value = "11:00";
   if (close) close.value = "22:00";
   if (fromMonth) fromMonth.value = month;
   if (toMonth) toMonth.value = month;
-  if (fromDay) fromDay.value = "mon";
-  if (toDay) toDay.value = "fri";
+  const fromMon = panel.querySelector<HTMLInputElement>(
+    '[data-business-hour-create-from-day][value="mon"]',
+  );
+  const toFri = panel.querySelector<HTMLInputElement>(
+    '[data-business-hour-create-to-day][value="fri"]',
+  );
+  if (fromMon) fromMon.checked = true;
+  if (toFri) toFri.checked = true;
 }
 
 function showCreateDialog(panel: HTMLElement): void {
@@ -419,11 +418,11 @@ function saveNewSchedule(panel: HTMLElement): void {
   const fromMonth = panel.querySelector<HTMLInputElement>("[data-business-hour-create-from-month]")?.value ?? "";
   const toMonth = panel.querySelector<HTMLInputElement>("[data-business-hour-create-to-month]")?.value ?? "";
   const fromDay = normalizeDay(
-    panel.querySelector<HTMLSelectElement>("[data-business-hour-create-from-day]")?.value,
+    panel.querySelector<HTMLInputElement>("[data-business-hour-create-from-day]:checked")?.value,
     "mon",
   );
   const toDay = normalizeDay(
-    panel.querySelector<HTMLSelectElement>("[data-business-hour-create-to-day]")?.value,
+    panel.querySelector<HTMLInputElement>("[data-business-hour-create-to-day]:checked")?.value,
     "fri",
   );
   if (!name) {

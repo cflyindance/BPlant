@@ -1,5 +1,5 @@
 /**
- * 将前厅管理中心 12 组分类写入 docs/项目文档/配置归类-分组映射.csv
+ * 将前厅管理中心 18 组分类写入 docs/项目文档/配置归类-分组映射.csv
  * 运行：node scripts/apply-foh-settings-mapping.mjs
  */
 import fs from "node:fs";
@@ -16,10 +16,16 @@ const mappingPath = [projectDocs, repoDocs]
 
 const titles = {
   "tables-floor": "桌台与餐位",
+  "pos-order-init": "POS 开单流程",
+  "pos-kitchen-send": "POS 送厨流程",
   "pos-button-visibility": "POS 按钮显隐",
   "pos-order-toolbar": "POS 点单页工具栏",
+  "pos-order-cart": "POS 点单页展示",
+  "pos-find-order-list": "POS 找单列表",
+  "pos-checkout-entry": "POS 结账入口",
   "pos-menu-ui": "POS 菜单与布局",
   "guest-menu-structure": "食客端·菜单结构",
+  "guest-menu-scenarios": "食客端·品类与场景菜单",
   "guest-menu-global": "食客端·首页与版式",
   "guest-menu-cart": "食客端·购物车展示",
   "guest-facing-locale": "食客端·界面语言",
@@ -36,15 +42,23 @@ function range(a, b) {
 }
 
 const assignMap = {
-  "tables-floor": [169, 534, 642, 351, 347],
+  "tables-floor": [169, 534, 107, 533, 619, 643, 644, 592, 642, 351, 347],
+  "pos-order-init": [108, 111, 625],
+  "pos-kitchen-send": [113, 114, 120, 123, 125],
   "pos-button-visibility": [...range(193, 196), ...range(197, 216)],
-  "pos-order-toolbar": [196, 483, 484, 485, 486],
-  "pos-menu-ui": [118, 176, 177, 348, 350, ...range(216, 221)],
+  "pos-order-toolbar": [196, 110, 483, 484, 485, 486],
+  "pos-order-cart": [132, 133, 135, 136, 137, 121, 122, 178],
+  "pos-find-order-list": [151, 152, 153, 154, 251],
+  "pos-checkout-entry": [248, 221],
+  "pos-menu-ui": [118, 148, 176, 177, 348, 350, ...range(216, 221)],
   "guest-menu-structure": [515, 516, 517, 518, 519, 520, 524, 528],
-  "guest-menu-global": [532, 599, 601, 602, 604, 606, 607, 608, 611, 600, 612, 645],
+  "guest-menu-scenarios": [655, 656, 657, 658, 659, 660, 661],
+  "guest-menu-global": [532, 542, 599, 601, 602, 604, 606, 607, 608, 611, 600, 612, 645],
   "guest-menu-cart": [616, 617, 618],
   "guest-facing-locale": [652, 653],
-  "guest-order-rules": [569, 570, 573, 577, 578, 579, 580, 597, 598],
+  "guest-order-rules": [
+    91, 443, 502, 567, 571, 572, 574, 575, 569, 570, 573, 577, 578, 579, 580, 581, 597, 598,
+  ],
   "guest-notes-fees": [521, 522, 523, 544, 545],
   "wait-time": [535, 536, 537, 538, 539, 540],
   cds: [461, 462, 466],

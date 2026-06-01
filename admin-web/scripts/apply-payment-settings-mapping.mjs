@@ -1,5 +1,5 @@
 /**
- * 将支付中心 7 组分类写入 docs/项目文档/配置归类-分组映射.csv
+ * 将支付中心 8 组分类写入 docs/项目文档/配置归类-分组映射.csv
  * 运行：node scripts/apply-payment-settings-mapping.mjs
  */
 import fs from "node:fs";
@@ -20,7 +20,8 @@ const titles = {
   "tip-policy": "小费政策与计算",
   "batch-settlement": "BATCH与日结",
   "card-fees": "卡交易与附加费用",
-  "guest-checkout-ux": "食客端·结账交互",
+  "cds-checkout-ux": "客显·结账交互",
+  "guest-self-checkout-ux": "扫码端·结账交互",
   "paypad-checkout": "Paypad·结账交互",
 };
 
@@ -30,7 +31,8 @@ const assignMap = {
   "tip-policy": [231, 232, 237, 244, 253, 293, 294, 295, 296],
   "batch-settlement": [230, 235, 236, 238, 239, 240, 241],
   "card-fees": [242, 243, 307, 452, 454, 512, 543],
-  "guest-checkout-ux": [8, 9, 463, 464, 465, 492, 493, 494, 495, 496, 497, 501],
+  "cds-checkout-ux": [8, 9, 463, 464, 465],
+  "guest-self-checkout-ux": [492, 493, 494, 495, 496, 497, 501],
   "paypad-checkout": [662, 663, 664, 665, 666, 667],
 };
 

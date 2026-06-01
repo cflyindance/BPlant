@@ -7,18 +7,25 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseConfigMd, slugify } from "./lib/parse-bplant-config-md.mjs";
 import { isSettingsCatalogExcluded } from "./lib/settings-catalog-exclusions.mjs";
-import { buildCatalogSceneDesc } from "./lib/settings-catalog-scene-supplement.mjs";
+import { buildCatalogSceneDesc, buildCatalogTitle } from "./lib/settings-catalog-scene-supplement.mjs";
 import { getSettingsHub } from "./lib/settings-hub-override.mjs";
 import {
   FOH_SETTINGS_GROUP_ORDER,
   INTRA_GROUP_SORT_BY_SEQ,
   KITCHEN_SETTINGS_GROUP_ORDER,
+  ORDER_SETTINGS_GROUP_ORDER,
+  PAYMENT_SETTINGS_GROUP_ORDER,
+  PRODUCT_SETTINGS_GROUP_ORDER,
   STORE_SETTINGS_GROUP_ORDER,
 } from "./lib/settings-intra-group-sort.mjs";
 
 const SETTINGS_GROUP_ORDER_BY_PATH = {
   "/operations/queue-call/settings": FOH_SETTINGS_GROUP_ORDER,
   "/operations/kitchen-kds/settings": KITCHEN_SETTINGS_GROUP_ORDER,
+  "/orders/settings": ORDER_SETTINGS_GROUP_ORDER,
+  "/transactions/settings": PAYMENT_SETTINGS_GROUP_ORDER,
+  "/product-center-main/settings": PRODUCT_SETTINGS_GROUP_ORDER,
+  "/promotions/settings": ["promo-strategy", "promo-channel"],
   "/reviews/settings": ["review-content-moderation"],
   "/stores/settings": STORE_SETTINGS_GROUP_ORDER,
 };
@@ -138,7 +145,7 @@ function buildCatalog(rows, mapping) {
 
     const item = {
       seq: row.seq,
-      title: row.title,
+      title: buildCatalogTitle(row.seq, row.title),
       feature: row.feature,
       sceneDesc: buildCatalogSceneDesc(row.seq, row.sceneDesc),
       moduleName: row.moduleName,

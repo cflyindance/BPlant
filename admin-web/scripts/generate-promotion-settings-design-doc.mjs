@@ -6,6 +6,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseConfigMd } from "./lib/parse-bplant-config-md.mjs";
+import { isSettingsCatalogExcluded } from "./lib/settings-catalog-exclusions.mjs";
+import { filterRowsForSettingsHub } from "./lib/settings-hub-override.mjs";
+import { buildCatalogTitle } from "./lib/settings-catalog-scene-supplement.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..", "..");
@@ -22,14 +25,14 @@ const titles = {
 
 const reasons = {
   "promo-strategy":
-    "承载活动本体（促销活动、本地促销、抽奖活动）及规则开关；对标 Toast「优惠/促销活动」、Square「优惠券/促销活动」、Snackpass「促销活动+奖励」。",
+    "承载活动本体（促销活动、本地促销、抽奖活动）、拆单促销重算（150）及规则开关；对标 Toast「优惠/促销活动」、Square「优惠券/促销活动」。",
   "promo-channel":
     "承载促销后台来源与投放渠道切换（Kiosk 本地促销后台）；对标 Peblla/Snackpass 的渠道接入与店内触达配置。",
 };
 
-/** seq → groupKey（促销中心 4 条） */
+/** seq → groupKey（促销中心 catalog；150 自订单 hub override 迁入） */
 const assignMap = {
-  "promo-strategy": [442, 549, 647],
+  "promo-strategy": [442, 549, 647, 150],
   "promo-channel": [541],
 };
 
@@ -52,7 +55,9 @@ function sceneSummary(scene) {
 }
 
 const md = fs.readFileSync(sourcePath, "utf8");
-const rows = parseConfigMd(md).filter((r) => r.hub === HUB);
+const rows = filterRowsForSettingsHub(parseConfigMd(md), HUB).filter(
+  (r) => !isSettingsCatalogExcluded(r.seq),
+);
 const order = ["promo-strategy", "promo-channel"];
 
 const missing = rows.filter((r) => !assign.has(r.seq)).map((r) => r.seq);
@@ -63,7 +68,11 @@ if (extra.length) throw new Error(`映射多余 seq: ${extra.join(", ")}`);
 const by = new Map(order.map((k) => [k, []]));
 for (const r of rows) {
   const key = assign.get(r.seq);
-  by.get(key).push({ ...r, area: inferArea(r.nav, r.moduleName, r.title) });
+  by.get(key).push({
+    ...r,
+    title: buildCatalogTitle(r.seq, r.title),
+    area: inferArea(r.nav, r.moduleName, r.title),
+  });
 }
 
 const lines = [];
@@ -72,8 +81,8 @@ const push = (...xs) => lines.push(...xs);
 push(
   "# 促销中心 · 设置二级导航重设计方案",
   "",
-  "> 文档版本：v1.0  ",
-  "> 数据范围：`docs/项目文档/配置归类-终版.md` 中 **B平台一级导航 = 促销中心** 共 **4** 条功能设置  ",
+  "> 文档版本：v1.1（已确认）  ",
+  "> 数据范围：促销设置 catalog **5** 条（终版 4 条 + hub override 150 子单促销重算）  ",
   "> 竞品参考：Toast / Clover / Square / Peblla / Snackpass 商家后台结构文档",
   "",
   "---",
@@ -88,9 +97,15 @@ push(
   "| 组名来源 | 促销活动 / 平台设置 / 促销 / 抽奖活动 | 商户难区分活动规则与渠道配置 |",
   "| 使用路径 | 活动开关与渠道开关并列 | 不能按“先建活动，再选投放渠道”配置 |",
   "",
-  "### 1.2 设计目标",
+  "### 1.2 v1.1 变更（子单促销重算迁入）",
   "",
-  "- 二级导航收敛为 **2 组**，覆盖 4 条，形成清晰运营流程",
+  "| seq | 功能设置 | 迁入 |",
+  "|-----|----------|------|",
+  "| 150 | 子单促销自动重算 | `promo-strategy`（自订单中心 `discount-void`） |",
+  "",
+  "### 1.3 设计目标",
+  "",
+  "- 二级导航收敛为 **2 组**，覆盖 catalog 条目，形成清晰运营流程",
   "- 输出可写入 `docs/项目文档/配置归类-分组映射.csv` 的 `groupTitle` / `groupKey`",
   "- **不修改** `配置归类-终版.md` 原文",
   "",

@@ -17,23 +17,21 @@ const mappingPath = [projectDocs, repoDocs]
 const titles = {
   "order-init-scenario": "开单·桌台与场景",
   "order-numbering": "单号规则",
-  "kitchen-send": "送厨策略",
-  "order-ui": "点单界面",
   "split-merge-edit": "分单合单与改单",
-  "find-checkout": "找单与收银",
-  "discount-void": "折扣加收与删退",
+  "order-discount": "折扣",
+  "order-surcharge": "加收",
+  "order-settlement": "金额结算",
+  "order-void": "删退与作废",
 };
 
 const assignMap = {
-  "order-init-scenario": [
-    107, 108, 110, 111, 126, 533, 619, 625, 643, 644, 592, 571, 572, 574,
-  ],
+  "order-init-scenario": [126],
   "order-numbering": [127, 128, 129, 130, 131],
-  "kitchen-send": [91, 113, 114, 120, 123, 125, 502, 567, 581],
-  "order-ui": [132, 133, 134, 135, 136, 137, 178],
-  "split-merge-edit": [115, 116, 117, 119, 121, 122, 124, 140, 141, 149, 150],
-  "find-checkout": [151, 152, 153, 154, 221, 248, 251],
-  "discount-void": [155, 156, 157, 158, 159, 161, 162, 163, 164],
+  "split-merge-edit": [115, 116, 117, 119, 124, 140, 141],
+  "order-discount": [446, 162, 163, 164],
+  "order-surcharge": [447, 149, 161],
+  "order-settlement": [147],
+  "order-void": [155, 156, 157, 158, 159],
 };
 
 const orderAssign = new Map();
