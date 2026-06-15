@@ -1,6 +1,7 @@
 /**
- * 将消息中心 3 组分类写入 docs/项目文档/配置归类-分组映射.csv
- * 运行：node scripts/apply-notifications-settings-mapping.mjs
+ * 将消息中心分组写入 docs/项目文档/配置归类-分组映射.csv
+ * v1.3：POS 员工端通知已迁前厅；消息中心设置仅保留「顾客短信渠道」（334/335）。
+ * 运行：node admin-web/scripts/apply-notifications-settings-mapping.mjs
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -15,15 +16,11 @@ const mappingPath = [projectDocs, repoDocs]
   .find((p) => fs.existsSync(p));
 
 const titles = {
-  "notification-basics": "通知基础与渠道",
-  "order-pickup-messages": "订单与取餐通知",
-  "service-call-alerts": "呼叫服务员与现场提醒",
+  "customer-order-sms": "顾客短信渠道",
 };
 
 const assignMap = {
-  "notification-basics": [331, 332],
-  "order-pickup-messages": [334, 335, 336, 337, 338, 339, 340, 638, 639],
-  "service-call-alerts": [333, 629, 630, 631, 632, 633, 634, 635, 636, 637, 640, 641],
+  "customer-order-sms": [334, 335],
 };
 
 const notifAssign = new Map();

@@ -16,7 +16,11 @@
       var embedded = params.get("embedded");
       var isEmbedded = embedded === "1" || embedded === "true";
       if (!isEmbedded) {
-        try { isEmbedded = window.self !== window.top; } catch (e) { isEmbedded = false; }
+        try {
+          isEmbedded = window.self !== window.top;
+        } catch (e) {
+          isEmbedded = false;
+        }
       }
       if (isEmbedded) {
         document.documentElement.classList.add("embedded-mode");

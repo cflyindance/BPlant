@@ -1,5 +1,6 @@
 /**
- * 将权限管理中心 4 组分类写入 docs/项目文档/配置归类-分组映射.csv
+ * 权限管理中心 · 方案 F：无 settings catalog（纯 RBAC）。
+ * 75/166/175/349 已迁前厅 foh-pos-shell；运行 apply-foh-settings-mapping.mjs 维护映射。
  * 运行：node scripts/apply-permissions-settings-mapping.mjs
  */
 import fs from "node:fs";
@@ -14,26 +15,8 @@ const mappingPath = [projectDocs, repoDocs]
   .map((d) => path.join(d, "配置归类-分组映射.csv"))
   .find((p) => fs.existsSync(p));
 
-const titles = {
-  "account-security-auth": "账户安全与授权",
-  "role-employee-permissions": "角色与员工权限",
-  "order-operation-guardrails": "下单操作限制与授权",
-  "guest-order-limits": "食客下单限制规则",
-};
-
-const assignMap = {
-  "account-security-auth": [75, 166, 175, 345, 346, 646],
-  "role-employee-permissions": [68, 69, 349, 369, 426],
-  "order-operation-guardrails": [138, 594, 595, 596, 620, 621, 626, 627],
-  "guest-order-limits": [563, 564, 565, 566, 568, 576, 583, 584, 585, 586, 587, 588, 589, 590, 591],
-};
-
+/** 方案 F：权限 hub 不再承载 catalog 条目 */
 const permAssign = new Map();
-for (const [key, seqs] of Object.entries(assignMap)) {
-  for (const seq of seqs) {
-    permAssign.set(seq, { groupTitle: titles[key], groupKey: key });
-  }
-}
 
 function parseCsvLine(line) {
   const parts = [];
@@ -94,9 +77,5 @@ for (const line of lines) {
   }
 }
 
-if (updated !== permAssign.size) {
-  throw new Error(`预期更新 ${permAssign.size} 条，实际 ${updated} 条`);
-}
-
 fs.writeFileSync(mappingPath, `${out.join("\n")}\n`, "utf8");
-console.log(`Updated ${updated} rows in ${mappingPath}`);
+console.log(`Permissions hub mapping: ${updated} rows updated (scheme F: 0 expected).`);

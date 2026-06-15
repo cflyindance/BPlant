@@ -1,5 +1,6 @@
 /**
- * 将外卖/来取 4 组分类写入 docs/项目文档/配置归类-分组映射.csv
+ * 将外卖/来取 v2.0 三组（履约/线上下单/外送包装）写入 docs/项目文档/配置归类-分组映射.csv
+ * 技术对接 (93/95–106)、堂食项 (98/503)、小票签名 (94) 由其它 apply 脚本迁出。
  * 运行：node scripts/apply-delivery-settings-mapping.mjs
  */
 import fs from "node:fs";
@@ -15,17 +16,16 @@ const mappingPath = [projectDocs, repoDocs]
   .find((p) => fs.existsSync(p));
 
 const titles = {
-  "order-type-pickup": "订单类型与取餐流程",
   "scan-online-basics": "扫码·线上下单基础",
-  "online-integration": "线上订餐服务对接",
+  "platform-delivery-slips": "平台订单与小票",
   "delivery-packaging": "外送区域与打包费",
 };
 
 const assignMap = {
-  "order-type-pickup": [31, 487, 488, 489, 490, 491, 503],
-  "scan-online-basics": [90, 92, 93, 94],
-  "online-integration": [95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106],
-  "delivery-packaging": [429, 546],
+  "scan-online-basics": [90, 92],
+  /** v2.5 自打印中心迁入：平台备注、外送收据份数 */
+  "platform-delivery-slips": [257, 267],
+  "delivery-packaging": [429],
 };
 
 const deliveryAssign = new Map();

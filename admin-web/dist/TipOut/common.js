@@ -6,8 +6,8 @@ function isEmbeddedMode() {
   try {
     if (window.self !== window.top) return true;
     var p = new URLSearchParams(window.location.search);
-    var v = (p.get('embedded') || '').toLowerCase();
-    return v === '1' || v === 'true' || v === 'yes';
+    var v = (p.get("embedded") || "").toLowerCase();
+    return v === "1" || v === "true" || v === "yes";
   } catch (e) {
     return window.self !== window.top;
   }
@@ -15,11 +15,11 @@ function isEmbeddedMode() {
 
 function applyEmbeddedMode() {
   if (!isEmbeddedMode()) return;
-  document.body.classList.add('tipout-embedded');
+  document.body.classList.add("tipout-embedded");
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', applyEmbeddedMode);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", applyEmbeddedMode);
 } else {
   applyEmbeddedMode();
 }

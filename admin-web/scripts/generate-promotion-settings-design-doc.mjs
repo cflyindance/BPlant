@@ -20,19 +20,23 @@ const HUB = "促销中心";
 
 const titles = {
   "promo-strategy": "促销活动与规则",
+  "lottery-activity": "抽奖活动",
   "promo-channel": "促销渠道与载体",
 };
 
 const reasons = {
   "promo-strategy":
-    "承载活动本体（促销活动、本地促销、抽奖活动）、拆单促销重算（150）及规则开关；对标 Toast「优惠/促销活动」、Square「优惠券/促销活动」。",
+    "承载促销活动本体与本地促销后台；对标 Toast「优惠/促销活动」、Square「优惠券/促销活动」。",
+  "lottery-activity":
+    "抽奖活动总开关与抽取规则、奖池、概率等配置项较多，单独成组便于侧栏直达；对标 Square「奖励计划」、Snackpass 奖励互动。",
   "promo-channel":
     "承载促销后台来源与投放渠道切换（Kiosk 本地促销后台）；对标 Peblla/Snackpass 的渠道接入与店内触达配置。",
 };
 
-/** seq → groupKey（促销中心 catalog；150 自订单 hub override 迁入） */
+/** seq → groupKey（促销中心 catalog） */
 const assignMap = {
-  "promo-strategy": [442, 549, 647, 150],
+  "promo-strategy": [442, 549],
+  "lottery-activity": [647],
   "promo-channel": [541],
 };
 
@@ -58,7 +62,7 @@ const md = fs.readFileSync(sourcePath, "utf8");
 const rows = filterRowsForSettingsHub(parseConfigMd(md), HUB).filter(
   (r) => !isSettingsCatalogExcluded(r.seq),
 );
-const order = ["promo-strategy", "promo-channel"];
+const order = ["promo-strategy", "lottery-activity", "promo-channel"];
 
 const missing = rows.filter((r) => !assign.has(r.seq)).map((r) => r.seq);
 if (missing.length) throw new Error(`未归类 seq: ${missing.join(", ")}`);
@@ -81,8 +85,8 @@ const push = (...xs) => lines.push(...xs);
 push(
   "# 促销中心 · 设置二级导航重设计方案",
   "",
-  "> 文档版本：v1.1（已确认）  ",
-  "> 数据范围：促销设置 catalog **5** 条（终版 4 条 + hub override 150 子单促销重算）  ",
+  "> 文档版本：v1.2（抽奖活动独立二级导航）  ",
+  "> 数据范围：促销设置 catalog **4** 条（终版 4 条；150 子单促销重算已迁回订单中心）  ",
   "> 竞品参考：Toast / Clover / Square / Peblla / Snackpass 商家后台结构文档",
   "",
   "---",
@@ -97,15 +101,25 @@ push(
   "| 组名来源 | 促销活动 / 平台设置 / 促销 / 抽奖活动 | 商户难区分活动规则与渠道配置 |",
   "| 使用路径 | 活动开关与渠道开关并列 | 不能按“先建活动，再选投放渠道”配置 |",
   "",
-  "### 1.2 v1.1 变更（子单促销重算迁入）",
+  "### 1.2 v1.2 变更（抽奖活动独立分组）",
   "",
-  "| seq | 功能设置 | 迁入 |",
+  "| seq | 功能设置 | 说明 |",
   "|-----|----------|------|",
-  "| 150 | 子单促销自动重算 | `promo-strategy`（自订单中心 `discount-void`） |",
+  "| 647 | 抽奖活动 | 自 `promo-strategy` 迁至 **`lottery-activity`** 独立二级导航 |",
   "",
-  "### 1.3 设计目标",
+  "### 1.3 v1.3 变更（子单促销重算迁回订单中心）",
   "",
-  "- 二级导航收敛为 **2 组**，覆盖 catalog 条目，形成清晰运营流程",
+  "| seq | 功能设置 | 迁回 |",
+  "|-----|----------|------|",
+  "| 150 | 子单促销自动重算 | 订单中心 · `split-merge-edit`（与终版 SSOT 一致） |",
+  "",
+  "### 1.4 v1.1 变更（子单促销重算曾迁入，已撤销）",
+  "",
+  "_历史：v1.1 曾将 150 迁入 `promo-strategy`，v1.3 迁回订单中心分单组。_",
+  "",
+  "### 1.5 设计目标",
+  "",
+  "- 二级导航为 **3 组**：促销规则、抽奖活动、渠道载体",
   "- 输出可写入 `docs/项目文档/配置归类-分组映射.csv` 的 `groupTitle` / `groupKey`",
   "- **不修改** `配置归类-终版.md` 原文",
   "",
@@ -124,12 +138,12 @@ push(
   "### 2.1 促销设置两维（商户心智）",
   "",
   "```text",
-  "促销活动与规则 → 促销渠道与载体",
+  "促销活动与规则 → 抽奖活动 → 促销渠道与载体",
   "```",
   "",
   "---",
   "",
-  "## 3. 推荐二级导航结构（2 组）",
+  "## 3. 推荐二级导航结构（3 组）",
   "",
   "| 序号 | groupTitle | groupKey | 条数 | 说明 |",
   "|------|------------|----------|------|------|",
@@ -162,7 +176,8 @@ push(
   "",
   "| 新 groupTitle | 吸收的旧分组 |",
   "|---------------|--------------|",
-  "| 促销活动与规则 | 促销活动、促销、抽奖活动 |",
+  "| 促销活动与规则 | 促销活动、促销 |",
+  "| 抽奖活动 | 抽奖活动（647） |",
   "| 促销渠道与载体 | 平台设置（Kiosk 本地促销后台） |",
   "",
   "---",

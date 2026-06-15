@@ -1,5 +1,5 @@
 /**
- * 将会员中心 4 组分类写入 docs/项目文档/配置归类-分组映射.csv
+ * 将会员中心 1 组分类写入 docs/项目文档/配置归类-分组映射.csv
  * 运行：node scripts/apply-member-settings-mapping.mjs
  */
 import fs from "node:fs";
@@ -16,16 +16,10 @@ const mappingPath = [projectDocs, repoDocs]
 
 const titles = {
   "member-account-system": "会员账户与卡体系",
-  "points-rewards": "积分规则与兑换商品",
-  "login-verification": "登录注册与信息校验",
-  "member-guidance-benefits": "会员引导与权益展示",
 };
 
 const assignMap = {
-  "member-account-system": [82, 86, 87, 88, 89, 479, 480, 481, 482],
-  "points-rewards": [83, 84, 85, 509, 525, 526, 527],
-  "login-verification": [10, 30, 222, 223, 504, 505, 506, 507, 508, 510, 622, 623, 624],
-  "member-guidance-benefits": [554, 615, 650],
+  "member-account-system": [86, 87, 88, 89],
 };
 
 const memberAssign = new Map();

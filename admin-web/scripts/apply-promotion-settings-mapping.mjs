@@ -16,12 +16,13 @@ const mappingPath = [projectDocs, repoDocs]
 
 const titles = {
   "promo-strategy": "促销活动与规则",
-  "promo-channel": "促销渠道与载体",
+  "lottery-activity-settings": "抽奖活动设置",
+  "lottery-animation-settings": "抽奖动画设置",
 };
 
 const assignMap = {
-  "promo-strategy": [442, 549, 647, 150],
-  "promo-channel": [541],
+  "promo-strategy": [150],
+  "lottery-activity-settings": [647],
 };
 
 const promoAssign = new Map();

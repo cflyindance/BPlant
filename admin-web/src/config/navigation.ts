@@ -47,7 +47,8 @@ export interface NavModule {
     | "storeMgmt"
     | "permissionMgmt"
     | "assetCenter"
-    | "configCenter";
+    | "configCenter"
+    | "logManagement";
   path: string;
   children: NavItem[];
   /**
@@ -146,6 +147,12 @@ export const NAV_MODULES: NavModule[] = [
       { id: "st-overview", title: "门店总览", titleEn: "Overview", path: "/stores/overview" },
       { id: "st-list", title: "门店列表", titleEn: "Store list", path: "/stores/list" },
       { id: "st-status", title: "门店状态", titleEn: "Store status", path: "/stores/status" },
+      {
+        id: "st-brand-menu",
+        title: "品牌与菜单",
+        titleEn: "Brand & menu",
+        path: "/stores/brand-menu",
+      },
       { id: "st-settings", title: "设置", path: "/stores/settings" },
     ],
   },
@@ -161,7 +168,6 @@ export const NAV_MODULES: NavModule[] = [
       { id: "dash-overview", title: "今日概览", path: "/dashboard/overview" },
       { id: "dash-todos", title: "待办", path: "/dashboard/todos" },
       { id: "dash-kpi", title: "关键指标", path: "/dashboard/kpi" },
-      { id: "dash-settings", title: "设置", titleEn: "Settings", path: "/dashboard/settings" },
     ],
   },
   {
@@ -176,16 +182,11 @@ export const NAV_MODULES: NavModule[] = [
       { id: "team-roles", title: "角色与员工", path: "/team/roles-employees" },
       { id: "team-breaks", title: "休息与加班", path: "/team/breaks-overtime" },
       { id: "team-clock", title: "员工打卡", path: "/team/clock-in" },
+      { id: "team-shifts", title: "排班", titleEn: "Shift scheduling", path: "/team/shift-scheduling" },
       { id: "team-tips", title: "小费管理", path: "/team/tips" },
-      { id: "team-tax-payroll", title: "报税报表", titleEn: "Tax payroll reports", path: "/team/payroll-report" },
+      { id: "team-tax-payroll", title: "薪酬计算与报税准备", titleEn: "Payroll calculation & tax prep", path: "/team/payroll-report" },
       { id: "team-reports", title: "员工报表", path: "/team/reports" },
       { id: "team-7shifts", title: "7Shifts 对接（排班）", path: "/team/integrations/7shifts" },
-      {
-        id: "team-schedule",
-        title: "排班与考勤",
-        path: "/team/scheduling",
-        chainOnly: true,
-      },
       { id: "team-training", title: "绩效与培训", path: "/team/training-performance" },
       { id: "team-settings", title: "设置", path: "/team/settings" },
     ],
@@ -217,7 +218,6 @@ export const NAV_MODULES: NavModule[] = [
         titleEn: "Store management",
         path: "/menu/store-menu",
       },
-      { id: "pcm-settings", title: "设置", titleEn: "Settings", path: "/product-center-main/settings" },
     ],
   },
   {
@@ -227,11 +227,8 @@ export const NAV_MODULES: NavModule[] = [
     icon: "orders",
     path: "/orders",
     subNavPlacement: "sheet",
-    defaultChildPath: "/orders/all",
+    defaultChildPath: "/orders/settings",
     children: [
-      { id: "orders-all", title: "全部订单", path: "/orders/all" },
-      { id: "orders-refunds", title: "退单", titleEn: "Refunds & voids", path: "/orders/refunds" },
-      { id: "orders-history", title: "订单历史", path: "/orders/history" },
       { id: "orders-settings", title: "设置", path: "/orders/settings" },
     ],
   },
@@ -242,11 +239,8 @@ export const NAV_MODULES: NavModule[] = [
     icon: "receipt",
     path: "/transactions",
     subNavPlacement: "sheet",
-    defaultChildPath: "/transactions/ledger",
+    defaultChildPath: "/transactions/settings",
     children: [
-      { id: "tx-ledger", title: "交易流水", path: "/transactions/ledger" },
-      { id: "tx-payments", title: "支付方式", path: "/transactions/payments" },
-      { id: "tx-reconcile", title: "对账", path: "/transactions/reconcile" },
       { id: "tx-settings", title: "设置", path: "/transactions/settings" },
     ],
   },
@@ -274,12 +268,11 @@ export const NAV_MODULES: NavModule[] = [
     titleEn: "Marketing center",
     icon: "marketing",
     path: "/marketing",
-    defaultChildPath: "/marketing/campaigns",
+    defaultChildPath: "/marketing/screensaver",
     children: [
-      { id: "mkt-campaigns", title: "营销活动", titleEn: "Campaigns", path: "/marketing/campaigns" },
-      { id: "mkt-manual", title: "手动营销", titleEn: "Manual marketing", path: "/marketing/manual" },
       { id: "mkt-screensaver", title: "屏保", titleEn: "Screensaver", path: "/marketing/screensaver" },
-      { id: "mkt-settings", title: "设置", titleEn: "Settings", path: "/marketing/settings" },
+      { id: "mkt-ads", title: "广告", titleEn: "Ads", path: "/marketing/ads" },
+      { id: "mkt-poster-pro", title: "海报Pro", titleEn: "Poster Pro", path: "/marketing/poster-pro" },
     ],
   },
   {
@@ -291,7 +284,7 @@ export const NAV_MODULES: NavModule[] = [
     defaultChildPath: "/promotions/campaigns",
     children: [
       { id: "promo-campaigns", title: "促销活动", titleEn: "Promotional activities", path: "/promotions/campaigns" },
-      { id: "promo-settings", title: "设置", titleEn: "Settings", path: "/promotions/settings" },
+      { id: "promo-lottery", title: "抽奖活动", titleEn: "Lottery", path: "/promotions/lottery" },
     ],
   },
   {
@@ -341,14 +334,8 @@ export const NAV_MODULES: NavModule[] = [
     icon: "queueCall",
     path: "/operations/queue-call",
     subNavPlacement: "sheet",
-    defaultChildPath: "/operations/queue-call",
+    defaultChildPath: "/operations/queue-call/floor-plan",
     children: [
-      {
-        id: "qc-main",
-        title: "前厅管理中心",
-        titleEn: "Front of house management center",
-        path: "/operations/queue-call",
-      },
       {
         id: "qc-floor-plan",
         title: "餐位平面图",
@@ -356,6 +343,30 @@ export const NAV_MODULES: NavModule[] = [
         path: "/operations/queue-call/floor-plan",
       },
       { id: "qc-settings", title: "设置", titleEn: "Settings", path: "/operations/queue-call/settings" },
+      {
+        id: "qc-menu-order-limits",
+        title: "菜单下单限制",
+        titleEn: "Menu order limits",
+        path: "/operations/queue-call/menu-order-limits",
+      },
+      {
+        id: "qc-category-settings",
+        title: "品类设置",
+        titleEn: "Category settings",
+        path: "/operations/queue-call/category-settings",
+      },
+      {
+        id: "qc-classification-settings",
+        title: "分类设置",
+        titleEn: "Classification settings",
+        path: "/operations/queue-call/classification-settings",
+      },
+      {
+        id: "qc-emenu-pro",
+        title: "eMenu Pro",
+        titleEn: "eMenu Pro",
+        path: "/operations/queue-call/emenu-pro",
+      },
     ],
   },
   {
@@ -365,10 +376,21 @@ export const NAV_MODULES: NavModule[] = [
     icon: "kitchenKds",
     path: "/operations/kitchen-kds",
     subNavPlacement: "sheet",
-    defaultChildPath: "/operations/kitchen-kds",
+    defaultChildPath: "/operations/kitchen-kds/settings",
     children: [
-      { id: "kds-main", title: "后厨设置", titleEn: "Back-of-house settings", path: "/operations/kitchen-kds" },
       { id: "kds-settings", title: "设置", titleEn: "Settings", path: "/operations/kitchen-kds/settings" },
+      {
+        id: "kds-display",
+        title: "KDS 显示与交互",
+        titleEn: "KDS display & interaction",
+        path: "/operations/kitchen-kds/display",
+      },
+      {
+        id: "kds-workflow",
+        title: "KDS 出餐流程",
+        titleEn: "KDS workflow",
+        path: "/operations/kitchen-kds/workflow",
+      },
     ],
   },
   {
@@ -410,13 +432,15 @@ export const NAV_MODULES: NavModule[] = [
     icon: "financeCenter",
     path: "/finance",
     subNavPlacement: "sheet",
-    defaultChildPath: "/finance/overview",
+    defaultChildPath: "/finance/register-audit/payments",
     children: [
-      { id: "fin-overview", title: "财务总览", titleEn: "Overview", path: "/finance/overview" },
-      { id: "fin-cash-flow", title: "收支流水", titleEn: "Cash flow", path: "/finance/cash-flow" },
-      { id: "fin-reconcile", title: "对账管理", titleEn: "Reconciliation", path: "/finance/reconciliation" },
-      { id: "fin-invoices", title: "发票与税务", titleEn: "Invoices & tax", path: "/finance/invoices" },
-      { id: "fin-settings", title: "设置", path: "/finance/settings" },
+      {
+        id: "fin-register-audit",
+        title: "收银记录与审计",
+        titleEn: "Register audit",
+        path: "/finance/register-audit/payments",
+      },
+      { id: "fin-settings", title: "设置", titleEn: "Settings", path: "/finance/settings" },
     ],
   },
   {
@@ -438,11 +462,12 @@ export const NAV_MODULES: NavModule[] = [
     icon: "notifications",
     path: "/notifications",
     subNavPlacement: "sheet",
-    defaultChildPath: "/notifications/center",
+    defaultChildPath: "/notifications/templates",
     children: [
-      { id: "notif-center", title: "收件箱", titleEn: "Inbox", path: "/notifications/center" },
-      { id: "notif-settings", title: "通知设置", titleEn: "Preferences", path: "/notifications/settings" },
-      { id: "notif-templates", title: "模板与订阅", titleEn: "Templates & subscriptions", path: "/notifications/templates" },
+      { id: "notif-templates", title: "消息模板", titleEn: "Message templates", path: "/notifications/templates" },
+      { id: "notif-scene-config", title: "消息配置", titleEn: "Message configuration", path: "/notifications/scene-config" },
+      { id: "notif-quota", title: "消息额度", titleEn: "Message quota", path: "/notifications/quota" },
+      { id: "notif-settings", title: "设置", titleEn: "Settings", path: "/notifications/settings" },
     ],
   },
   {
@@ -476,19 +501,15 @@ export const NAV_MODULES: NavModule[] = [
     icon: "deviceManagement",
     path: "/device-management",
     subNavPlacement: "sheet",
-    defaultChildPath: "/device-management/overview",
+    defaultChildPath: "/device-management/hardware/payments",
     children: [
-      { id: "dm-overview", title: "设备总览", titleEn: "Overview", path: "/device-management/overview" },
       {
         id: "dm-hardware",
         title: "硬件",
         titleEn: "Hardware",
         path: "/device-management/hardware/payments",
       },
-      { id: "dm-terminals", title: "终端管理", titleEn: "Terminals", path: "/device-management/terminals" },
-      { id: "dm-binding", title: "绑定与授权", titleEn: "Binding & authorization", path: "/device-management/binding" },
-      { id: "dm-alerts", title: "监控告警", titleEn: "Monitoring & alerts", path: "/device-management/alerts" },
-      { id: "dm-settings", title: "设置", path: "/device-management/settings" },
+      { id: "dm-settings", title: "设置", titleEn: "Settings", path: "/device-management/settings" },
     ],
   },
   {
@@ -519,18 +540,17 @@ export const NAV_MODULES: NavModule[] = [
         path: "/permissions/staff",
       },
       {
+        id: "perm-staff-accounts",
+        title: "员工登录账号",
+        titleEn: "Staff login accounts",
+        path: "/permissions/staff-accounts",
+      },
+      {
         id: "perm-changelog",
         title: "权限变更记录",
         titleEn: "Permission change log",
         path: "/permissions/change-log",
       },
-      {
-        id: "perm-order-limit",
-        title: "下单限制",
-        titleEn: "Order limits",
-        path: "/permissions/order-limit",
-      },
-      { id: "perm-settings", title: "设置", path: "/permissions/settings" },
     ],
   },
   {
@@ -553,7 +573,23 @@ export const NAV_MODULES: NavModule[] = [
     children: [
       { id: "ac-materials", title: "图片素材", titleEn: "Image materials", path: "/asset-center/materials" },
       { id: "ac-videos", title: "视频库", titleEn: "Video library", path: "/asset-center/videos" },
-      { id: "ac-settings", title: "设置", path: "/asset-center/settings" },
+    ],
+  },
+  {
+    id: "log-management",
+    title: "日志管理",
+    titleEn: "Log management",
+    icon: "logManagement",
+    path: "/log-management",
+    subNavPlacement: "sheet",
+    defaultChildPath: "/log-management/login-logs",
+    children: [
+      {
+        id: "lm-login-logs",
+        title: "系统登录日志",
+        titleEn: "System login logs",
+        path: "/log-management/login-logs",
+      },
     ],
   },
   {
@@ -563,24 +599,13 @@ export const NAV_MODULES: NavModule[] = [
     icon: "settings",
     path: "/settings",
     subNavPlacement: "sheet",
-    defaultChildPath: "/settings/overview",
+    defaultChildPath: "/settings/locale-display",
     children: [
-      { id: "set-overview", title: "系统设置总揽", titleEn: "System settings overview", path: "/settings/overview" },
-      { id: "set-basic", title: "基础设置（门店、营业时间、多门店）", path: "/settings/basic" },
-      { id: "set-report", title: "报表设置", path: "/settings/reports" },
-      { id: "set-print", title: "打印与票据", path: "/settings/printing" },
-      { id: "set-tips", title: "小费设置", path: "/settings/tips" },
-      { id: "set-service", title: "服务流程", path: "/settings/service-flow" },
-      { id: "set-security", title: "安全设置", path: "/settings/security" },
-      { id: "set-accounts", title: "账号与权限", path: "/settings/accounts" },
-      { id: "set-audit", title: "操作日志", path: "/settings/audit-log" },
-      { id: "set-integrations", title: "集成与 API", path: "/settings/integrations" },
-      {
-        id: "set-data-scope",
-        title: "角色与数据范围",
-        path: "/settings/data-scope",
-        chainOnly: true,
-      },
+      { id: "set-locale-display", title: "区域与显示", titleEn: "Locale & display", path: "/settings/locale-display" },
+      { id: "set-data-backup", title: "数据与备份", titleEn: "Data & backup", path: "/settings/data-backup" },
+      { id: "set-connections", title: "连接与服务", titleEn: "Connections", path: "/settings/connections" },
+      { id: "set-advanced", title: "高级与诊断", titleEn: "Advanced & diagnostics", path: "/settings/advanced" },
+      { id: "set-platform-preset", title: "平台预设", titleEn: "Platform preset", path: "/settings/platform-preset" },
     ],
   },
 ];
@@ -594,8 +619,10 @@ export interface DeviceManagementHardwareSubItem {
 }
 
 export const DEVICE_MANAGEMENT_HARDWARE_SUBNAV: DeviceManagementHardwareSubItem[] = [
-  { id: "dmh-payments", title: "支付", titleEn: "Payments", path: "/device-management/hardware/payments" },
+  { id: "dmh-payments", title: "支付设备", titleEn: "Payment devices", path: "/device-management/hardware/payments" },
+  { id: "dmh-fiscal", title: "税控机", titleEn: "Fiscal device", path: "/device-management/hardware/fiscal" },
   { id: "dmh-cash-drawer", title: "钱箱", titleEn: "Cash drawer", path: "/device-management/hardware/cash-drawer" },
+  { id: "dmh-caller-id", title: "来电显示", titleEn: "Caller ID", path: "/device-management/hardware/caller-id" },
   { id: "dmh-router", title: "路由器", titleEn: "Router", path: "/device-management/hardware/router" },
   { id: "dmh-pos", title: "POS", titleEn: "POS", path: "/device-management/hardware/pos" },
   { id: "dmh-pos-go", title: "POS GO", titleEn: "POS Go", path: "/device-management/hardware/pos-go" },
@@ -604,6 +631,7 @@ export const DEVICE_MANAGEMENT_HARDWARE_SUBNAV: DeviceManagementHardwareSubItem[
   { id: "dmh-printers", title: "打印机", titleEn: "Printers", path: "/device-management/hardware/printers" },
   { id: "dmh-scale", title: "电子秤", titleEn: "Electronic scale", path: "/device-management/hardware/scale" },
   { id: "dmh-kiosk", title: "Kiosk", titleEn: "Kiosk", path: "/device-management/hardware/kiosk" },
+  { id: "dmh-cds", title: "CDS", titleEn: "Customer display", path: "/device-management/hardware/cds" },
   { id: "dmh-emenu", title: "eMenu", titleEn: "eMenu devices", path: "/device-management/hardware/emenu" },
 ];
 
@@ -693,35 +721,6 @@ export function getActiveTeamReportsSubPath(path: string): string {
 
 export function isTeamReportsTertiaryPath(path: string): boolean {
   return getActiveTeamReportsSubPath(path) !== "";
-}
-
-/** 团队管理 →「排班与考勤」：主内容区细项导航（路由 `/team/scheduling/...`） */
-export interface TeamSchedulingSubItem {
-  id: string;
-  title: string;
-  titleEn?: string;
-  path: string;
-}
-
-export const TEAM_SCHEDULING_SUBNAV: TeamSchedulingSubItem[] = [
-  { id: "team-sch-attendance", title: "考勤记录", titleEn: "Attendance records", path: "/team/scheduling/attendance-records" },
-  { id: "team-sch-overtime", title: "加班规则", titleEn: "Overtime rules", path: "/team/scheduling/overtime-rules" },
-];
-
-export function getTeamSchedulingDefaultPath(): string {
-  return TEAM_SCHEDULING_SUBNAV[0]?.path ?? "/team/scheduling/attendance-records";
-}
-
-export function getActiveTeamSchedulingSubPath(path: string): string {
-  const sorted = [...TEAM_SCHEDULING_SUBNAV].sort((a, b) => b.path.length - a.path.length);
-  for (const c of sorted) {
-    if (path === c.path || path.startsWith(`${c.path}/`)) return c.path;
-  }
-  return "";
-}
-
-export function isTeamSchedulingTertiaryPath(path: string): boolean {
-  return getActiveTeamSchedulingSubPath(path) !== "";
 }
 
 /** POS 点餐：智能点餐 Tab 内左侧三级导航（路由 `/ordering/pos/...`） */
@@ -1010,44 +1009,33 @@ export const BRAND_MENU_SUBNAV: ProductCenterSidebarSubItem[] = [
 
 /** 营销中心侧滑层 ·「营销管理」下子导航 */
 export const MARKETING_MGMT_SUBNAV: ProductCenterSidebarSubItem[] = [
-  { id: "mkt-campaigns", title: "营销活动", titleEn: "Campaigns", path: "/marketing/campaigns" },
-  { id: "mkt-manual", title: "手动营销", titleEn: "Manual marketing", path: "/marketing/manual" },
   { id: "mkt-screensaver", title: "屏保", titleEn: "Screensaver", path: "/marketing/screensaver" },
+  { id: "mkt-ads", title: "广告", titleEn: "Ads", path: "/marketing/ads" },
+  { id: "mkt-poster-pro", title: "海报Pro", titleEn: "Poster Pro", path: "/marketing/poster-pro" },
 ];
 
-/** 商品中心侧滑层 · 设置 */
-export const PRODUCT_CENTER_MAIN_SHEET_SETTINGS_SUBNAV: ProductCenterSidebarSubItem[] = [
-  { id: "pcm-settings", title: "设置", titleEn: "Settings", path: "/product-center-main/settings" },
-];
+/** 商品中心侧滑层 · 设置（139/145 已迁前厅 pos-combo-ordering，无独立设置入口） */
+export const PRODUCT_CENTER_MAIN_SHEET_SETTINGS_SUBNAV: ProductCenterSidebarSubItem[] = [];
 
-export function getActiveProductCenterMainSettingsSubPath(path: string): string {
-  if (path === "/product-center-main/settings" || path.startsWith("/product-center-main/settings/")) {
-    return "/product-center-main/settings";
-  }
+export function getActiveProductCenterMainSettingsSubPath(_path: string): string {
   return "";
 }
 
-/** 营销中心侧滑层 · 设置（与营销管理分组并列） */
-export const MARKETING_SHEET_SETTINGS_SUBNAV: ProductCenterSidebarSubItem[] = [
-  { id: "mkt-settings", title: "设置", titleEn: "Settings", path: "/marketing/settings" },
-];
+/** 营销中心侧滑层 · 设置（已全部迁至广告/海报 Pro，无独立设置入口） */
+export const MARKETING_SHEET_SETTINGS_SUBNAV: ProductCenterSidebarSubItem[] = [];
 
-export function getActiveMarketingSettingsSubPath(path: string): string {
-  if (path === "/marketing/settings" || path.startsWith("/marketing/settings/")) {
-    return "/marketing/settings";
-  }
+export function getActiveMarketingSettingsSubPath(_path: string): string {
   return "";
 }
 
-/** 促销中心侧滑层 ·「促销活动」 */
+/** 促销中心侧滑层 ·「促销活动」「抽奖活动」 */
 export const PROMOTIONS_MGMT_SUBNAV: ProductCenterSidebarSubItem[] = [
   { id: "promo-campaigns", title: "促销活动", titleEn: "Promotional activities", path: "/promotions/campaigns" },
+  { id: "promo-lottery", title: "抽奖活动", titleEn: "Lottery", path: "/promotions/lottery" },
 ];
 
-/** 促销中心侧滑层 · 设置 */
-export const PROMOTIONS_SHEET_SETTINGS_SUBNAV: ProductCenterSidebarSubItem[] = [
-  { id: "promo-settings", title: "设置", titleEn: "Settings", path: "/promotions/settings" },
-];
+/** 促销中心侧滑层 · 设置（POS 本地促销已迁云促销，无独立设置入口） */
+export const PROMOTIONS_SHEET_SETTINGS_SUBNAV: ProductCenterSidebarSubItem[] = [];
 
 export function getActivePromotionsSettingsSubPath(path: string): string {
   if (path === "/promotions/settings" || path.startsWith("/promotions/settings/")) {
@@ -1139,6 +1127,39 @@ export const REPORTS_SHEET_SUBNAV: ProductCenterSidebarSubItem[] = [
   { id: "rpt-monthly", title: "月度经营分析", titleEn: "Monthly analysis", path: "/reports/monthly-analysis" },
   { id: "rpt-settings", title: "设置", titleEn: "Settings", path: "/reports/settings" },
 ];
+
+/** 财务中心侧滑层 · 业务（收银记录与审计；页内 Tab 切换支付/钱箱） */
+export const FINANCE_SHEET_SUBNAV: ProductCenterSidebarSubItem[] = [
+  {
+    id: "fin-register-audit",
+    title: "收银记录与审计",
+    titleEn: "Register audit",
+    path: "/finance/register-audit/payments",
+    activePrefix: "/finance/register-audit",
+  },
+];
+
+/** 财务中心侧滑层 · 设置 */
+export const FINANCE_SHEET_SETTINGS_SUBNAV: ProductCenterSidebarSubItem[] = [
+  { id: "fin-settings", title: "设置", titleEn: "Settings", path: "/finance/settings" },
+];
+
+export function isFinanceHubPath(path: string): boolean {
+  return path === "/finance" || path.startsWith("/finance/");
+}
+
+export function getActiveFinanceSheetSubPath(path: string): string {
+  if (!isFinanceHubPath(path)) return "";
+  if (path === "/finance/settings" || path.startsWith("/finance/settings/")) return "";
+  return getActiveProductCenterSidebarSubPath(path, FINANCE_SHEET_SUBNAV);
+}
+
+export function getActiveFinanceSettingsSubPath(path: string): string {
+  if (path === "/finance/settings" || path.startsWith("/finance/settings/")) {
+    return "/finance/settings";
+  }
+  return "";
+}
 
 /** 会员中心侧滑层 ·「卡券管理」（可展开三级）+「积分配置」 */
 export const MEMBERS_SHEET_SUBNAV: ProductCenterSidebarSubItem[] = [
@@ -1543,7 +1564,6 @@ export function flattenNavPaths(modules: NavModule[] = NAV_MODULES): string[] {
   for (const d of DEVICE_MANAGEMENT_HARDWARE_SUBNAV) out.push(d.path);
   for (const tips of TIPS_MANAGEMENT_SUBNAV) out.push(tips.path);
   for (const tr of TEAM_REPORTS_SUBNAV) out.push(tr.path);
-  for (const ts of TEAM_SCHEDULING_SUBNAV) out.push(ts.path);
   for (const sm of BRAND_SEASONING_MGMT_SUBNAV) out.push(sm.path);
   for (const tg of BRAND_TAGS_MGMT_SUBNAV) out.push(tg.path);
   for (const rc of BRAND_RECIPES_MGMT_SUBNAV) out.push(rc.path);
@@ -1568,5 +1588,11 @@ export function flattenNavPaths(modules: NavModule[] = NAV_MODULES): string[] {
     out.push(rv.path);
     if (rv.sidebarChildren) for (const ch of rv.sidebarChildren) out.push(ch.path);
   }
+  for (const fin of FINANCE_SHEET_SUBNAV) {
+    out.push(fin.path);
+    if (fin.activePrefix) out.push(fin.activePrefix);
+  }
+  out.push("/finance/register-audit/cash-drawer");
+  out.push("/finance/settings");
   return out;
 }

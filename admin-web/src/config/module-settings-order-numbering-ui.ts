@@ -25,10 +25,12 @@ export const ORDER_NUMBER_CLASSIFICATION_DEFAULT =
 
 export const ORDER_NUMBER_MODE_FIELD_ID = "129-order-number-mode";
 export const ORDER_NUMBER_RESET_FIELD_ID = "131-order-number-reset-mode";
+const LEGACY_DEFAULT_VALUE = "default";
+const ORDER_NUMBER_MODE_FALLBACK = "timestamp";
+const ORDER_NUMBER_RESET_FALLBACK = "daily";
 
 /** 与旧系统/POS 枚举对齐 */
 export const ORDER_NUMBER_MODE_OPTIONS = [
-  { value: "default", label: "DEFAULT" },
   { value: "timestamp", label: "TIMESTAMP" },
   { value: "classification", label: "CLASSIFICATION" },
 ] as const;
@@ -37,7 +39,6 @@ export type OrderNumberMode = (typeof ORDER_NUMBER_MODE_OPTIONS)[number]["value"
 
 /** 与旧系统/POS 枚举对齐 */
 export const ORDER_NUMBER_RESET_OPTIONS = [
-  { value: "default", label: "DEFAULT" },
   { value: "daily", label: "Daily" },
   { value: "never", label: "Never" },
 ] as const;
@@ -120,14 +121,14 @@ const ORDER_NUMBER_SELECT_BY_SEQ: Record<number, OrderNumberSelectConfig> = {
     fieldId: ORDER_NUMBER_MODE_FIELD_ID,
     groupName: "module-setting-radio-129-order-number-mode",
     options: ORDER_NUMBER_MODE_OPTIONS,
-    defaultValue: "default",
+    defaultValue: ORDER_NUMBER_MODE_FALLBACK,
     ariaLabel: "单号模式",
   },
   [ORDER_NUMBER_RESET_SEQ]: {
     fieldId: ORDER_NUMBER_RESET_FIELD_ID,
     groupName: "module-setting-radio-131-order-number-reset",
     options: ORDER_NUMBER_RESET_OPTIONS,
-    defaultValue: "default",
+    defaultValue: ORDER_NUMBER_RESET_FALLBACK,
     ariaLabel: "单号重置",
   },
 };
@@ -152,11 +153,14 @@ function normalizeOrderNumberMode(stored: string): OrderNumberMode {
   if (isValidOrderNumberMode(trimmed)) return trimmed;
   const lower = trimmed.toLowerCase();
   if (isValidOrderNumberMode(lower)) return lower;
-  return "default";
+  if (lower === LEGACY_DEFAULT_VALUE) return ORDER_NUMBER_MODE_FALLBACK;
+  return ORDER_NUMBER_MODE_FALLBACK;
 }
 
 export function readOrderNumberMode(): OrderNumberMode {
-  return normalizeOrderNumberMode(readModuleSettingRadio(ORDER_NUMBER_MODE_FIELD_ID, "default"));
+  return normalizeOrderNumberMode(
+    readModuleSettingRadio(ORDER_NUMBER_MODE_FIELD_ID, ORDER_NUMBER_MODE_FALLBACK),
+  );
 }
 
 export function writeOrderNumberMode(mode: OrderNumberMode): void {
@@ -168,8 +172,11 @@ export function isOrderNumberingModeSeq(seq: number): boolean {
 }
 
 export function readOrderNumberResetMode(): OrderNumberResetMode {
-  const stored = readModuleSettingRadio(ORDER_NUMBER_RESET_FIELD_ID, "default");
-  return isValidOrderNumberResetMode(stored) ? stored : "default";
+  const stored = readModuleSettingRadio(ORDER_NUMBER_RESET_FIELD_ID, ORDER_NUMBER_RESET_FALLBACK);
+  const normalized = stored.trim().toLowerCase();
+  if (isValidOrderNumberResetMode(normalized)) return normalized;
+  if (normalized === LEGACY_DEFAULT_VALUE) return ORDER_NUMBER_RESET_FALLBACK;
+  return ORDER_NUMBER_RESET_FALLBACK;
 }
 
 export function writeOrderNumberResetMode(mode: OrderNumberResetMode): void {

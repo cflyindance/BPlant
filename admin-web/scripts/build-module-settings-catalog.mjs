@@ -6,28 +6,82 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseConfigMd, slugify } from "./lib/parse-bplant-config-md.mjs";
-import { isSettingsCatalogExcluded } from "./lib/settings-catalog-exclusions.mjs";
-import { buildCatalogSceneDesc, buildCatalogTitle } from "./lib/settings-catalog-scene-supplement.mjs";
-import { getSettingsHub } from "./lib/settings-hub-override.mjs";
 import {
-  FOH_SETTINGS_GROUP_ORDER,
+  isSettingsCatalogExcluded,
+  isSettingsHubCatalogDisabled,
+} from "./lib/settings-catalog-exclusions.mjs";
+import { buildCatalogSceneDesc, buildCatalogTitle } from "./lib/settings-catalog-scene-supplement.mjs";
+import { getSettingsCatalogPathForSeq } from "./lib/settings-catalog-path-override.mjs";
+import { SETTINGS_CATALOG_VIRTUAL_ITEMS } from "./lib/settings-catalog-virtual-items.mjs";
+import { getSettingsHub } from "./lib/settings-hub-override.mjs";
+import { FOH_SETTINGS_GROUP_ORDER, FOH_SETTINGS_GROUP_NAV_SECTIONS } from "./lib/foh-settings-groups.mjs";
+import {
+  DELIVERY_SETTINGS_GROUP_ORDER,
+  FINANCE_SETTINGS_GROUP_ORDER,
+  FINANCE_SETTINGS_GROUP_NAV_SECTIONS,
+  LOCALE_DISPLAY_GROUP_ORDER,
+  DATA_BACKUP_GROUP_ORDER,
+  CONNECTIONS_GROUP_ORDER,
+  ADVANCED_GROUP_ORDER,
+  ADVANCED_GROUP_NAV_SECTIONS,
   INTRA_GROUP_SORT_BY_SEQ,
+  NOTIFICATIONS_SETTINGS_GROUP_ORDER,
   KITCHEN_SETTINGS_GROUP_ORDER,
+  KDS_DISPLAY_SETTINGS_GROUP_ORDER,
+  KDS_WORKFLOW_SETTINGS_GROUP_ORDER,
   ORDER_SETTINGS_GROUP_ORDER,
+  ORDER_SETTINGS_GROUP_NAV_SECTIONS,
+  PROMOTION_SETTINGS_GROUP_ORDER,
   PAYMENT_SETTINGS_GROUP_ORDER,
-  PRODUCT_SETTINGS_GROUP_ORDER,
+  PAYMENT_SETTINGS_GROUP_NAV_SECTIONS,
+  PRINT_SETTINGS_GROUP_ORDER,
+  PRINT_SETTINGS_GROUP_NAV_SECTIONS,
+  HARDWARE_SETTINGS_GROUP_ORDER,
+  STORE_BRAND_MENU_GROUP_ORDER,
   STORE_SETTINGS_GROUP_ORDER,
 } from "./lib/settings-intra-group-sort.mjs";
 
 const SETTINGS_GROUP_ORDER_BY_PATH = {
+  "/operations/waitlist/settings": DELIVERY_SETTINGS_GROUP_ORDER,
   "/operations/queue-call/settings": FOH_SETTINGS_GROUP_ORDER,
   "/operations/kitchen-kds/settings": KITCHEN_SETTINGS_GROUP_ORDER,
+  "/operations/kitchen-kds/display": KDS_DISPLAY_SETTINGS_GROUP_ORDER,
+  "/operations/kitchen-kds/workflow": KDS_WORKFLOW_SETTINGS_GROUP_ORDER,
   "/orders/settings": ORDER_SETTINGS_GROUP_ORDER,
   "/transactions/settings": PAYMENT_SETTINGS_GROUP_ORDER,
-  "/product-center-main/settings": PRODUCT_SETTINGS_GROUP_ORDER,
-  "/promotions/settings": ["promo-strategy", "promo-channel"],
+  "/promotions/settings": PROMOTION_SETTINGS_GROUP_ORDER,
+  "/promotions/lottery": ["lottery-activity-settings", "lottery-animation-settings"],
   "/reviews/settings": ["review-content-moderation"],
   "/stores/settings": STORE_SETTINGS_GROUP_ORDER,
+  "/stores/brand-menu": STORE_BRAND_MENU_GROUP_ORDER,
+  "/finance/settings": FINANCE_SETTINGS_GROUP_ORDER,
+  "/print-templates/settings": PRINT_SETTINGS_GROUP_ORDER,
+  "/device-management/settings": HARDWARE_SETTINGS_GROUP_ORDER,
+  "/settings/locale-display": LOCALE_DISPLAY_GROUP_ORDER,
+  "/settings/data-backup": DATA_BACKUP_GROUP_ORDER,
+  "/settings/connections": CONNECTIONS_GROUP_ORDER,
+  "/settings/advanced": ADVANCED_GROUP_ORDER,
+  "/notifications/settings": NOTIFICATIONS_SETTINGS_GROUP_ORDER,
+};
+
+const SETTINGS_GROUP_NAV_SECTIONS_BY_PATH = {
+  "/operations/queue-call/settings": FOH_SETTINGS_GROUP_NAV_SECTIONS,
+  "/orders/settings": ORDER_SETTINGS_GROUP_NAV_SECTIONS,
+  "/transactions/settings": PAYMENT_SETTINGS_GROUP_NAV_SECTIONS,
+  "/finance/settings": FINANCE_SETTINGS_GROUP_NAV_SECTIONS,
+  "/print-templates/settings": PRINT_SETTINGS_GROUP_NAV_SECTIONS,
+  "/settings/advanced": ADVANCED_GROUP_NAV_SECTIONS,
+};
+
+/** catalog 页头标题（可与一级导航模块名不同） */
+const HUB_CATALOG_DISPLAY_TITLE_BY_PATH = {
+  "/device-management/settings": "硬件管理中心",
+  "/operations/kitchen-kds/display": "KDS 显示与交互",
+  "/operations/kitchen-kds/workflow": "KDS 出餐流程",
+  "/settings/locale-display": "系统设置",
+  "/settings/data-backup": "系统设置",
+  "/settings/connections": "系统设置",
+  "/settings/advanced": "系统设置",
 };
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -51,7 +105,6 @@ const HUB_SETTINGS_PATH = {
   订单中心: "/orders/settings",
   支付中心: "/transactions/settings",
   "外卖/来取": "/operations/waitlist/settings",
-  营销中心: "/marketing/settings",
   促销中心: "/promotions/settings",
   会员中心: "/members/settings",
   礼品卡中心: "/gift-cards/settings",
@@ -64,14 +117,10 @@ const HUB_SETTINGS_PATH = {
   打印中心: "/print-templates/settings",
   消息中心: "/notifications/settings",
   库存管理中心: "/operations/inventory-ordering/settings",
-  硬件管理中心: "/device-management/settings",
-  权限管理中心: "/permissions/settings",
-  素材中心: "/asset-center/settings",
-  系统设置: "/settings/basic",
+  系统设置: "/settings/locale-display",
   主页: "/dashboard/settings",
-  平台业务中心: "/settings/integrations",
+  平台业务中心: "/settings/connections",
   供应链中心: "/operations/inventory-ordering/settings",
-  设置设备与License的绑定关系: "/device-management/settings",
 };
 
 function parseCsvLine(line) {
@@ -131,7 +180,13 @@ function buildCatalog(rows, mapping) {
       continue;
     }
 
-    const settingsPath = resolveSettingsPath(getSettingsHub(row));
+    const hubName = getSettingsHub(row);
+    if (isSettingsHubCatalogDisabled(hubName)) {
+      continue;
+    }
+
+    const hubDefaultPath = resolveSettingsPath(hubName);
+    const settingsPath = getSettingsCatalogPathForSeq(row.seq, hubDefaultPath);
     if (!settingsPath) {
       console.warn(`[build] 未映射一级导航，已跳过: ${row.hub} (seq ${row.seq})`);
       continue;
@@ -159,11 +214,29 @@ function buildCatalog(rows, mapping) {
     byPath.get(settingsPath).items.push(item);
   }
 
+  for (const virtual of SETTINGS_CATALOG_VIRTUAL_ITEMS) {
+    const item = {
+      seq: virtual.seq,
+      title: buildCatalogTitle(virtual.seq, virtual.title),
+      feature: virtual.feature,
+      sceneDesc: buildCatalogSceneDesc(virtual.seq, virtual.sceneDesc),
+      moduleName: virtual.moduleName,
+      groupTitle: virtual.groupTitle,
+      groupKey: virtual.groupKey,
+    };
+    if (!byPath.has(virtual.settingsPath)) {
+      byPath.set(virtual.settingsPath, { settingsPath: virtual.settingsPath, items: [] });
+    }
+    byPath.get(virtual.settingsPath).items.push(item);
+  }
+
   if (missing.length) {
     throw new Error(`映射表缺少 ${missing.length} 条 seq，例如: ${missing.slice(0, 5).join(", ")}`);
   }
 
   const canonicalHubByPath = new Map(Object.entries(HUB_SETTINGS_PATH).map(([hub, p]) => [p, hub]));
+  canonicalHubByPath.set("/promotions/lottery", "促销中心");
+  canonicalHubByPath.set("/stores/brand-menu", "门店管理");
 
   let ts = `/** 由 scripts/build-module-settings-catalog.mjs 根据 docs/配置归类-终版.md + docs/配置归类-分组映射.csv 生成，请勿手改 */\n\n`;
   ts += `export interface ModuleSettingCatalogItem {\n`;
@@ -187,7 +260,14 @@ function buildCatalog(rows, mapping) {
   ts += `  settingsPath: string;\n`;
   ts += `  /** 二级导航分组展示顺序（可选） */\n`;
   ts += `  groupOrder?: string[];\n`;
+  ts += `  /** 侧栏分段标题与所含 groupKey（可选，如前厅 员工端/食客端） */\n`;
+  ts += `  groupNavSections?: ModuleSettingCatalogNavSection[];\n`;
   ts += `  items: ModuleSettingCatalogItem[];\n`;
+  ts += `}\n\n`;
+  ts += `export interface ModuleSettingCatalogNavSection {\n`;
+  ts += `  /** i18n 键，如 moduleSettings.fohNav.staff */\n`;
+  ts += `  labelKey: string;\n`;
+  ts += `  groupKeys: string[];\n`;
   ts += `}\n\n`;
   ts += `export interface ModuleSettingCatalogGroup {\n`;
   ts += `  groupKey: string;\n`;
@@ -202,16 +282,20 @@ function buildCatalog(rows, mapping) {
 
   for (const settingsPath of paths) {
     const bucket = byPath.get(settingsPath);
-    const hubTitle = canonicalHubByPath.get(settingsPath) ?? settingsPath;
+    const hubTitle = HUB_CATALOG_DISPLAY_TITLE_BY_PATH[settingsPath] ?? canonicalHubByPath.get(settingsPath) ?? settingsPath;
     bucket.items.sort((a, b) => a.seq - b.seq);
     itemCount += bucket.items.length;
 
     const groupOrder = SETTINGS_GROUP_ORDER_BY_PATH[settingsPath];
+    const groupNavSections = SETTINGS_GROUP_NAV_SECTIONS_BY_PATH[settingsPath];
     ts += `  ${JSON.stringify(settingsPath)}: {\n`;
     ts += `    hubTitle: ${JSON.stringify(hubTitle)},\n`;
     ts += `    settingsPath: ${JSON.stringify(settingsPath)},\n`;
     if (groupOrder) {
       ts += `    groupOrder: ${JSON.stringify(groupOrder)},\n`;
+    }
+    if (groupNavSections?.length) {
+      ts += `    groupNavSections: ${JSON.stringify(groupNavSections)},\n`;
     }
     ts += `    items: [\n`;
     for (const it of bucket.items) {
@@ -275,6 +359,19 @@ function buildCatalog(rows, mapping) {
   ts += `    const groupItems = map.get(groupKey)!.slice().sort(compareItemsInSameGroup);\n`;
   ts += `    return { groupKey, groupTitle: groupItems[0]?.groupTitle ?? groupKey, items: groupItems };\n`;
   ts += `  });\n`;
+  ts += `}\n\n`;
+  ts += `/** 按 seq 从全部 hub 中解析设置项（团队等业务页嵌入用） */\n`;
+  ts += `export function getTeamEmbeddedSettingItems(seqs: readonly number[]): ModuleSettingCatalogItem[] {\n`;
+  ts += `  const want = new Set(seqs);\n`;
+  ts += `  const bySeq = new Map<number, ModuleSettingCatalogItem>();\n`;
+  ts += `  for (const hub of Object.values(MODULE_SETTINGS_BY_PATH)) {\n`;
+  ts += `    for (const item of hub.items) {\n`;
+  ts += `      if (want.has(item.seq) && !bySeq.has(item.seq)) bySeq.set(item.seq, item);\n`;
+  ts += `    }\n`;
+  ts += `  }\n`;
+  ts += `  return seqs\n`;
+  ts += `    .map((seq) => bySeq.get(seq))\n`;
+  ts += `    .filter((item): item is ModuleSettingCatalogItem => item !== undefined);\n`;
   ts += `}\n`;
 
   return { ts, itemCount, paths: paths.length, total: rows.length };

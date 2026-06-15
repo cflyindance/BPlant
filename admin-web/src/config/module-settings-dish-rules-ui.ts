@@ -29,6 +29,10 @@ export const MODULE_SETTING_MOCK_DISHES: DishTag[] = [
   { id: "d-pork-belly", name: "五花肉" },
   { id: "d-combo-1", name: "牛羊组合" },
   { id: "d-combo-2", name: "牛羊组合-1" },
+  { id: "d-pot-single", name: "单锅" },
+  { id: "d-pot-yinyang", name: "鸳鸯锅" },
+  { id: "d-pot-run", name: "奔跑锅" },
+  { id: "d-pot-any", name: "任意锅" },
 ];
 
 const MUTEX_STORAGE_597 = "597-mutex-rules";
@@ -42,7 +46,7 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function newRuleId(): string {
+export function newRuleId(): string {
   return `r-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
@@ -127,12 +131,17 @@ export function writeDishTags(storageFieldId: string, tags: DishTag[]): void {
   writeModuleSettingJson(storageFieldId, tags);
 }
 
-function renderDishPicker(
+export function renderDishPicker(
   parentSeq: number,
   ruleId: string,
   role: string,
   dishes: DishTag[],
+  pickerUi: "checkbox" | "select" = "checkbox",
+  choiceLayout: "wrap" | "grid" = "wrap",
 ): string {
+  if (pickerUi === "select") {
+    return renderDishSelectPicker(parentSeq, ruleId, role, dishes);
+  }
   const selectedIds = new Set(dishes.map((d) => d.id));
   const tags =
     dishes.length > 0
@@ -146,11 +155,11 @@ function renderDishPicker(
       "data-dish-id": value,
       "data-dish-name": label,
     }),
-    layout: "wrap",
+    layout: choiceLayout,
   });
   return `
     <div
-      class="module-setting-dish-picker min-w-0 flex-1 space-y-2 rounded-md border border-input bg-background px-2 py-2"
+      class="module-setting-dish-picker min-w-0 w-full space-y-2 rounded-md border border-input bg-background px-3 py-2.5"
       data-dish-picker
       data-picker-role="${escapeHtml(role)}"
       data-parent-seq="${parentSeq}"
@@ -161,17 +170,126 @@ function renderDishPicker(
     </div>`;
 }
 
+function renderDishSelectPicker(
+  parentSeq: number,
+  ruleId: string,
+  role: string,
+  dishes: DishTag[],
+): string {
+  const selectedIds = new Set(dishes.map((d) => d.id));
+  const tags =
+    dishes.length > 0
+      ? `<div class="flex flex-wrap gap-1.5" data-dish-tags>${dishes.map(renderDishTag).join("")}</div>`
+      : "";
+  const available = MODULE_SETTING_MOCK_DISHES.filter((d) => !selectedIds.has(d.id));
+  const options = available
+    .map(
+      (d) =>
+        `<option value="${escapeHtml(d.id)}" data-dish-name="${escapeHtml(d.name)}">${escapeHtml(d.name)}</option>`,
+    )
+    .join("");
+  return `
+    <div
+      class="module-setting-dish-picker min-w-0 flex-1 space-y-2 rounded-md border border-input bg-background px-2 py-2"
+      data-dish-picker
+      data-picker-ui="select"
+      data-picker-role="${escapeHtml(role)}"
+      data-parent-seq="${parentSeq}"
+      data-rule-id="${escapeHtml(ruleId)}"
+    >
+      ${tags}
+      <div class="flex min-w-0 items-center gap-2">
+        <select
+          class="h-8 min-w-0 flex-1 rounded-md border border-input bg-background px-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          data-dish-select
+          aria-label="选择商品"
+          ${available.length === 0 ? "disabled" : ""}
+        >
+          <option value="">${available.length === 0 ? "已选全部可选商品" : "请选择商品"}</option>
+          ${options}
+        </select>
+      </div>
+    </div>`;
+}
+
+function refreshDishSelectOptions(picker: HTMLElement): void {
+  const select = picker.querySelector<HTMLSelectElement>("[data-dish-select]");
+  if (!select) return;
+  const selectedIds = new Set(collectTagsFromPicker(picker).map((t) => t.id));
+  const available = MODULE_SETTING_MOCK_DISHES.filter((d) => !selectedIds.has(d.id));
+  select.innerHTML =
+    `<option value="">${available.length === 0 ? "已选全部可选商品" : "请选择商品"}</option>` +
+    available
+      .map(
+        (d) =>
+          `<option value="${escapeHtml(d.id)}" data-dish-name="${escapeHtml(d.name)}">${escapeHtml(d.name)}</option>`,
+      )
+      .join("");
+  select.disabled = available.length === 0;
+  select.value = "";
+}
+
+export function onDishSelectChange(picker: HTMLElement, select: HTMLSelectElement): void {
+  const dishId = select.value;
+  if (!dishId) return;
+  const dish = MODULE_SETTING_MOCK_DISHES.find((d) => d.id === dishId);
+  if (!dish) return;
+  const existing = collectTagsFromPicker(picker);
+  if (existing.some((t) => t.id === dishId)) {
+    select.value = "";
+    return;
+  }
+  let tagsWrap = picker.querySelector<HTMLElement>("[data-dish-tags]");
+  if (!tagsWrap) {
+    picker.insertAdjacentHTML(
+      "afterbegin",
+      `<div class="flex flex-wrap gap-1.5" data-dish-tags></div>`,
+    );
+    tagsWrap = picker.querySelector<HTMLElement>("[data-dish-tags]");
+  }
+  tagsWrap?.insertAdjacentHTML("beforeend", renderDishTag(dish));
+  refreshDishSelectOptions(picker);
+  const standalone = picker.closest<HTMLElement>("[data-standalone-dish-picker]");
+  if (standalone) {
+    persistStandaloneDishPicker(picker);
+    return;
+  }
+  const mutex = picker.closest<HTMLElement>("[data-mutex-rules-editor]");
+  if (mutex) {
+    persistMutexEditor(mutex);
+    return;
+  }
+  const combo = picker.closest<HTMLElement>("[data-combo-rules-editor]");
+  if (combo) persistComboEditor(combo);
+  const delayed = picker.closest<HTMLElement>("[data-delayed-kitchen-send-editor]");
+  if (delayed) {
+    delayed.dispatchEvent(new CustomEvent("delayed-kitchen-send-update", { bubbles: false }));
+  }
+}
+
 function renderMutexRuleRow(rule: DishMutexRule, parentSeq: number, isLast: boolean): string {
   return `
-    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3" data-mutex-rule-row data-rule-id="${escapeHtml(rule.id)}">
-      <div class="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center">
-        ${renderDishPicker(parentSeq, rule.id, "trigger", rule.trigger)}
-        <span class="shrink-0 text-center text-sm text-muted-foreground sm:px-1">互斥</span>
-        ${renderDishPicker(parentSeq, rule.id, "excluded", rule.excluded)}
+    <div
+      class="space-y-3 rounded-md border border-border/60 bg-background/60 p-3"
+      data-mutex-rule-row
+      data-rule-id="${escapeHtml(rule.id)}"
+    >
+      <div class="space-y-1.5">
+        <span class="text-sm font-medium text-foreground">下单菜品</span>
+        ${renderDishPicker(parentSeq, rule.id, "trigger", rule.trigger, "checkbox", "grid")}
+      </div>
+      <div class="flex items-center gap-2 text-sm text-muted-foreground" aria-hidden="true">
+        <span class="h-px min-w-3 flex-1 bg-border"></span>
+        <span class="shrink-0 font-medium text-foreground">互斥</span>
+        <span class="h-px min-w-3 flex-1 bg-border"></span>
+      </div>
+      <div class="space-y-1.5">
+        <span class="text-sm font-medium text-foreground">不可再下单菜品</span>
+        ${renderDishPicker(parentSeq, rule.id, "excluded", rule.excluded, "checkbox", "grid")}
       </div>
       ${
         isLast
-          ? `<button type="button" class="shrink-0 self-end text-sm font-medium text-primary hover:underline sm:self-center" data-mutex-add-rule>增加</button>`
+          ? `<div class="flex justify-end pt-1"><button type="button" class="text-sm font-medium text-primary hover:underline" data-mutex-add-rule>增加</button></div>`
           : ""
       }
     </div>`;
@@ -215,7 +333,12 @@ export function renderDishMutexRulesHtml(parentSeq: number, storageFieldId: stri
     .map((rule, i) => renderMutexRuleRow(rule, parentSeq, i === rules.length - 1))
     .join("");
   return `
-    <div class="space-y-3" data-mutex-rules-editor data-storage-id="${escapeHtml(storageFieldId)}" data-parent-seq="${parentSeq}">
+    <div
+      class="space-y-4"
+      data-mutex-rules-editor
+      data-storage-id="${escapeHtml(storageFieldId)}"
+      data-parent-seq="${parentSeq}"
+    >
       ${rows}
     </div>`;
 }
@@ -257,7 +380,7 @@ function syncDishTagsFromCheckboxes(picker: HTMLElement): void {
   if (tagsWrap) tagsWrap.innerHTML = tags.map(renderDishTag).join("");
 }
 
-function collectTagsFromPicker(picker: Element): DishTag[] {
+export function collectTagsFromPicker(picker: Element): DishTag[] {
   const el = picker as HTMLElement;
   if (el.querySelector("[data-dish-choice]")) return collectTagsFromCheckboxes(el);
   return [...picker.querySelectorAll("[data-dish-tag]")].map((tag) => ({
@@ -266,7 +389,7 @@ function collectTagsFromPicker(picker: Element): DishTag[] {
   }));
 }
 
-function onDishPickerCheckboxChange(picker: HTMLElement): void {
+export function onDishPickerCheckboxChange(picker: HTMLElement): void {
   syncDishTagsFromCheckboxes(picker);
   const standalone = picker.closest<HTMLElement>("[data-standalone-dish-picker]");
   if (standalone) {
@@ -280,14 +403,39 @@ function onDishPickerCheckboxChange(picker: HTMLElement): void {
   }
   const combo = picker.closest<HTMLElement>("[data-combo-rules-editor]");
   if (combo) persistComboEditor(combo);
+  const delayed = picker.closest<HTMLElement>("[data-delayed-kitchen-send-editor]");
+  if (delayed) {
+    delayed.dispatchEvent(new CustomEvent("delayed-kitchen-send-update", { bubbles: false }));
+  }
 }
 
-function onDishTagRemove(picker: HTMLElement, dishId: string): void {
+export function onDishTagRemove(picker: HTMLElement, dishId: string): void {
   const cb = picker.querySelector<HTMLInputElement>(`[data-dish-choice][data-dish-id="${dishId}"]`);
   if (cb) cb.checked = false;
   picker.querySelector(`[data-dish-tag][data-dish-id="${dishId}"]`)?.remove();
   const tagsWrap = picker.querySelector("[data-dish-tags]");
   if (tagsWrap && !tagsWrap.querySelector("[data-dish-tag]")) tagsWrap.remove();
+  if (picker.getAttribute("data-picker-ui") === "select") {
+    refreshDishSelectOptions(picker);
+    const standalone = picker.closest<HTMLElement>("[data-standalone-dish-picker]");
+    if (standalone) {
+      persistStandaloneDishPicker(picker);
+      return;
+    }
+    const mutex = picker.closest<HTMLElement>("[data-mutex-rules-editor]");
+    if (mutex) {
+      persistMutexEditor(mutex);
+      return;
+    }
+    const combo = picker.closest<HTMLElement>("[data-combo-rules-editor]");
+    if (combo) persistComboEditor(combo);
+    const delayed = picker.closest<HTMLElement>("[data-delayed-kitchen-send-editor]");
+    if (delayed) {
+      delayed.dispatchEvent(new CustomEvent("delayed-kitchen-send-update", { bubbles: false }));
+      return;
+    }
+    return;
+  }
   onDishPickerCheckboxChange(picker);
 }
 
@@ -356,11 +504,12 @@ export function renderStandaloneDishPickerHtml(
   parentSeq: number,
   fieldKey: string,
   storageFieldId: string,
+  pickerUi: "checkbox" | "select" = "checkbox",
 ): string {
   const dishes = readDishTags(storageFieldId);
   return `
-    <div data-standalone-dish-picker data-storage-id="${escapeHtml(storageFieldId)}" data-field-key="${escapeHtml(fieldKey)}">
-      ${renderDishPicker(parentSeq, fieldKey, "tags", dishes)}
+    <div data-standalone-dish-picker data-storage-id="${escapeHtml(storageFieldId)}" data-field-key="${escapeHtml(fieldKey)}" data-picker-ui="${pickerUi}">
+      ${renderDishPicker(parentSeq, fieldKey, "tags", dishes, pickerUi)}
     </div>`;
 }
 
@@ -384,6 +533,12 @@ function bindStandaloneDishPickers(): void {
       if (picker && dishId) onDishTagRemove(picker, dishId);
     });
     wrap.addEventListener("change", (e) => {
+      const select = (e.target as HTMLElement).closest<HTMLSelectElement>("[data-dish-select]");
+      if (select) {
+        const picker = select.closest<HTMLElement>("[data-dish-picker]");
+        if (picker) onDishSelectChange(picker, select);
+        return;
+      }
       const cb = (e.target as HTMLElement).closest<HTMLInputElement>("[data-dish-choice]");
       if (!cb) return;
       const picker = cb.closest<HTMLElement>("[data-dish-picker]");

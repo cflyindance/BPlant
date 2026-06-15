@@ -13,17 +13,17 @@ const INPUT_CLASS =
 const SECTION_HEAD_CLASS =
   "text-xs font-semibold uppercase tracking-wide text-muted-foreground";
 
-interface StoreBasicInfoField {
+type StoreBasicInfoField = {
   fieldId: string;
   label: string;
   inputType?: string;
   placeholder?: string;
-}
+};
 
-interface StoreBasicInfoSection {
+type StoreBasicInfoSection = {
   title: string;
   fields: StoreBasicInfoField[];
-}
+};
 
 export const STORE_BASIC_INFO_SECTIONS: StoreBasicInfoSection[] = [
   {

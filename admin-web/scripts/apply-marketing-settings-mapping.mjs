@@ -1,5 +1,5 @@
 /**
- * 将营销中心 2 组分类写入 docs/项目文档/配置归类-分组映射.csv
+ * 营销中心设置项已全部迁至广告 / 海报 Pro 功能页，本脚本保留为空操作。
  * 运行：node scripts/apply-marketing-settings-mapping.mjs
  */
 import fs from "node:fs";
@@ -14,15 +14,7 @@ const mappingPath = [projectDocs, repoDocs]
   .map((d) => path.join(d, "配置归类-分组映射.csv"))
   .find((p) => fs.existsSync(p));
 
-const titles = {
-  "content-assets": "营销内容与素材",
-  "placement-trigger": "投放位与触发规则",
-};
-
-const assignMap = {
-  "content-assets": [553, 557, 651],
-  "placement-trigger": [648, 649],
-};
+const assignMap = {};
 
 const marketingAssign = new Map();
 for (const [key, seqs] of Object.entries(assignMap)) {

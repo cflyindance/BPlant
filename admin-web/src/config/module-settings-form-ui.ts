@@ -89,45 +89,6 @@ const WAIT_TIME_FORM_ROWS: ModuleSettingFormRowConfig[] = [
   },
 ];
 
-/** 食客端·菜单结构 · 菜单展示位置（517）：侧边 / 顶部 */
-const GUEST_MENU_STRUCTURE_FORM_ROWS: ModuleSettingFormRowConfig[] = [
-  {
-    seq: 517,
-    kind: "radio-group",
-    radioFieldId: "517-menu-nav-position",
-    radioDefault: "top",
-    radios: [
-      { value: "side", label: "侧边展示" },
-      { value: "top", label: "顶部展示" },
-    ],
-  },
-];
-
-/** POS 菜单与布局 · 类展示 / 菜展示（217 / 218） */
-const POS_MENU_UI_FORM_ROWS: ModuleSettingFormRowConfig[] = [
-  {
-    seq: 217,
-    kind: "radio-group",
-    radioFieldId: "217-category-layout",
-    radioDefault: "horizontal2",
-    radios: [
-      { value: "horizontal2", label: "Horizontal2" },
-      { value: "horizontal3", label: "Horizontal 3" },
-      { value: "vertical1", label: "Vertical 1" },
-    ],
-  },
-  {
-    seq: 218,
-    kind: "radio-group",
-    radioFieldId: "218-item-layout",
-    radioDefault: "regular-buttons",
-    radios: [
-      { value: "regular-buttons", label: "Regular Buttons" },
-      { value: "large-buttons", label: "Large Buttons" },
-    ],
-  },
-];
-
 /** 团队管理 · 下班打卡打印确认小票（70）：三选一 */
 const TEAM_TIME_ATTENDANCE_FORM_ROWS: ModuleSettingFormRowConfig[] = [
   {
@@ -185,8 +146,6 @@ const TEAM_PAYROLL_TIP_FORM_ROWS: ModuleSettingFormRowConfig[] = [
 
 const MODULE_SETTING_FORM_ROWS: ModuleSettingFormRowConfig[] = [
   ...WAIT_TIME_FORM_ROWS,
-  ...GUEST_MENU_STRUCTURE_FORM_ROWS,
-  ...POS_MENU_UI_FORM_ROWS,
   ...TEAM_TIME_ATTENDANCE_FORM_ROWS,
   ...TEAM_PAYROLL_TIP_FORM_ROWS,
 ];
@@ -204,6 +163,56 @@ export function isModuleSettingFormRowSeq(seq: number): boolean {
 /** 652/653 使用 module-settings-locale-ui，不计入通用 form row */
 export function isModuleSettingGenericFormRowSeq(seq: number): boolean {
   return FORM_ROW_BY_SEQ.has(seq);
+}
+
+export function listModuleSettingFormRows(): readonly ModuleSettingFormRowConfig[] {
+  return MODULE_SETTING_FORM_ROWS;
+}
+
+export type ModuleSettingFormFieldDescriptor = {
+  seq: number;
+  fieldId: string;
+  kind: "checkbox" | "radio" | "number" | "color";
+  label: string;
+  radioOptions?: { value: string; label: string }[];
+};
+
+/** 供 AI 助手索引表单类设置项（多选 / 单选 / 颜色 / 附属数字） */
+export function listModuleSettingFormFieldDescriptors(): ModuleSettingFormFieldDescriptor[] {
+  const out: ModuleSettingFormFieldDescriptor[] = [];
+  for (const row of MODULE_SETTING_FORM_ROWS) {
+    if (row.kind === "checkbox-group" && row.checkboxes) {
+      for (const cb of row.checkboxes) {
+        out.push({ seq: row.seq, fieldId: cb.fieldId, kind: "checkbox", label: cb.label });
+      }
+    }
+    if ((row.kind === "radio-group" || row.kind === "radio-color") && row.radioFieldId && row.radios) {
+      const radioOptions = row.radios
+        .filter((r): r is { value: string; label: string } => "label" in r)
+        .map((r) => ({ value: r.value, label: r.label }));
+      out.push({
+        seq: row.seq,
+        fieldId: row.radioFieldId,
+        kind: "radio",
+        label: row.radioFieldId,
+        radioOptions,
+      });
+      for (const r of row.radios) {
+        if ("numberFieldId" in r) {
+          out.push({
+            seq: row.seq,
+            fieldId: r.numberFieldId,
+            kind: "number",
+            label: `${r.labelBefore ?? ""}${r.labelAfter ?? ""}`.trim() || r.numberFieldId,
+          });
+        }
+      }
+    }
+    if (row.kind === "radio-color" && row.colorFieldId) {
+      out.push({ seq: row.seq, fieldId: row.colorFieldId, kind: "color", label: "自定义颜色" });
+    }
+  }
+  return out;
 }
 
 export function moduleSettingStorageKey(fieldId: string): string {

@@ -1,11 +1,13 @@
 /**
  * 生成 docs/项目文档/消息中心-设置二级导航重设计方案.md
- * 运行：node scripts/generate-notifications-settings-design-doc.mjs
+ * 运行：node admin-web/scripts/generate-notifications-settings-design-doc.mjs
  */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseConfigMd } from "./lib/parse-bplant-config-md.mjs";
+import { isSettingsCatalogExcluded } from "./lib/settings-catalog-exclusions.mjs";
+import { filterRowsForSettingsHub } from "./lib/settings-hub-override.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..", "..");
@@ -16,25 +18,17 @@ const outPath = path.join(projectDocs, "消息中心-设置二级导航重设计
 const HUB = "消息中心";
 
 const titles = {
-  "notification-basics": "通知基础与渠道",
-  "order-pickup-messages": "订单与取餐通知",
-  "service-call-alerts": "呼叫服务员与现场提醒",
+  "customer-order-sms": "顾客短信渠道",
 };
 
 const reasons = {
-  "notification-basics":
-    "消息主题与语音提醒等全局基础能力；对标 Clover/Square 的通知偏好与通知通道总开关。",
-  "order-pickup-messages":
-    "下单、追加、出餐、取餐相关短信模板与渠道策略；对标 Toast「可取餐短信」与 Snackpass 订单短信通知。",
-  "service-call-alerts":
-    "食客呼叫服务员事项、频率与开单前限制；对标 Toast POS 服务提醒与店内实时通知能力。",
+  "customer-order-sms":
+    "仅产线发送开关（334/335）；短信文案与场景模板关联见「消息模板」「消息配置」。POS 员工端通知已迁前厅「POS 通知总控 / 订单消息提醒」。",
 };
 
-/** seq → groupKey（消息中心 23 条） */
+/** seq → groupKey（消息中心 catalog） */
 const assignMap = {
-  "notification-basics": [331, 332],
-  "order-pickup-messages": [334, 335, 336, 337, 338, 339, 340, 638, 639],
-  "service-call-alerts": [333, 629, 630, 631, 632, 633, 634, 635, 636, 637, 640, 641],
+  "customer-order-sms": [334, 335],
 };
 
 const assign = new Map();
@@ -44,10 +38,9 @@ for (const [key, seqs] of Object.entries(assignMap)) {
 
 function inferArea(nav, mod, title) {
   const t = `${nav}${mod}${title}`;
-  if (t.includes("短信") || t.includes("取餐") || t.includes("下单") || t.includes("订单")) return "订单短信";
-  if (t.includes("呼叫服务员") || t.includes("加水") || t.includes("加餐具") || t.includes("点酒水")) return "服务呼叫";
+  if (t.includes("短信") || t.includes("取餐") || t.includes("下单短信")) return "顾客短信";
+  if (t.includes("消息通知") || t.includes("新订单") || t.includes("追加") || t.includes("指定菜品")) return "员工提醒";
   if (t.includes("语音") || t.includes("主题")) return "基础通知";
-  if (t.includes("时间间隔") || t.includes("未开单")) return "呼叫规则";
   return "消息";
 }
 
@@ -57,8 +50,10 @@ function sceneSummary(scene) {
 }
 
 const md = fs.readFileSync(sourcePath, "utf8");
-const rows = parseConfigMd(md).filter((r) => r.hub === HUB);
-const order = ["notification-basics", "order-pickup-messages", "service-call-alerts"];
+const rows = filterRowsForSettingsHub(parseConfigMd(md), HUB).filter(
+  (r) => !isSettingsCatalogExcluded(r.seq),
+);
+const order = ["customer-order-sms"];
 
 const missing = rows.filter((r) => !assign.has(r.seq)).map((r) => r.seq);
 if (missing.length) throw new Error(`未归类 seq: ${missing.join(", ")}`);
@@ -77,8 +72,8 @@ const push = (...xs) => lines.push(...xs);
 push(
   "# 消息中心 · 设置二级导航重设计方案",
   "",
-  "> 文档版本：v1.0  ",
-  "> 数据范围：`docs/项目文档/配置归类-终版.md` 中 **B平台一级导航 = 消息中心** 共 **23** 条功能设置  ",
+  "> 文档版本：v1.2（方案 A）  ",
+  `> 数据范围：消息中心设置 catalog 共 **${rows.length}** 条；桌边呼叫 333/629/640/641 已迁前厅，630–636 已迁并至 333  `,
   "> 竞品参考：Toast / Clover / Square / Peblla / Snackpass 商家后台结构文档",
   "",
   "---",
@@ -89,13 +84,14 @@ push(
   "",
   "| 指标 | 现状 | 问题 |",
   "|------|------|------|",
-  "| 二级分组数 | **2 组** / 23 条 | `消息中心` 10 条与 `消息通知` 13 条边界模糊 |",
-  "| 内容混排 | 订单短信模板与呼叫服务员开关并列 | 运营人员难定位“顾客消息”vs“店内提醒” |",
-  "| 扩展性 | 新增提醒类型时难扩展 | 需要按场景分层组织 |",
+  "| 二级分组 | 原「订单与取餐通知」10 条混排 | 顾客短信模板与员工店内提醒并列，运营易误配 |",
+  "| 场景标签 | 637–639 原归类「订单短信」 | 名实不符：不发短信，仅员工跟单 |",
+  "| 扩展性 | 新增提醒类型时难扩展 | 需按触达对象（员工 vs 顾客）分层 |",
   "",
   "### 1.2 设计目标",
   "",
-  "- 二级导航重组为 **3 组**，覆盖 23 条，符合餐饮门店消息链路",
+  `- 二级导航 **${order.length} 组**，员工提醒优先于顾客短信（服务员关注路径）`,
+  "- 组首说明 + 场景描述区分「店内消息」与「顾客短信」",
   "- 输出可写入 `docs/项目文档/配置归类-分组映射.csv` 的 `groupTitle` / `groupKey`",
   "- **不修改** `配置归类-终版.md` 原文",
   "",
@@ -114,12 +110,12 @@ push(
   "### 2.1 消息设置三维（商户心智）",
   "",
   "```text",
-  "通知基础与渠道 → 订单与取餐通知 → 呼叫服务员与现场提醒",
+  "员工端通知总控 → 员工订单消息 → 顾客短信",
   "```",
   "",
   "---",
   "",
-  "## 3. 推荐二级导航结构（3 组）",
+  `## 3. 推荐二级导航结构（${order.length} 组）`,
   "",
   "| 序号 | groupTitle | groupKey | 条数 | 说明 |",
   "|------|------------|----------|------|------|",
@@ -139,7 +135,11 @@ for (let i = 0; i < order.length; i++) {
   push(`### 4.${i + 1} ${titles[k]}（\`${k}\`）`, "", `**归类理由**：${reasons[k]}`, "");
   push("| seq | 场景 | 原导航 | 功能模块 | 功能设置 | 功能场景描述（摘要） |");
   push("|-----|------|--------|----------|----------|----------------------|");
-  for (const r of [...by.get(k)].sort((a, b) => a.seq - b.seq)) {
+  const sortOrder = assignMap[k];
+  const sorted = [...by.get(k)].sort(
+    (a, b) => sortOrder.indexOf(a.seq) - sortOrder.indexOf(b.seq) || a.seq - b.seq,
+  );
+  for (const r of sorted) {
     push(`| ${r.seq} | ${r.area} | ${r.nav} | ${r.moduleName} | ${r.title} | ${sceneSummary(r.sceneDesc)} |`);
   }
   push("");
@@ -148,31 +148,42 @@ for (let i = 0; i < order.length; i++) {
 push(
   "---",
   "",
-  "## 5. 与旧分组对照",
+  "## 5. 组首文案（设置页展示）",
   "",
-  "| 新 groupTitle | 吸收的旧分组 |",
-  "|---------------|--------------|",
-  "| 通知基础与渠道 | 消息中心（主题、语音） |",
-  "| 订单与取餐通知 | 消息中心（短信模板/渠道）+ 消息通知（新订单/追加） |",
-  "| 呼叫服务员与现场提醒 | 消息中心（服务类型）+ 消息通知（呼叫服务员系列） |",
+  "| groupKey | 组首说明要点 |",
+  "|----------|----------------|",
+  "| `customer-order-sms` | 仅产线发送开关；文案见消息模板，场景关联见消息配置；POS 通知见前厅 |",
   "",
   "---",
   "",
-  "## 6. 落地步骤",
+  "## 6. 与旧分组对照",
   "",
-  "1. 确认本方案后运行 `node scripts/apply-notifications-settings-mapping.mjs`",
-  "2. `cd admin-web && npm run build:settings-catalog`",
-  "3. 消息中心 → 设置（`/notifications/settings`）验证",
+  "| 新 groupTitle | 吸收的旧分组 |",
+  "|---------------|--------------|",
+  "| 顾客短信渠道 | 消息中心设置（334/335）；336–340 迁至消息模板+消息配置 |",
+  "| （已迁出） | 331/332/637–639 → 前厅 · POS 通知总控 / 订单消息提醒 |",
+  "| （已迁出） | 呼叫服务员系列 → 前厅 · 桌边服务 |",
   "",
-  "### 6.1 映射表（CSV）",
+  "---",
+  "",
+  "## 7. 落地步骤",
+  "",
+  "1. 运行 `node admin-web/scripts/apply-foh-settings-mapping.mjs`（331/332/637–639）",
+  "2. 运行 `node admin-web/scripts/apply-notifications-settings-mapping.mjs`（334/335）",
+  "3. `cd admin-web && npm run build:settings-catalog`",
+  "4. 可选：`node admin-web/scripts/generate-notifications-settings-design-doc.mjs` 同步本文档",
+  "5. 消息中心 → 设置（`/notifications/settings`）仅顾客短信；前厅 → 设置验证 POS 通知组",
+  "",
+  "### 7.1 映射表（CSV）",
   "",
   "```csv",
   "seq,groupTitle,groupKey",
 );
 
-for (const r of [...rows].sort((a, b) => a.seq - b.seq)) {
-  const key = assign.get(r.seq);
-  lines.push(`${r.seq},${titles[key]},${key}`);
+for (const k of order) {
+  for (const seq of assignMap[k]) {
+    lines.push(`${seq},${titles[k]},${k}`);
+  }
 }
 
 push(
@@ -180,13 +191,14 @@ push(
   "",
   "---",
   "",
-  "## 7. 边界说明",
+  "## 8. 边界说明",
   "",
-  "- 23 条全部保留；`seq` 与终版表行号一致。",
-  "- 本次仅重组消息中心设置，不改消息中心主业务页。",
-  "- 确认写入后执行 apply 脚本并重建 catalog。",
+  "- 消息中心 catalog 仅保留顾客短信渠道（334/335）。",
+  "- POS 员工端通知（331/332）与订单消息（637–639）归属前厅设置。",
+  "- 桌边呼叫：前厅配置能力；员工提醒依赖前厅 POS 通知总控主题 + 桌边服务类型。",
   "",
 );
 
 fs.writeFileSync(outPath, `${lines.join("\n")}\n`, "utf8");
 console.log(`Wrote ${outPath} (${rows.length} items, ${order.length} groups)`);
+

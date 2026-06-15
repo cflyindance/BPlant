@@ -39,18 +39,6 @@ npm run preview
 - **`npm run build`** 会生成 **`dist/`**：里面的 `index.html` 引用的是已打包的 **`/assets/*.js`**，不再引用 `src/main.ts`。
 - 预览或上线时请 **`npm run preview`**（或把 **`dist` 整目录** 交给 Nginx / 静态托管），**不要**再用根目录那份 `index.html` 当入口。
 
-## 上线（GitHub Pages）
-
-仓库已配置 GitHub Actions（`.github/workflows/deploy-admin-web.yml`）：push 到 `main` 且 `admin-web/` 源码有变更时，会自动 `npm run build` 并部署到 Pages。
-
-**访问地址：**
-
-- https://cflyindance.github.io/BPlant/admin-web/dist/index.html
-
-**说明：** 仓库使用「从 main 分支部署 Pages」。Actions 会在源码变更后自动 `npm run build`，并把 `dist/` 提交回 main；仅 dist 变更的 commit 不会再次触发构建（避免循环）。
-
-**注意：** 改源码后必须重新 build 才会更新线上页面。本地可执行 `npm run build` 验证。
-
 ## 配置导航
 
 编辑 `src/config/navigation.ts` 中的 `NAV_MODULES` 即可调整模块与子路由；`chainOnly: true` 表示连锁向入口，侧栏与 Tab 均会显示，Tab 上带「连锁」角标。

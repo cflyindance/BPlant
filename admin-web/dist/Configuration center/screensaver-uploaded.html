@@ -6,19 +6,9 @@
   <title>新建屏保 - 已上传 - 屏保</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="assets/common.css" />
+  <script src="assets/embedded-mode.js"></script>
   <script>
     tailwind.config = { theme: { extend: { colors: { primary: '#1677ff', 'sidebar-bg': '#fafafa', 'sidebar-active': '#e6f4ff' }, borderRadius: { ant: '6px' } } } };
-  </script>
-  <script>
-    (function () {
-      var params = new URLSearchParams(window.location.search);
-      var embedded = params.get("embedded");
-      var isEmbedded = embedded === "1" || embedded === "true";
-      if (!isEmbedded) {
-        try { isEmbedded = window.self !== window.top; } catch (e) { isEmbedded = false; }
-      }
-      if (isEmbedded) document.documentElement.classList.add("embedded-mode");
-    })();
   </script>
 </head>
 <body class="bg-white text-gray-900 antialiased">

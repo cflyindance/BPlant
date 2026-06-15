@@ -39,7 +39,7 @@ body {
   background: var(--body-bg);
 }
 
-/* Embedded mode: hide TipOut own nav/header user area when mounted in admin-web iframe */
+/* 嵌入 admin-web iframe：隐藏 TipOut 自有侧栏与顶栏 */
 body.tipout-embedded .sidebar {
   display: none !important;
 }

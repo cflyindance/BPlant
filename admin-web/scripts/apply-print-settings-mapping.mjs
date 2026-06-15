@@ -1,10 +1,14 @@
 /**
- * 将打印中心 5 组分类写入 docs/项目文档/配置归类-分组映射.csv
+ * 将打印中心分类写入 docs/项目文档/配置归类-分组映射.csv
  * 运行：node scripts/apply-print-settings-mapping.mjs
  */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  PRINT_SETTINGS_GROUP_TITLES,
+  PRINT_SETTINGS_INTRA_GROUP_SEQ,
+} from "./lib/print-settings-groups.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..", "..");
@@ -14,29 +18,10 @@ const mappingPath = [projectDocs, repoDocs]
   .map((d) => path.join(d, "配置归类-分组映射.csv"))
   .find((p) => fs.existsSync(p));
 
-const titles = {
-  "print-foundation-devices": "打印基础与设备",
-  "payment-receipt-flow": "支付收据流程",
-  "receipt-layout-details": "收据版式与明细",
-  "kitchen-ticket-packaging": "厨房单与打包单",
-  "ticket-number-slip": "单号小票",
-};
-
-const assignMap = {
-  "print-foundation-devices": [167, 172, 180, 256, 259, 455],
-  "payment-receipt-flow": [245, 246, 247, 249, 250, 252, 260, 261, 263, 266, 268, 272, 500, 654],
-  "receipt-layout-details": [
-    262, 264, 265, 269, 270, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289,
-    290,
-  ],
-  "kitchen-ticket-packaging": [34, 257, 258, 267, 271, 297, 301, 302, 303],
-  "ticket-number-slip": [291, 292],
-};
-
 const printAssign = new Map();
-for (const [key, seqs] of Object.entries(assignMap)) {
+for (const [key, seqs] of Object.entries(PRINT_SETTINGS_INTRA_GROUP_SEQ)) {
   for (const seq of seqs) {
-    printAssign.set(seq, { groupTitle: titles[key], groupKey: key });
+    printAssign.set(seq, { groupTitle: PRINT_SETTINGS_GROUP_TITLES[key], groupKey: key });
   }
 }
 
@@ -70,6 +55,12 @@ function escapeCsvCell(value) {
 
 if (!mappingPath) throw new Error("未找到 配置归类-分组映射.csv");
 
+function assignMapTotal() {
+  let n = 0;
+  for (const seqs of Object.values(PRINT_SETTINGS_INTRA_GROUP_SEQ)) n += seqs.length;
+  return n;
+}
+
 const text = fs.readFileSync(mappingPath, "utf8");
 const lines = text.split(/\r?\n/);
 const out = [];
@@ -94,13 +85,19 @@ for (const line of lines) {
   if (next) {
     out.push(`${seq},${escapeCsvCell(next.groupTitle)},${escapeCsvCell(next.groupKey)}`);
     updated++;
+    printAssign.delete(seq);
   } else {
     out.push(line);
   }
 }
 
-if (updated !== printAssign.size) {
-  throw new Error(`预期更新 ${printAssign.size} 条，实际 ${updated} 条`);
+for (const [seq, next] of printAssign) {
+  out.push(`${seq},${escapeCsvCell(next.groupTitle)},${escapeCsvCell(next.groupKey)}`);
+  updated++;
+}
+
+if (updated !== assignMapTotal()) {
+  throw new Error(`预期更新 ${assignMapTotal()} 条，实际 ${updated} 条`);
 }
 
 fs.writeFileSync(mappingPath, `${out.join("\n")}\n`, "utf8");
