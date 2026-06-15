@@ -9,12 +9,15 @@ const distDir = path.resolve(projectRoot, "dist");
 
 const EMBEDDED_DIRS = ["TipOut", "Configuration center"];
 
+const SKIP_DIR_NAMES = new Set(["node_modules", ".git"]);
+
 function copyRecursive(src, dest) {
   const stat = fs.statSync(src);
   if (stat.isDirectory()) {
     fs.mkdirSync(dest, { recursive: true });
     const entries = fs.readdirSync(src);
     for (const entry of entries) {
+      if (SKIP_DIR_NAMES.has(entry)) continue;
       copyRecursive(path.join(src, entry), path.join(dest, entry));
     }
     return;

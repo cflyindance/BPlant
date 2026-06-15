@@ -43,18 +43,13 @@ npm run preview
 
 仓库已配置 GitHub Actions（`.github/workflows/deploy-admin-web.yml`）：push 到 `main` 且 `admin-web/` 源码有变更时，会自动 `npm run build` 并部署到 Pages。
 
-**首次启用（只需做一次）：**
+**访问地址：**
 
-1. 打开 GitHub 仓库 → **Settings** → **Pages**
-2. **Build and deployment** → **Source** 选 **GitHub Actions**（不要选 “Deploy from a branch”）
-3. 将本次修改 push 到 `main`，或在 **Actions** 里手动运行 **Deploy admin-web to GitHub Pages**
+- https://cflyindance.github.io/BPlant/admin-web/dist/index.html
 
-**访问地址（Actions 部署后）：**
+**说明：** 仓库使用「从 main 分支部署 Pages」。Actions 会在源码变更后自动 `npm run build`，并把 `dist/` 提交回 main；仅 dist 变更的 commit 不会再次触发构建（避免循环）。
 
-- 推荐：`https://cflyindance.github.io/BPlant/`（`dist` 根目录即站点根）
-- 旧地址 `.../BPlant/admin-web/dist/` 仅在「从 main 分支静态托管整个仓库」时有效；改用 Actions 后请换用上面的短链接
-
-**注意：** 改源码后必须重新 build 才会更新线上页面。本地可执行 `npm run build` 验证；线上由 Actions 自动构建，无需手动提交 `dist/`。
+**注意：** 改源码后必须重新 build 才会更新线上页面。本地可执行 `npm run build` 验证。
 
 ## 配置导航
 
