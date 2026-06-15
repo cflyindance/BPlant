@@ -46,3 +46,6 @@ for (const dir of EMBEDDED_DIRS) {
   copyDirToDist(dir);
 }
 
+fs.writeFileSync(path.join(distDir, ".nojekyll"), "");
+console.log("[copy-embedded-assets] Wrote dist/.nojekyll");
+

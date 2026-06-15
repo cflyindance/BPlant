@@ -13,12 +13,19 @@ const INPUT_CLASS =
 const SECTION_HEAD_CLASS =
   "text-xs font-semibold uppercase tracking-wide text-muted-foreground";
 
-/** @typedef {{ fieldId: string; label: string; inputType?: string; placeholder?: string }} StoreBasicInfoField */
+interface StoreBasicInfoField {
+  fieldId: string;
+  label: string;
+  inputType?: string;
+  placeholder?: string;
+}
 
-/** @typedef {{ title: string; fields: StoreBasicInfoField[] }} StoreBasicInfoSection */
+interface StoreBasicInfoSection {
+  title: string;
+  fields: StoreBasicInfoField[];
+}
 
-/** @type {StoreBasicInfoSection[]} */
-export const STORE_BASIC_INFO_SECTIONS = [
+export const STORE_BASIC_INFO_SECTIONS: StoreBasicInfoSection[] = [
   {
     title: "门店标识",
     fields: [
@@ -58,8 +65,9 @@ export const STORE_BASIC_INFO_SECTIONS = [
   },
 ];
 
-/** @type {StoreBasicInfoField[]} */
-export const STORE_BASIC_INFO_FIELDS = STORE_BASIC_INFO_SECTIONS.flatMap((section) => section.fields);
+export const STORE_BASIC_INFO_FIELDS: StoreBasicInfoField[] = STORE_BASIC_INFO_SECTIONS.flatMap(
+  (section) => section.fields,
+);
 
 function escapeHtml(s: string): string {
   return s

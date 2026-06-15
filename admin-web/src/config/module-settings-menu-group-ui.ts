@@ -152,7 +152,7 @@ export function bindModuleSettingMenuGroupPickers(): void {
       const tag = removeBtn.closest("[data-menu-group-tag]");
       const picker = tag?.closest<HTMLElement>("[data-menu-group-picker]");
       const groupId = tag?.getAttribute("data-group-id");
-      if (groupId && picker) {
+      if (groupId && picker && tag) {
         const cb = picker.querySelector<HTMLInputElement>(
           `[data-menu-group-choice][data-group-id="${groupId}"]`,
         );
